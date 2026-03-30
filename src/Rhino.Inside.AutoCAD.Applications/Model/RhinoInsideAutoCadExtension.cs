@@ -67,6 +67,8 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
             Application = new RhinoInsideAutoCadApplication();
 
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit += this.OnApplicationBeginQuit;
+
             editor?.WriteMessage(_applicationLoadedSuccessMessage);
         }
         catch (System.Exception e)
@@ -109,17 +111,42 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     }
 
     /// <summary>
-    /// Terminate the <see cref="IRhinoInsideAutoCadApplication"/>
+    /// Safely terminates the <see cref="IRhinoInsideAutoCadApplication"/> by saving
+    /// any edited rhino or grasshopper files and catching any exceptions that may
+    /// occur during termination. This ensures  that the application can attempt to
+    /// terminate without crashing, even if  there are issues during the termination
+    /// process.
     /// </summary>
-    public void Terminate()
+    private void SafeTermination()
     {
         try
         {
             Application?.Terminate();
+
+            Application = null;
         }
         catch (System.Exception e)
         {
 
         }
+    }
+
+    /// <summary>
+    /// Subscribes to the AutoCAD application quit event to ensure that the
+    /// <see cref="IRhinoInsideAutoCadApplication"/> is properly terminated.
+    /// </summary>
+    private void OnApplicationBeginQuit(object sender, Autodesk.AutoCAD.ApplicationServices.BeginQuitEventArgs e)
+    {
+        this.SafeTermination();
+    }
+
+    /// <summary>
+    /// Terminate the <see cref="IRhinoInsideAutoCadApplication"/>
+    /// </summary>
+    public void Terminate()
+    {
+        this.SafeTermination();
+
+        Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
     }
 }

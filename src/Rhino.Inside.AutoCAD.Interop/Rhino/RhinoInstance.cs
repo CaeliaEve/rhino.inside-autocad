@@ -154,6 +154,12 @@ public class RhinoInstance : IRhinoInstance
     /// <inheritdoc />
     public void Shutdown()
     {
+        this.RhinoCore.Shutdown();
+
+        if (this.ActiveDoc != null && this.ActiveDoc.Modified)
+        {
+
+        }
 
         RhinoDoc.DocumentPropertiesChanged -= this.OnDocumentPropertiesModified;
 

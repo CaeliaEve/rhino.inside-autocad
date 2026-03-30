@@ -198,7 +198,7 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     public void Shutdown()
     {
         RhinoApp.Closing -= this.OnClosing;
-        RhinoApp.Exit(true);
+        RhinoApp.Exit(false);
         _rhinoCore?.Dispose();
     }
 }

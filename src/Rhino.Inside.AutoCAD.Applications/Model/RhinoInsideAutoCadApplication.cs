@@ -101,8 +101,6 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
 
             this.Bootstrapper?.AssemblyResolver.Terminate();
 
-            RhinoCoreExtension.Instance.Shutdown();
-
             LoggerService.Instance?.Shutdown();
 
         }
