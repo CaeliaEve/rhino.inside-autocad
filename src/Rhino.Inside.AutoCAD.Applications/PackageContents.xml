@@ -14,7 +14,7 @@
 	</CompanyDetails>
 
 	<Components Description="Rhino Inside AutoCAD Components Net48">
-		<RuntimeRequirements SupportPath="./Icons;./Icons/Small32;./Icons/Large512;./Toolbar;" OS="Win64" Platform="AutoCAD" SeriesMin="24.3" SeriesMax="24.3"/>
+		<RuntimeRequirements SupportPath="./Icons;./Icons/Small32;./Icons/Large512;./Toolbar;" OS="Win64" Platform="AutoCAD*" SeriesMin="24.3" SeriesMax="24.3"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
 						ModuleName="./1.0.18/Win64/NET48/Rhino.Inside.AutoCAD.Applications.dll"
@@ -68,7 +68,7 @@
 	</Components>
 
 <Components Description="Rhino Inside AutoCAD Components Net8">
-		<RuntimeRequirements SupportPath="./Icons;./Icons/Small32;./Icons/Large512;./Toolbar;" OS="Win64" Platform="AutoCAD" SeriesMin="R25.0" SeriesMax="R25.1"/>
+		<RuntimeRequirements SupportPath="./Icons;./Icons/Small32;./Icons/Large512;./Toolbar;" OS="Win64" Platform="AutoCAD*" SeriesMin="R25.0" SeriesMax="R25.1"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
 						ModuleName="./1.0.18/Win64/NET8/Rhino.Inside.AutoCAD.Applications.dll"
