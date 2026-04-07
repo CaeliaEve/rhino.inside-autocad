@@ -6,9 +6,14 @@
 public interface IGrasshopperObjectPreviewServer
 {
     /// <summary>
-    /// The settings used to configure the geometry preview.
+    /// The settings used to configure the geometry preview in the non-selected state.
     /// </summary>
-    IGeometryPreviewSettings Settings { get; }
+    IGeometryPreviewSettings UnSelectedSettings { get; }
+
+    /// <summary>
+    /// The settings used to configure the geometry preview in the selected state.
+    /// </summary>
+    IGeometryPreviewSettings SelectedSettings { get; }
 
     /// <summary>
     /// The current visibility state of the preview.

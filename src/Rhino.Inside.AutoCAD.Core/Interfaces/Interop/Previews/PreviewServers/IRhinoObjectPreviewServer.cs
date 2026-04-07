@@ -6,9 +6,14 @@
 public interface IRhinoObjectPreviewServer
 {
     /// <summary>
-    /// The settings used to configure the geometry preview.
+    /// The settings used to configure the geometry preview in the non-selected state.
     /// </summary>
-    IGeometryPreviewSettings Settings { get; }
+    IGeometryPreviewSettings UnSelectedSettings { get; }
+
+    /// <summary>
+    /// The settings used to configure the geometry preview in the selected state.
+    /// </summary>
+    IGeometryPreviewSettings SelectedSettings { get; }
 
     /// <summary>
     /// The current visibility state of the preview.
@@ -27,11 +32,17 @@ public interface IRhinoObjectPreviewServer
     /// Adds the provided <paramref name="rhinoConvertibleSet"/> into this <see cref=
     /// "IRhinoObjectPreviewServer"/>.
     /// </summary>
-    void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet);
+    void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet,
+        bool isSelected);
 
     /// <summary>
     /// Removes the provided <paramref name="rhinoObjectId"/> from this <see cref=
     /// "IRhinoObjectPreviewServer"/>.
     /// </summary>
     void RemoveObject(Guid rhinoObjectId);
+
+    /// <summary>
+    /// Deselects all the transient entities which are in the <see cref="IObjectRegister"/>
+    /// </summary>
+    void DeselectAll();
 }

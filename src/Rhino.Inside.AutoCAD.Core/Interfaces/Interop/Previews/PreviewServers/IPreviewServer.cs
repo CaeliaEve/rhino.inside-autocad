@@ -14,7 +14,7 @@ public interface IPreviewServer
     /// Adds the provided <paramref name="rhinoConvertibleSet"/> into this <see cref=
     /// "IPreviewServer"/>.
     /// </summary>
-    void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet);
+    void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet, bool selected);
 
     /// <summary>
     /// Removes the provided <paramref name="rhinoObjectId"/> from this <see cref=
@@ -33,4 +33,9 @@ public interface IPreviewServer
     /// from the AutoCAD drawing.
     /// </summary>
     void PopulateServer();
+
+    /// <summary>
+    /// Deselects all the entities in the preview server by applying the unselected settings to them.
+    /// </summary>
+    public void DeselectAll();
 }

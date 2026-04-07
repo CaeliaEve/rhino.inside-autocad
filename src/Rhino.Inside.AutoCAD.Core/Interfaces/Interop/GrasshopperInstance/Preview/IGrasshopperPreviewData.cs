@@ -37,6 +37,11 @@ public interface IGrasshopperPreviewData
     List<Rhino.Geometry.Leader> Leaders { get; }
 
     /// <summary>
+    /// Indicates whether the component currently selected.
+    /// </summary>
+    bool IsSelected { get; }
+
+    /// <summary>
     /// Retrieves the set of shaded objects from the preview data as a
     /// <see cref="IRhinoConvertibleSet"/>.
     /// </summary>

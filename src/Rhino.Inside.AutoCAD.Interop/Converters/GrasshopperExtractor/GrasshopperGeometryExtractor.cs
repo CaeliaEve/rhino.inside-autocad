@@ -132,7 +132,7 @@ public class GrasshopperGeometryExtractor : IGrasshopperGeometryExtractor
     /// <inheritdoc />
     public IGrasshopperPreviewData ExtractPreviewGeometry(IGH_DocumentObject ghDocumentObject)
     {
-        var previewGeometryData = new GrasshopperPreviewData(_rhinoConvertibleFactory);
+        var previewGeometryData = new GrasshopperPreviewData(_rhinoConvertibleFactory, ghDocumentObject.Attributes.Selected);
 
         if (ghDocumentObject is not IGH_PreviewObject { Hidden: false })
             return previewGeometryData;

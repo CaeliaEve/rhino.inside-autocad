@@ -8,7 +8,10 @@ public class RhinoObjectPreviewServer : IRhinoObjectPreviewServer
     private readonly IPreviewServer _previewServer;
 
     /// <inheritdoc />
-    public IGeometryPreviewSettings Settings { get; }
+    public IGeometryPreviewSettings UnSelectedSettings { get; }
+
+    /// <inheritdoc />
+    public IGeometryPreviewSettings SelectedSettings { get; }
 
     /// <inheritdoc/>
     public bool Visible { get; private set; }
@@ -17,13 +20,16 @@ public class RhinoObjectPreviewServer : IRhinoObjectPreviewServer
     /// Constructs a new <see cref="RhinoObjectPreviewServer"/>
     /// </summary>
     public RhinoObjectPreviewServer(IGeometryPreviewSettings geometryPreviewSettings,
+        IGeometryPreviewSettings selectedPreviewSettings,
         IPreviewGeometryConverter previewGeometryConverter)
     {
-        _previewServer = new PreviewServer(geometryPreviewSettings, previewGeometryConverter);
+        _previewServer = new PreviewServer(geometryPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
 
         this.Visible = true;
 
-        this.Settings = geometryPreviewSettings;
+        this.UnSelectedSettings = geometryPreviewSettings;
+
+        this.SelectedSettings = selectedPreviewSettings;
     }
 
     /// <summary>
@@ -42,9 +48,9 @@ public class RhinoObjectPreviewServer : IRhinoObjectPreviewServer
     }
 
     /// <inheritdoc />
-    public void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet)
+    public void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet, bool isSelected)
     {
-        _previewServer.AddObject(rhinoObjectId, rhinoConvertibleSet);
+        _previewServer.AddObject(rhinoObjectId, rhinoConvertibleSet, isSelected);
 
     }
 
@@ -52,6 +58,12 @@ public class RhinoObjectPreviewServer : IRhinoObjectPreviewServer
     public void RemoveObject(Guid rhinoObjectId)
     {
         _previewServer.RemoveObject(rhinoObjectId);
+    }
+
+    /// <inheritdoc />
+    public void DeselectAll()
+    {
+        _previewServer.DeselectAll();
     }
 
     /// <inheritdoc />

@@ -7,13 +7,16 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// <inheritdoc cref="IGrasshopperObjectPreviewServer"/>
 public class GrasshopperObjectPreviewServer : IGrasshopperObjectPreviewServer
 {
-    private readonly IRhinoConvertibleFactory _rhinoConvertibleFactory;
+
     private readonly IPreviewServer _shadedPreviewServer;
     private readonly IPreviewServer _wireframePreviewServer;
     private readonly IGrasshopperPreviewButtonManager _buttonManager;
 
     /// <inheritdoc/>
-    public IGeometryPreviewSettings Settings { get; }
+    public IGeometryPreviewSettings UnSelectedSettings { get; }
+
+    /// <inheritdoc/>
+    public IGeometryPreviewSettings SelectedSettings { get; }
 
     /// <inheritdoc/>
     public GrasshopperPreviewMode PreviewMode { get; private set; }
@@ -22,16 +25,16 @@ public class GrasshopperObjectPreviewServer : IGrasshopperObjectPreviewServer
     /// Constructs a new <see cref="IGrasshopperObjectPreviewServer"/>
     /// </summary>
     public GrasshopperObjectPreviewServer(IGeometryPreviewSettings geometryPreviewSettings,
-        IPreviewGeometryConverter previewGeometryConverter, IRhinoConvertibleFactory rhinoConvertibleFactory)
+        IGeometryPreviewSettings selectedPreviewSettings, IPreviewGeometryConverter previewGeometryConverter)
     {
-        _rhinoConvertibleFactory = rhinoConvertibleFactory;
-        _shadedPreviewServer = new PreviewServer(geometryPreviewSettings, previewGeometryConverter);
-        _wireframePreviewServer = new PreviewServer(geometryPreviewSettings, previewGeometryConverter);
+        _shadedPreviewServer = new PreviewServer(geometryPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
+        _wireframePreviewServer = new PreviewServer(geometryPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
 
         _buttonManager = new GrasshopperPreviewButtonManager();
 
         this.PreviewMode = GrasshopperPreviewMode.Shaded;
-        this.Settings = geometryPreviewSettings;
+        this.UnSelectedSettings = geometryPreviewSettings;
+        this.SelectedSettings = selectedPreviewSettings;
     }
 
     /// <summary>
@@ -73,9 +76,9 @@ public class GrasshopperObjectPreviewServer : IGrasshopperObjectPreviewServer
 
         var wireFrameSet = grasshopperPreviewData.GetWireframeObjects();
 
-        _shadedPreviewServer.AddObject(rhinoObjectId, shadedSet);
+        _shadedPreviewServer.AddObject(rhinoObjectId, shadedSet, grasshopperPreviewData.IsSelected);
 
-        _wireframePreviewServer.AddObject(rhinoObjectId, wireFrameSet);
+        _wireframePreviewServer.AddObject(rhinoObjectId, wireFrameSet, grasshopperPreviewData.IsSelected);
 
     }
 

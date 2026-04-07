@@ -18,12 +18,16 @@ public class GrasshopperInstance : IGrasshopperInstance
     private const string _loadGhaMethodNotFound = MessageConstants.LoadGhaMethodNotFound;
     private const string _grasshopperInitializationFailed = MessageConstants.GrasshopperInitializationFailed;
     private static readonly Guid _grasshopperPlugInId = Guid.Parse("b45a29b1-4343-4035-989e-044e8580d9cf");
+    private IGrasshopperSelectionTracker? _selectionTracker;
 
     /// <inheritdoc />
-    public event EventHandler<IGrasshopperObjectModifiedEventArgs>? OnPreviewExpired;
+    public event EventHandler<IGrasshopperObjectModifiedEventArgs>? PreviewExpired;
 
     /// <inheritdoc />
-    public event EventHandler<IGrasshopperObjectModifiedEventArgs>? OnObjectRemoved;
+    public event EventHandler<IGrasshopperObjectModifiedEventArgs>? ObjectRemoved;
+
+    /// <inheritdoc />
+    public event EventHandler<IGrasshopperSelectionEventArgs>? ComponentSelectionChanged;
 
     /// <inheritdoc />
     public GH_Document? ActiveDoc { get; private set; }
@@ -134,24 +138,6 @@ public class GrasshopperInstance : IGrasshopperInstance
     }
 
     /// <summary>
-    /// Removes subscriptions to events in the current Grasshopper document.
-    /// </summary>
-    private void RemoveDocumentSubscriptions()
-    {
-        if (this.ActiveDoc != null)
-        {
-            this.ActiveDoc.ObjectsAdded -= this.OnObjectsAdded;
-            this.ActiveDoc.ObjectsDeleted -= this.OnObjectsDeleted;
-            this.ActiveDoc.SolutionEnd -= this.OnSolutionEnd;
-
-            foreach (var obj in this.ActiveDoc.Objects)
-            {
-                this.UnhookPreviewExpired(obj);
-            }
-        }
-    }
-
-    /// <summary>
     /// Handles the event when objects are added to the Grasshopper document.
     /// </summary>
     /// <param name="sender">
@@ -183,7 +169,7 @@ public class GrasshopperInstance : IGrasshopperInstance
         {
             this.UnhookPreviewExpired(ghDocumentObject);
 
-            this.OnObjectRemoved?.Invoke(this,
+            this.ObjectRemoved?.Invoke(this,
                 new GrasshopperObjectModifiedEventArgs(ghDocumentObject));
         }
     }
@@ -217,7 +203,7 @@ public class GrasshopperInstance : IGrasshopperInstance
     {
         if (e.Type == GH_ObjectEventType.Preview)
         {
-            this.OnPreviewExpired?.Invoke(this,
+            this.PreviewExpired?.Invoke(this,
                 new GrasshopperObjectModifiedEventArgs(sender));
         }
     }
@@ -238,6 +224,56 @@ public class GrasshopperInstance : IGrasshopperInstance
         {
             this.HookPreviewExpired(ghDocumentObject);
         }
+
+        _selectionTracker = new GrasshopperSelectionTracker(document);
+        _selectionTracker.ObjectsSelected += this.OnObjectsSelected;
+        _selectionTracker.ObjectsDeselected += this.OnObjectsDeselected;
+    }
+
+    /// <summary>
+    /// Removes subscriptions to events in the current Grasshopper document.
+    /// </summary>
+    private void RemoveDocumentSubscriptions()
+    {
+        if (this.ActiveDoc == null) return;
+
+        this.ActiveDoc.ObjectsAdded -= this.OnObjectsAdded;
+        this.ActiveDoc.ObjectsDeleted -= this.OnObjectsDeleted;
+        this.ActiveDoc.SolutionEnd -= this.OnSolutionEnd;
+
+        foreach (var obj in this.ActiveDoc.Objects)
+        {
+            this.UnhookPreviewExpired(obj);
+        }
+
+        if (_selectionTracker == null) return;
+
+        _selectionTracker.ObjectsSelected -= this.OnObjectsSelected;
+        _selectionTracker.ObjectsDeselected -= this.OnObjectsDeselected;
+
+        _selectionTracker = null;
+    }
+
+    /// <summary>
+    /// Triggers the preview expired event when the attributes of a Grasshopper document
+    /// object change, for example when the component is selected or deselected. This
+    /// ensures that the preview geometry is updated to reflect the selection state of
+    /// the component.
+    /// </summary>
+    private void OnObjectsSelected(object sender, IGrasshopperSelectionEventArgs e)
+    {
+        this.ComponentSelectionChanged?.Invoke(this, e);
+    }
+
+    /// <summary>
+    /// Triggers the preview expired event when the attributes of a Grasshopper document
+    /// object change, for example when the component is selected or deselected. This
+    /// ensures that the preview geometry is updated to reflect the selection state of
+    /// the component.
+    /// </summary>
+    private void OnObjectsDeselected(object sender, IGrasshopperSelectionEventArgs e)
+    {
+        this.ComponentSelectionChanged?.Invoke(this, e);
     }
 
     /// <summary>
@@ -251,7 +287,7 @@ public class GrasshopperInstance : IGrasshopperInstance
             if (ghDocumentObject is not IGH_PreviewObject { Hidden: false })
                 continue;
 
-            this.OnPreviewExpired?.Invoke(this,
+            this.PreviewExpired?.Invoke(this,
                 new GrasshopperObjectModifiedEventArgs(ghDocumentObject));
         }
     }
@@ -327,3 +363,4 @@ public class GrasshopperInstance : IGrasshopperInstance
         Grasshopper.Instances.CanvasCreated -= this.OnCanvasCreated;
     }
 }
+

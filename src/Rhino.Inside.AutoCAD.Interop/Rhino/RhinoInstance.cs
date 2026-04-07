@@ -24,6 +24,9 @@ public class RhinoInstance : IRhinoInstance
     public event EventHandler<IRhinoObjectModifiedEventArgs>? ObjectRemoved;
 
     /// <inheritdoc />
+    public event EventHandler? DeselectAll;
+
+    /// <inheritdoc />
     public IRhinoCoreExtension RhinoCore { get; }
 
     /// <inheritdoc />
@@ -75,6 +78,9 @@ public class RhinoInstance : IRhinoInstance
             RhinoDoc.AddRhinoObject += this.OnAddRhinoObject;
             RhinoDoc.ModifyObjectAttributes += this.OnModifyRhinoObject;
             RhinoDoc.DeleteRhinoObject += this.OnRemoveRhinoObject;
+            RhinoDoc.SelectObjects += this.OnSelectedObject;
+            RhinoDoc.DeselectObjects += this.OnSelectedObject;
+            RhinoDoc.DeselectAllObjects += this.OnDeselectObjects;
 
             return rhinoDoc;
         }
@@ -83,6 +89,32 @@ public class RhinoInstance : IRhinoInstance
             logger.AddError("Failed to initialize Rhino Doc.");
 
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Event handler which fires when all Rhino objects are deselected.
+    /// </summary>
+    private void OnDeselectObjects(object? sender, RhinoDeselectAllObjectsEventArgs e)
+    {
+        this.DeselectAll?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Event handler which fires when a Rhino object is selected. It raises the <see
+    /// cref="ObjectModifiedOrAppended"/> for each selected object to ensure that the preview
+    /// geometry is updated when an object is selected. This is necessary because Rhino does
+    /// not raise a modify event when an object is selected, but we want to update the preview
+    /// geometry to reflect the selection state.
+    /// </summary>
+    private void OnSelectedObject(object? sender, RhinoObjectSelectionEventArgs e)
+    {
+        for (var index = 0; index < e.RhinoObjectCount; index++)
+        {
+            var rhinoObject = e.RhinoObjects[index];
+
+            this.ObjectModifiedOrAppended?.Invoke(this,
+                new RhinoObjectModifiedEventArgs(rhinoObject));
         }
     }
 
@@ -156,11 +188,6 @@ public class RhinoInstance : IRhinoInstance
     {
         this.RhinoCore.Shutdown();
 
-        if (this.ActiveDoc != null && this.ActiveDoc.Modified)
-        {
-
-        }
-
         RhinoDoc.DocumentPropertiesChanged -= this.OnDocumentPropertiesModified;
 
         RhinoDoc.AddRhinoObject -= this.OnAddRhinoObject;
@@ -168,6 +195,10 @@ public class RhinoInstance : IRhinoInstance
         RhinoDoc.ModifyObjectAttributes -= this.OnModifyRhinoObject;
 
         RhinoDoc.DeleteRhinoObject -= this.OnRemoveRhinoObject;
+
+        RhinoDoc.SelectObjects -= this.OnSelectedObject;
+
+        RhinoDoc.DeselectObjects -= this.OnSelectedObject;
 
         this.ActiveDoc?.Dispose();
     }
