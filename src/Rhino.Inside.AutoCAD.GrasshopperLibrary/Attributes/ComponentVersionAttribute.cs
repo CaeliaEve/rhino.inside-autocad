@@ -22,7 +22,7 @@ public sealed class ComponentVersionAttribute : Attribute
     /// <param name="introduced">
     /// The version when the component was introduced.
     /// </param>
-    internal ComponentVersionAttribute(string introduced) : this(introduced, null, null) { }
+    public ComponentVersionAttribute(string introduced) : this(introduced, null, null) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ComponentVersionAttribute"/> class
@@ -34,7 +34,7 @@ public sealed class ComponentVersionAttribute : Attribute
     /// <param name="updated">
     /// The version when the component was updated, or <c>null</c> if not updated.
     /// </param>
-    internal ComponentVersionAttribute(string introduced, string? updated) : this(introduced, updated, null) { }
+    public ComponentVersionAttribute(string introduced, string? updated) : this(introduced, updated, null) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ComponentVersionAttribute"/> class
@@ -49,7 +49,7 @@ public sealed class ComponentVersionAttribute : Attribute
     /// <param name="deprecated">
     /// The version when the component was deprecated, or <c>null</c> if not deprecated.
     /// </param>
-    internal ComponentVersionAttribute(string introduced, string? updated, string? deprecated)
+    public ComponentVersionAttribute(string introduced, string? updated, string? deprecated)
     {
         var introducedVersion = Version.Parse(introduced);
         var updatedVersion = updated is not null ? Version.Parse(updated!) : null;

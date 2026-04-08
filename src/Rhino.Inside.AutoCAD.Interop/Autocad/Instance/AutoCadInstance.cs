@@ -1,4 +1,5 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
@@ -15,6 +16,8 @@ public class AutoCadInstance : IAutoCadInstance
 
     private readonly string _readOnlyNotSupported = MessageConstants.ReadOnlyNotSupported;
     private readonly string _fileUnitsNotSupported = MessageConstants.FileUnitsNotSupported;
+    private const string _userRegistryProductRootKeyProfiles = MessageConstants.UserRegistryProductRootKeyProfiles;
+    private const string _isPureAcadProfile = MessageConstants.IsPureAcadProfile;
 
     /// <inheritdoc/>
     public event EventHandler? DocumentCreated;
@@ -36,6 +39,9 @@ public class AutoCadInstance : IAutoCadInstance
 
     /// <inheritdoc/>
     public Version ApplicationVersion { get; }
+
+    /// <inheritdoc/>
+    public bool IsCivil3d { get; }
 
     /// <summary>
     /// Constructs a new <see cref="IAutoCadInstance"/>.
@@ -67,6 +73,48 @@ public class AutoCadInstance : IAutoCadInstance
         this.ApplicationVersion = Application.Version;
 
         this.Validate(documentFiles);
+
+        this.IsCivil3d = this.CheckIsCivil();
+    }
+
+    /// <summary>
+    /// Checks if the current AutoCAD profile is a Civil 3D profile by checking the registry
+    /// key for the current profile. If the application is not "IsPureAcadProfile" = "0",
+    /// then we assume it is a Civil 3D profile. Not this is not robust if it turns out that
+    /// there are other profiles which are not pure AutoCAD profiles.
+    /// </summary>
+    private bool CheckIsCivil()
+    {
+        var productKey = HostApplicationServices.Current.UserRegistryProductRootKey;
+        productKey += _userRegistryProductRootKeyProfiles;
+
+        var key = Microsoft.Win32.Registry.CurrentUser;
+        key = key.OpenSubKey(productKey, false);
+
+        var currentProfile = key.GetValue("").ToString();
+        key = key.OpenSubKey(currentProfile, false);
+
+        var keyNames = key.GetValueNames();
+
+        foreach (var valueName in keyNames)
+        {
+            if (valueName != _isPureAcadProfile) continue;
+
+            if (key.GetValue(valueName).ToString() == "1") return false;
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            foreach (var assembly in assemblies)
+            {
+                if (assembly.FullName.StartsWith("AeccUiWindows"))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
     }
 
     /// <summary>

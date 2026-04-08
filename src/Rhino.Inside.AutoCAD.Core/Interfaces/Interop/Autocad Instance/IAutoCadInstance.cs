@@ -42,6 +42,14 @@ public interface IAutoCadInstance
     Version ApplicationVersion { get; }
 
     /// <summary>
+    /// A boolean indicating whether the current AutoCAD profile is a Civil 3D profile.
+    /// This is determined by checking the registry key for the current profile.
+    /// If the application is not "IsPureAcadProfile" = "0" then it is assumed to be a
+    /// Civil 3D profile, and this property will return true.
+    /// </summary>
+    bool IsCivil3d { get; }
+
+    /// <summary>
     /// Ensures that the AutoCAD instance is properly shutdown and resources are released.
     /// </summary>
     void Shutdown();

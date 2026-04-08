@@ -14,10 +14,13 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public class GrasshopperInstance : IGrasshopperInstance
 {
     private readonly IInstallationDirectories _installationDirectories;
+
+    private readonly bool _loadCivil;
     private const string _grasshopperLibraryFileName = InteropConstants.GrasshopperLibraryFileName;
+    private const string _grasshopperCivilLibraryFileName = InteropConstants.GrasshopperCivilLibraryFileName;
     private const string _loadGhaMethodNotFound = MessageConstants.LoadGhaMethodNotFound;
     private const string _grasshopperInitializationFailed = MessageConstants.GrasshopperInitializationFailed;
-    private static readonly Guid _grasshopperPlugInId = Guid.Parse("b45a29b1-4343-4035-989e-044e8580d9cf");
+
     private IGrasshopperSelectionTracker? _selectionTracker;
 
     /// <inheritdoc />
@@ -44,9 +47,14 @@ public class GrasshopperInstance : IGrasshopperInstance
     /// <param name="installationDirectories">
     /// The application directories used to locate resources.
     /// </param>
-    public GrasshopperInstance(IInstallationDirectories installationDirectories)
+    /// <param name="loadCivil">
+    /// A Boolean indicating if the Civil3d grasshopper library will
+    /// also be loaded when grasshopper loads
+    /// </param>
+    public GrasshopperInstance(IInstallationDirectories installationDirectories, bool loadCivil)
     {
         _installationDirectories = installationDirectories;
+        _loadCivil = loadCivil;
     }
 
     /// <summary>
@@ -63,6 +71,7 @@ public class GrasshopperInstance : IGrasshopperInstance
     {
         var assembliesFolder = _installationDirectories.VersionedAssemblies;
         var grasshopperLibraryPath = System.IO.Path.Combine(assembliesFolder, _grasshopperLibraryFileName);
+        var grasshopperCivilLibraryPath = System.IO.Path.Combine(assembliesFolder, _grasshopperCivilLibraryFileName);
 
         var assembly = Assembly.LoadFrom(grasshopperLibraryPath);
 
@@ -86,6 +95,13 @@ public class GrasshopperInstance : IGrasshopperInstance
                 loadGhaMethod.Invoke(Instances.ComponentServer,
                     [new GH_ExternalFile(grasshopperLibraryPath), false]
                 );
+
+                if (_loadCivil)
+                {
+                    loadGhaMethod.Invoke(Instances.ComponentServer,
+                        [new GH_ExternalFile(grasshopperCivilLibraryPath), false]
+                    );
+                }
             }
             catch (TargetInvocationException e)
             {
