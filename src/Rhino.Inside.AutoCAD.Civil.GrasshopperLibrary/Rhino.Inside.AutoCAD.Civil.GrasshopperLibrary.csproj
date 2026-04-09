@@ -19,6 +19,12 @@
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Types\NewFolder\**" />
+	  <EmbeddedResource Remove="Types\NewFolder\**" />
+	  <None Remove="Types\NewFolder\**" />
+	</ItemGroup>
 	
 
 	<ItemGroup>
@@ -37,6 +43,9 @@
 		<PackageReference Include="AutoCAD.NET">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+		<PackageReference Include="Civil3D.NET">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
 		<PackageReference Include="AutoCAD.NET.Core">
 			<PrivateAssets></PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
@@ -48,6 +57,7 @@
 			<Private>False</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Civil.Interop\Rhino.Inside.AutoCAD.Civil.Interop.csproj" />
 		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Core\Rhino.Inside.AutoCAD.Core.csproj">
 			<Private>False</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
@@ -62,21 +72,23 @@
 		</ProjectReference>
 	</ItemGroup>
 
-
-
 	<ItemGroup>
-		<Compile Update="Properties\Resources.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Resources.resx</DependentUpon>
-		</Compile>
+	  <Compile Update="Properties\Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Update="Properties\Resources.resx">
-			<Generator>ResXFileCodeGenerator</Generator>
-			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
+	  <EmbeddedResource Update="Properties\Resources.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Civil Tab\Surfaces\" />
 	</ItemGroup>
 
 

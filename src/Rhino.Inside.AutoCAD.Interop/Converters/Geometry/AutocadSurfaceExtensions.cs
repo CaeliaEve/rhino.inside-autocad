@@ -1,7 +1,6 @@
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using CadExtents3d = Autodesk.AutoCAD.DatabaseServices.Extents3d;
 using CadHatch = Autodesk.AutoCAD.DatabaseServices.Hatch;
 using CadNurbsSurface = Autodesk.AutoCAD.DatabaseServices.NurbSurface;

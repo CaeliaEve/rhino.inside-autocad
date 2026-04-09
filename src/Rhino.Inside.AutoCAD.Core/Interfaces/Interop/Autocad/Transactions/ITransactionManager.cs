@@ -30,6 +30,11 @@ public interface ITransactionManager : IDisposable
     IObjectId RegAppTableId { get; }
 
     /// <summary>
+    /// Returns the <see cref="IDatabase"/> associated with this transaction manager.
+    /// </summary>
+    IDatabase Database { get; }
+
+    /// <summary>
     /// Opens the model space block table record for reading or writing.
     /// </summary>
     /// <param name="openForWrite">
@@ -52,4 +57,5 @@ public interface ITransactionManager : IDisposable
     /// Skipped for read-only documents or unsaved documents without a file path.
     /// </remarks>
     void SaveDatabase(IAutocadDocument document);
+
 }

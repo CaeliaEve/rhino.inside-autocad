@@ -23,6 +23,9 @@ public class TransactionManagerWrapper : AutocadWrapperDisposableBase<Transactio
     /// <inheritdoc/>
     public IObjectId RegAppTableId { get; }
 
+    /// <inheritdoc/>
+    public IDatabase Database => new AutocadDatabaseWrapper(_database);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TransactionManagerWrapper"/> class.
     /// </summary>

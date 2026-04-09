@@ -15,13 +15,11 @@
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<UseWindowsForms>true</UseWindowsForms>
-		
+
 	</PropertyGroup>
 
 	<ItemGroup>
-	<PackageReference Include="AutoCAD.NET.Model" />
-	<PackageReference Include="NaturalSort.Extension" />
+		<PackageReference Include="NaturalSort.Extension" />
 		<PackageReference Include="MaterialDesignThemes" />
 		<PackageReference Include="RhinoCommon">
 			<ExcludeAssets>runtime</ExcludeAssets>
@@ -39,28 +37,31 @@
 			<PrivateAssets></PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+		<PackageReference Include="Civil3D.NET" >
+		<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
 
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Core\Rhino.Inside.AutoCAD.Core.csproj">
-		  <Private>False</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Interop\Rhino.Inside.AutoCAD.Interop.csproj" >
+		<Private>False</Private>
+		<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
 		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Services\Rhino.Inside.AutoCAD.Services.csproj">
-		  <Private>False</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
 		<ProjectReference Include="..\Rhino.Inside.AutoCAD.UI.Resources\Rhino.Inside.AutoCAD.UI.Resources.csproj">
-		  <Private>False</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Autocad\Scale\" />
-	  <Folder Include="Converters\Geometry\" />
-	</ItemGroup>
 
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

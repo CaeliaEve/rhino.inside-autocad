@@ -96,6 +96,7 @@ public class GH_AutocadFilter : GH_Goo<IObjectFilter>
             "text" => new TextFilter(),
             "leader" => new LeaderFilter(),
             "block" => new BlockReferenceFilter(),
+            "tinSurface" => new CivilTinSurfaceFilter(),
             _ => null
         };
 
