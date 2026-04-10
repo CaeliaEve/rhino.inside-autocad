@@ -302,7 +302,7 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         database.ObjectModified -= this.OnObjectModified;
         database.ObjectErased -= this.OnObjectErased;
 
-        this.Database.Dispose();
+        this.Database?.Dispose();
         this.LayerRegister?.Dispose();
 
         if (_document.IsDisposed)

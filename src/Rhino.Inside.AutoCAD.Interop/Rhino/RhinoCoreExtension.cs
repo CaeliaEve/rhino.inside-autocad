@@ -198,7 +198,13 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     public void Shutdown()
     {
         RhinoApp.Closing -= this.OnClosing;
+
         RhinoApp.Exit(false);
+
+        RhinoDoc.ActiveDoc?.Dispose();
+
+        Grasshopper.Instances.ActiveDocument?.Dispose();
+
         _rhinoCore?.Dispose();
     }
 }

@@ -30,4 +30,9 @@ public class GeometryConstants
     /// </summary>
     public const double RatioTolerance = 1e-10;
 
+    /// <summary>
+    /// The internal tolerance value used for vertex comparisons, such as when comparing mesh vertices or control points.
+    /// </summary>
+    public const double VertexTolerance = 0.0001;
+
 }

@@ -186,8 +186,6 @@ public class RhinoInstance : IRhinoInstance
     /// <inheritdoc />
     public void Shutdown()
     {
-        this.RhinoCore.Shutdown();
-
         RhinoDoc.DocumentPropertiesChanged -= this.OnDocumentPropertiesModified;
 
         RhinoDoc.AddRhinoObject -= this.OnAddRhinoObject;
@@ -200,6 +198,6 @@ public class RhinoInstance : IRhinoInstance
 
         RhinoDoc.DeselectObjects -= this.OnSelectedObject;
 
-        this.ActiveDoc?.Dispose();
+        this.RhinoCore.Shutdown();
     }
 }

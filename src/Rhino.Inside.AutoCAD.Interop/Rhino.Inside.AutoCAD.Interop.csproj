@@ -58,8 +58,14 @@
 
 	<ItemGroup>
 	  <Folder Include="Autocad\Scale\" />
-	  <Folder Include="Converters\Geometry\" />
 	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">
+		<DefineConstants>DEBUG;DEBUGNET8;TRACE</DefineConstants>
+		<Optimize>false</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
 
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

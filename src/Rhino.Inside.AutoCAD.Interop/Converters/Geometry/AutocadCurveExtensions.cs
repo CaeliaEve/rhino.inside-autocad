@@ -1,4 +1,4 @@
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using CadArc = Autodesk.AutoCAD.DatabaseServices.Arc;
 using CadCircle = Autodesk.AutoCAD.DatabaseServices.Circle;
@@ -20,7 +20,7 @@ using RhinoPoint = Rhino.Geometry.Point;
 using RhinoPoint2d = Rhino.Geometry.Point2d;
 using RhinoPoint3d = Rhino.Geometry.Point3d;
 using RhinoPolyCurve = Rhino.Geometry.PolyCurve;
-using RhinoVector3d = Rhino.Geometry.Vector3d;
+using RhinoTransform = Rhino.Geometry.Transform;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -143,6 +143,18 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
+    /// Converts an AutoCAD LineSegment3d to a Rhino LineCurve, applying unit conversion.
+    /// </summary>
+    /// <param name="lineSegment3d">The AutoCAD 3D line segment to convert.</param>
+    /// <returns>A Rhino LineCurve with endpoints scaled to Rhino units.</returns>
+    public static RhinoLineCurve ToRhinoLineCurve(this LineSegment3d lineSegment3d)
+    {
+        var startPoint = lineSegment3d.StartPoint.ToRhinoPoint3d();
+        var endPoint = lineSegment3d.EndPoint.ToRhinoPoint3d();
+        return new RhinoLineCurve(startPoint, endPoint);
+    }
+
+    /// <summary>
     /// Converts an AutoCAD Line2d to a Rhino LineCurve, applying unit conversion.
     /// </summary>
     /// <param name="line2d">The AutoCAD 2D line to convert.</param>
@@ -176,8 +188,44 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
+    /// Converts an AutoCAD Line3d to a Rhino LineCurve, applying unit conversion.
+    /// </summary>
+    /// <param name="line3d">The AutoCAD 3D line to convert.</param>
+    /// <returns>A Rhino LineCurve. If the line is infinite, creates a unit-length line.</returns>
+    /// <remarks>
+    /// <see cref="Line2d"/> are infinite which isn't supported in Rhino. The
+    /// <see cref="Line2d.PointOnLine"/> is used as the start point and the
+    /// endpoint is the unit translation of its direction.
+    /// </remarks>
+    public static RhinoLineCurve ToRhinoLineCurve(this Line3d line3d)
+    {
+        var hasStartPoint = line3d.HasStartPoint;
+        var startPoint = hasStartPoint ? line3d.StartPoint.ToRhinoPoint3d() : line3d.PointOnLine.ToRhinoPoint3d();
+
+        var hasEndPoint = line3d.HasEndPoint;
+        RhinoPoint3d endPoint;
+
+        if (hasEndPoint)
+        {
+            endPoint = line3d.EndPoint.ToRhinoPoint3d();
+        }
+        else
+        {
+            var vector3d = line3d.Direction.ToRhinoVector3d();
+            var translation = Rhino.Geometry.Transform.Translation(vector3d);
+            endPoint = new RhinoPoint3d(startPoint);
+            endPoint.Transform(translation);
+        }
+
+        return new RhinoLineCurve(startPoint, endPoint);
+    }
+
+    /// <summary>
     /// Converts an AutoCAD CircularArc2d to a Rhino Arc, applying unit conversion.
     /// </summary>
+    /// <remarks>
+    /// Vector has to be negated as the Rhino arc is drawn in the opposite direction
+    /// </remarks>
     /// <param name="circularArc2d">The AutoCAD 2D circular arc to convert.</param>
     /// <returns>A Rhino Arc with endpoints scaled to Rhino units.</returns>
     public static RhinoArc ToRhinoArc(this CircularArc2d circularArc2d)
@@ -185,8 +233,26 @@ public static class AutocadCurveExtensions
         var startPoint = circularArc2d.StartPoint.ToRhinoPoint3d();
         var endPoint = circularArc2d.EndPoint.ToRhinoPoint3d();
 
-        // Vector has to be negated as the Rhino arc is drawn in the opposite direction.
         var tangentVector = circularArc2d.GetTangent(circularArc2d.StartPoint).Direction.Negate();
+        var rhinoVector = tangentVector.ToRhinoVector3d();
+
+        return new RhinoArc(startPoint, rhinoVector, endPoint);
+    }
+
+    /// <summary>
+    /// Converts an AutoCAD CircularArc2d to a Rhino Arc, applying unit conversion.
+    /// </summary>
+    /// <remarks>
+    /// Vector has to be negated as the Rhino arc is drawn in the opposite direction
+    /// </remarks>
+    /// <param name="circularArc3d">The AutoCAD 2D circular arc to convert.</param>
+    /// <returns>A Rhino Arc with endpoints scaled to Rhino units.</returns>
+    public static RhinoArc ToRhinoArc(this CircularArc3d circularArc3d)
+    {
+        var startPoint = circularArc3d.StartPoint.ToRhinoPoint3d();
+        var endPoint = circularArc3d.EndPoint.ToRhinoPoint3d();
+
+        var tangentVector = circularArc3d.GetTangent(circularArc3d.StartPoint).Direction.Negate();
         var rhinoVector = tangentVector.ToRhinoVector3d();
 
         return new RhinoArc(startPoint, rhinoVector, endPoint);
@@ -234,6 +300,27 @@ public static class AutocadCurveExtensions
         }
 
         var isPeriodic = spline2d.IsPeriodic(out _);
+        return RhinoNurbsCurve.CreateSubDFriendly(rhinoPoints, false, isPeriodic);
+    }
+
+    /// <summary>
+    /// Converts an AutoCAD SplineEntity3d to a Rhino NurbsCurve, applying unit conversion.
+    /// </summary>
+    /// <param name="spline3d">The AutoCAD 3D spline to convert.</param>
+    /// <returns>A Rhino NurbsCurve with control points scaled to Rhino units.</returns>
+    public static RhinoNurbsCurve ToRhinoNurbsCurve(this SplineEntity3d spline3d)
+    {
+        var pointCount = spline3d.NumberOfControlPoints;
+        var rhinoPoints = new List<RhinoPoint3d>();
+
+        for (var i = 0; i < pointCount; i++)
+        {
+            var controlPoint = spline3d.ControlPointAt(i);
+            var point3d = controlPoint.ToRhinoPoint3d();
+            rhinoPoints.Add(point3d);
+        }
+
+        var isPeriodic = spline3d.IsPeriodic(out _);
         return RhinoNurbsCurve.CreateSubDFriendly(rhinoPoints, false, isPeriodic);
     }
 
@@ -290,24 +377,7 @@ public static class AutocadCurveExtensions
                 return splineEntity2d.ToRhinoNurbsCurve();
 
             case EllipticalArc2d ellipticalArc2d:
-                var ellipse = ellipticalArc2d.ToRhinoEllipse(out var interval);
-                var nurbs = ellipse.ToNurbsCurve();
-                var nurbsTrimmed = nurbs.Trim(interval);
-                var ellipseNurbs = nurbsTrimmed == null ? nurbs : (RhinoNurbsCurve)nurbsTrimmed;
-
-                var endPoint = ellipticalArc2d.EndPoint.ToRhinoPoint3d();
-                var startParameter = interval.T0;
-                var endParameter = interval.T1;
-
-                var samplePoints = ellipticalArc2d.GetSamplePoints(startParameter, endParameter, interval.Length).ToList();
-                var hasSamplePoints = samplePoints.Count > 0;
-
-                var endTangent = hasSamplePoints
-                    ? samplePoints.Last().GetDerivative(1, endParameter).ToRhinoVector3d()
-                    : new RhinoVector3d(0, 0, 0);
-
-                ellipseNurbs.SetEndCondition(true, RhinoNurbsCurve.NurbsCurveEndConditionType.Position, endPoint, endTangent);
-                return ellipseNurbs;
+                return ellipticalArc2d.ToRhinoNurbsCurve();
 
             default:
                 return null;
@@ -315,43 +385,217 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Adjusts knot vector to match Rhino's requirements.
-    /// The number of knots must be D + N - 1, where D = degree and N = number of control points.
-    /// AutoCAD may use D + N + 1 knots, so this method adjusts multiplicity as needed.
+    /// Converts an AutoCAD Curve3d to the appropriate Rhino curve type.
     /// </summary>
-    private static List<double> GetKnots(List<double> inputKnots, int degree, int numberOfControlPoints)
+    /// <param name="curve">The AutoCAD 3D curve to convert.</param>
+    /// <returns>A Rhino Curve, or null if the curve type is not supported.</returns>
+    public static Rhino.Geometry.Curve? ToRhinoCurve(this Curve3d curve)
     {
-        var targetNumberOfKnots = degree + numberOfControlPoints - 1;
+        switch (curve)
+        {
+            case LineSegment3d line:
+                return line.ToRhinoLineCurve();
 
-        if (inputKnots.Count == targetNumberOfKnots)
+            case Line3d line2d:
+                return line2d.ToRhinoLineCurve();
+
+            case CircularArc3d circularArc2d:
+                var arc = circularArc2d.ToRhinoArc();
+                return new RhinoArcCurve(arc);
+
+            case SplineEntity3d splineEntity2d:
+                return splineEntity2d.ToRhinoNurbsCurve();
+
+            case EllipticalArc3d ellipticalArc2d:
+                return ellipticalArc2d.ToRhinoNurbsCurve();
+
+            case ExternalCurve3d externalCurve3d:
+                var nurbsCurve = externalCurve3d.NativeCurve;
+                return nurbsCurve?.ToRhinoCurve();
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Converts an <see cref="EllipticalArc2d"/> to a <see cref="RhinoNurbsCurve"/>.
+    /// </summary>
+    /// <remarks>
+    /// The conversion is performed in two steps:
+    /// <list type="number">
+    ///   <item>A circular arc is constructed using the major radius and angle interval,
+    ///   oriented on a plane derived from the ellipse's major and minor axes.</item>
+    ///   <item>A non-uniform scale transform is applied along the minor axis to squash
+    ///   the circle into the correct elliptical shape, using the minor-to-major radius ratio.</item>
+    /// </list>
+    /// Unit conversion is applied to both radii via <see cref="UnitConverter.ToRhinoLength"/>.
+    /// </remarks>
+    /// <param name="ellipticalArc2d">The source elliptical arc to convert.</param>
+    /// <returns>
+    /// A <see cref="RhinoNurbsCurve"/> representing the elliptical arc,
+    /// or <see langword="null"/> if the NURBS curve could not be created from the arc.
+    /// </returns>
+    public static RhinoNurbsCurve? ToRhinoNurbsCurve(this EllipticalArc2d ellipticalArc2d)
+    {
+        var center = ellipticalArc2d.Center.ToRhinoPoint3d();
+
+        var majorRadius = UnitConverter.ToRhinoLength(ellipticalArc2d.MajorRadius);
+
+        var manorRadius = UnitConverter.ToRhinoLength(ellipticalArc2d.MinorRadius);
+
+        var startAngle = ellipticalArc2d.StartAngle;
+
+        var endAngle = ellipticalArc2d.EndAngle;
+
+        var majorDir = ellipticalArc2d.MajorAxis.ToRhinoVector3d();
+        majorDir.Unitize();
+
+        var minorDirection = ellipticalArc2d.MinorAxis.ToRhinoVector3d();
+        minorDirection.Unitize();
+
+        var plane = new RhinoPlane(center, majorDir, minorDirection);
+
+        var circle = new RhinoCircle(plane, majorRadius);
+
+        var arc = new RhinoArc(circle, new RhinoInterval(startAngle, endAngle));
+
+        var nurbsCurve = RhinoNurbsCurve.CreateFromArc(arc);
+
+        if (nurbsCurve == null)
+            return null;
+
+        var radiusRatio = manorRadius / majorRadius;
+        var transform = RhinoTransform.Scale(
+            plane,
+            1.0,
+            radiusRatio,
+            1.0
+        );
+
+        nurbsCurve.Transform(transform);
+
+        return nurbsCurve;
+    }
+
+    /// <summary>
+    /// Converts an <see cref="EllipticalArc3d"/> to a <see cref="RhinoNurbsCurve"/>.
+    /// </summary>
+    /// <remarks>
+    /// The conversion is performed in two steps:
+    /// <list type="number">
+    ///   <item>A circular arc is constructed using the major radius and angle interval,
+    ///   oriented on a plane derived from the ellipse's major and minor axes.</item>
+    ///   <item>A non-uniform scale transform is applied along the minor axis to squash
+    ///   the circle into the correct elliptical shape, using the minor-to-major radius ratio.</item>
+    /// </list>
+    /// Unit conversion is applied to both radii via <see cref="UnitConverter.ToRhinoLength"/>.
+    /// </remarks>
+    /// <param name="ellipticalArc3d">The source elliptical arc to convert.</param>
+    /// <returns>
+    /// A <see cref="RhinoNurbsCurve"/> representing the elliptical arc,
+    /// or <see langword="null"/> if the NURBS curve could not be created from the arc.
+    /// </returns>
+    public static RhinoNurbsCurve? ToRhinoNurbsCurve(this EllipticalArc3d ellipticalArc3d)
+    {
+        var center = ellipticalArc3d.Center.ToRhinoPoint3d();
+
+        var majorRadius = UnitConverter.ToRhinoLength(ellipticalArc3d.MajorRadius);
+
+        var manorRadius = UnitConverter.ToRhinoLength(ellipticalArc3d.MinorRadius);
+
+        var startAngle = ellipticalArc3d.StartAngle;
+
+        var endAngle = ellipticalArc3d.EndAngle;
+
+        var majorDir = ellipticalArc3d.MajorAxis.ToRhinoVector3d();
+        majorDir.Unitize();
+
+        var minorDirection = ellipticalArc3d.MinorAxis.ToRhinoVector3d();
+        minorDirection.Unitize();
+
+        var plane = new RhinoPlane(center, majorDir, minorDirection);
+
+        var circle = new RhinoCircle(plane, majorRadius);
+
+        var arc = new RhinoArc(circle, new RhinoInterval(startAngle, endAngle));
+
+        var nurbsCurve = RhinoNurbsCurve.CreateFromArc(arc);
+
+        if (nurbsCurve == null)
+            return null;
+
+        var radiusRatio = manorRadius / majorRadius;
+        var transform = RhinoTransform.Scale(
+            plane,
+            1.0,
+            radiusRatio,
+            1.0
+        );
+
+        nurbsCurve.Transform(transform);
+
+        return nurbsCurve;
+    }
+
+    /// <summary>
+    /// Produces a valid knot vector for Rhino's NURBS representation from a source knot vector
+    /// that may use a different convention (e.g. AutoCAD's D + N + 1 convention).
+    /// </summary>
+    /// <param name="inputKnots">
+    /// A non-empty, non-decreasing sequence of knot values from the source system.
+    /// </param>
+    /// <param name="degree">
+    /// The polynomial degree of the NURBS curve. Must be a positive integer.
+    /// </param>
+    /// <param name="numberOfControlPoints">
+    /// The number of control points on the curve. Must be a positive integer.
+    /// </param>
+    /// <returns>
+    /// A knot vector containing exactly <c>degree + numberOfControlPoints - 1</c> values,
+    /// with per-knot multiplicity capped at <c>degree</c> and relative order preserved.
+    /// </returns>
+    public static List<double> GetKnots(
+        List<double> inputKnots,
+        int degree,
+        int numberOfControlPoints)
+    {
+        var targetCount = degree + numberOfControlPoints - 1;
+
+        if (inputKnots.Count == targetCount)
             return inputKnots;
 
-        var outputKnots = new List<double>(targetNumberOfKnots);
-        var currentKnotValue = inputKnots[0];
-        var currentValueCount = 1;
-        outputKnots.Add(currentKnotValue);
+        var output = new List<double>(targetCount);
 
-        // Skip first as already added
-        for (var index = 1; index < inputKnots.Count; index++)
+        var currentMultiplicity = 0;
+
+        double? previousKnot = null;
+
+        foreach (var knot in inputKnots)
         {
-            var inputKnot = inputKnots[index];
-            if (Math.Abs(currentKnotValue - inputKnot) > GeometryConstants.ZeroTolerance)
+            if (output.Count == targetCount)
+                break;
+
+            if (previousKnot is null ||
+                Math.Abs(knot - previousKnot.Value) > GeometryConstants.ZeroTolerance)
             {
-                currentKnotValue = inputKnot;
-                currentValueCount = 1;
-                outputKnots.Add(inputKnot);
+                currentMultiplicity = 1;
+
+                previousKnot = knot;
+
+                output.Add(knot);
+
                 continue;
             }
 
-            currentValueCount++;
+            if (currentMultiplicity >= degree) continue;
 
-            if (currentValueCount > degree)
-                continue;
+            currentMultiplicity++;
 
-            outputKnots.Add(inputKnot);
+            output.Add(knot);
+
         }
 
-        return outputKnots;
+        return output;
     }
 
     /// <summary>

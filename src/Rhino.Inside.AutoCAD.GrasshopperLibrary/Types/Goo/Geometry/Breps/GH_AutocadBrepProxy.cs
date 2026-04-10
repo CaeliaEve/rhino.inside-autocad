@@ -34,11 +34,9 @@ public class GH_AutocadBrepProxy : GH_GeometricGoo<RhinoBrep>, IGH_AutocadRefere
     /// </summary>
     public static GH_AutocadBrepProxy CreateFromSolid(Solid3d solid)
     {
-        var rhinoBrep = solid.ToRhinoBreps().FirstOrDefault();
+        var rhinoBrep = solid.ToRhinoBrep();
 
-        return rhinoBrep == null
-            ? new GH_AutocadBrepProxy()
-            : new GH_AutocadBrepProxy(rhinoBrep, new AutocadReferenceId(solid));
+        return new GH_AutocadBrepProxy(rhinoBrep, new AutocadReferenceId(solid));
     }
 
     /// <inheritdoc />
@@ -107,9 +105,9 @@ public class GH_AutocadBrepProxy : GH_GeometricGoo<RhinoBrep>, IGH_AutocadRefere
     /// </summary>
     private RhinoBrep? Convert(Solid3d solid3d)
     {
-        var rhinoType = solid3d.ToRhinoBreps();
+        var rhinoType = solid3d.ToRhinoBrep();
 
-        return rhinoType.FirstOrDefault();
+        return rhinoType;
     }
 
     /// <summary>
@@ -130,6 +128,8 @@ public class GH_AutocadBrepProxy : GH_GeometricGoo<RhinoBrep>, IGH_AutocadRefere
         if (rhinoGeometry == null) return;
 
         var meshes = RhinoMesh.CreateFromBrep(rhinoGeometry, MeshingParameters.Default);
+
+        if (meshes is null) return;
 
         previewData.Meshes.AddRange(meshes);
 
