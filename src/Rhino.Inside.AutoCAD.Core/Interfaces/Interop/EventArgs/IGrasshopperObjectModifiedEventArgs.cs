@@ -12,4 +12,3 @@ public interface IGrasshopperObjectModifiedEventArgs
     /// </summary>
     IGH_DocumentObject GrasshopperObject { get; }
 }
-

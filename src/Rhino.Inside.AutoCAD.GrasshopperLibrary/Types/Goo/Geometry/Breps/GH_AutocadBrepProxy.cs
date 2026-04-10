@@ -36,7 +36,9 @@ public class GH_AutocadBrepProxy : GH_GeometricGoo<RhinoBrep>, IGH_AutocadRefere
     {
         var rhinoBrep = solid.ToRhinoBrep();
 
-        return new GH_AutocadBrepProxy(rhinoBrep, new AutocadReferenceId(solid));
+        return rhinoBrep == null
+            ? new GH_AutocadBrepProxy()
+            : new GH_AutocadBrepProxy(rhinoBrep, new AutocadReferenceId(solid));
     }
 
     /// <inheritdoc />
