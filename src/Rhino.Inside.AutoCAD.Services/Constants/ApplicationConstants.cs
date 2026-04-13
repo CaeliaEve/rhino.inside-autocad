@@ -1,7 +1,7 @@
 ﻿namespace Rhino.Inside.AutoCAD.Services;
 
 /// <summary>
-/// An example constants class for an application.
+/// An constants class for the Rhino Inside AutoCAD application.
 /// </summary>
 public class ApplicationConstants
 {
