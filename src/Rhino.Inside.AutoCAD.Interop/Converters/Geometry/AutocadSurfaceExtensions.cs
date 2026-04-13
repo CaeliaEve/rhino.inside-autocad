@@ -193,7 +193,7 @@ public static class AutocadSurfaceExtensions
 
         var database = activeDocument.Database;
 
-        using var transactionManagerWrapper = new TransactionManagerWrapper(database);
+        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -208,15 +208,15 @@ public static class AutocadSurfaceExtensions
     /// Converts an AutoCAD PolyFaceMesh to a Rhino Mesh, applying unit conversion.
     /// </summary>
     /// <param name="mesh">The AutoCAD PolyFaceMesh to convert.</param>
-    /// <param name="transactionManager">The transaction manager for database operations.</param>
+    /// <param name="autocadTransaction">The transaction manager for database operations.</param>
     /// <returns>A Rhino Mesh with vertices scaled to Rhino units.</returns>
-    public static RhinoMesh ToRhinoMesh(this CadPolyFaceMesh mesh, ITransactionManager transactionManager)
+    public static RhinoMesh ToRhinoMesh(this CadPolyFaceMesh mesh, IAutocadTransaction autocadTransaction)
     {
         var rhinoMesh = new RhinoMesh();
 
         try
         {
-            var transaction = transactionManager.Unwrap();
+            var transaction = autocadTransaction.Unwrap();
 
             foreach (CadObjectId id in mesh)
             {
@@ -317,6 +317,10 @@ public static class AutocadSurfaceExtensions
         return BrepConverter.Convert(solid).FirstOrDefault();
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadFace"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
+
     public static RhinoSurface ToRhinoSurface(this CadFace face, out bool parametricOrientation, double relativeTolerance = 0.0)
     {
         var surface = face.Surface;
@@ -327,6 +331,9 @@ public static class AutocadSurfaceExtensions
 
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadGeometrySurface"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(this CadGeometrySurface cadSurface)
     {
         switch (cadSurface)
@@ -352,6 +359,9 @@ public static class AutocadSurfaceExtensions
         }
     }
 
+    /// <summary>
+    /// Converts a <see cref="ExternalSurface"/>
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(this ExternalSurface surface)
     {
         return surface.nativeSurface.ToRhinoSurface();
@@ -369,6 +379,9 @@ public static class AutocadSurfaceExtensions
         return baseRhinoSurface;
     }
 
+    /// <summary>
+    /// Converts a <see cref="PlanarEntity"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(this PlanarEntity planeEntity)
     {
         var origin = planeEntity.PointOnPlane.ToRhinoPoint3d();
@@ -382,6 +395,9 @@ public static class AutocadSurfaceExtensions
         return planeSurface;
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadCylinder"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(this CadCylinder cylinder)
     {
         var origin = cylinder.Origin.ToRhinoPoint3d();
@@ -401,6 +417,9 @@ public static class AutocadSurfaceExtensions
         return rhinoCylinder.ToNurbsSurface();
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadCone"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(CadCone cone)
     {
         var apex = cone.Apex.ToRhinoPoint3d();
@@ -424,6 +443,9 @@ public static class AutocadSurfaceExtensions
         return rhinoCone.ToNurbsSurface();
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadSphere"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(CadSphere sphere)
     {
         var center = sphere.Center.ToRhinoPoint3d();
@@ -435,6 +457,9 @@ public static class AutocadSurfaceExtensions
         return rhinoCone.ToNurbsSurface();
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadTorus"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(CadTorus torus)
     {
         var center = torus.Center.ToRhinoPoint3d();
@@ -454,6 +479,9 @@ public static class AutocadSurfaceExtensions
         return rhinoCone.ToNurbsSurface();
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadGeometryNurbsSurface"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(this CadGeometryNurbsSurface nurbsSurface)
     {
         var dimension = 3;
@@ -495,6 +523,9 @@ public static class AutocadSurfaceExtensions
         return rhinoSurface;
     }
 
+    /// <summary>
+    /// Converts a <see cref="CadSurface"/> to a <see cref="RhinoSurface"/>.
+    /// </summary>
     public static RhinoSurface ToRhinoSurface(this CadSurface cadSurface)
     {
         switch (cadSurface)

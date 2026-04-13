@@ -199,12 +199,20 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     {
         RhinoApp.Closing -= this.OnClosing;
 
-        RhinoApp.Exit(false);
+        try
+        {
+            this.WindowManager.BringToFront();
 
-        RhinoDoc.ActiveDoc?.Dispose();
+            _rhinoCore?.Dispose();
+            _rhinoCore = null;
 
-        Grasshopper.Instances.ActiveDocument?.Dispose();
+            RhinoDoc.ActiveDoc?.Dispose();
 
-        _rhinoCore?.Dispose();
+            Grasshopper.Instances.ActiveDocument?.Dispose();
+        }
+        catch (Exception e)
+        {
+
+        }
     }
 }

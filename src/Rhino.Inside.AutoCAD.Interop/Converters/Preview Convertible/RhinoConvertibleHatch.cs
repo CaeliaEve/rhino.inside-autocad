@@ -17,9 +17,9 @@ public class RhinoConvertibleHatch : RhinoConvertibleBase<Rhino.Geometry.Hatch>
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(ITransactionManager transactionManager)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
     {
-        var cadSolid = this.RhinoGeometry.ToAutocadHatch(transactionManager);
+        var cadSolid = this.RhinoGeometry.ToAutocadHatch(autocadTransaction);
 
         var entity = new AutocadEntityWrapper(cadSolid);
 

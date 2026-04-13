@@ -55,7 +55,7 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
     /// Populates this <see cref="ILayerRegister"/> with <see cref="IAutocadLayerTableRecord"/>s
     /// from the active <see cref="IAutocadDocument"/>.
     /// </summary>
-    public override void Repopulate()
+    public override void Update()
     {
         _objects.Clear();
 

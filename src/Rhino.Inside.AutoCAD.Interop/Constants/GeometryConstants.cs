@@ -21,17 +21,14 @@ public class GeometryConstants
     public const double ZeroTolerance = 0.0001;
 
     /// <summary>
-    /// Absolute zero value.
-    /// </summary>
-    public const double AbsoluteZeroValue = 0d;
-
-    /// <summary>
-    /// A tiny tolerance value used for ratio comparisons to account for floating-point precision issues.
+    /// A tiny tolerance value used for ratio comparisons to account for floating-point
+    /// precision issues.
     /// </summary>
     public const double RatioTolerance = 1e-10;
 
     /// <summary>
-    /// The internal tolerance value used for vertex comparisons, such as when comparing mesh vertices or control points.
+    /// The internal tolerance value used for vertex comparisons, such as when comparing
+    /// mesh vertices or control points.
     /// </summary>
     public const double VertexTolerance = 0.0001;
 

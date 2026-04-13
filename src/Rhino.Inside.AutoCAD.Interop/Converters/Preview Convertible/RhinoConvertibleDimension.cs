@@ -17,7 +17,7 @@ public class RhinoConvertibleDimension : RhinoConvertibleBase<Rhino.Geometry.Dim
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(ITransactionManager transactionManager)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
     {
         var cadDimension = this.RhinoGeometry.ToAutocadDimension();
 

@@ -10,11 +10,17 @@ public class AutocadDocumentId : IAutocadDocumentId
     private const short _applicationNameKey = XRecordKeys.ApplicationNameKey;
     private const short _documentIdKey = XRecordKeys.DocumentIdKey;
 
+    /// <summary>
+    /// The registered Id of this document.
+    /// </summary>
     public Guid Id { get; }
 
+    /// <summary>
+    /// Constructs a new <see cref="IAutocadDocumentId"/>
+    /// </summary>
     public AutocadDocumentId(IAutocadDocument document)
     {
-        this.RegisterApplication(document);
+        this.Register(document);
 
         if (this.TryGetExistingId(document, out var documentId) == false)
         {
@@ -94,7 +100,7 @@ public class AutocadDocumentId : IAutocadDocumentId
     /// <remarks>
     /// Required before writing XData to the database.
     /// </remarks>
-    private void RegisterApplication(IAutocadDocument document)
+    private void Register(IAutocadDocument document)
     {
         document.Transaction(transactionManager =>
         {

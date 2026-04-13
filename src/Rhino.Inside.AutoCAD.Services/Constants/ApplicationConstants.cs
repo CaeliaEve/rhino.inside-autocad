@@ -65,12 +65,13 @@ public class ApplicationConstants
     /// <summary>
     /// The name of the root installation folder the software is stored.
     /// </summary>
-    public const string RootInstallFolderName = "Autodesk\\ApplicationPlugins\\Rhino.Inside.AutoCAD.bundle";
+    public const string RootInstallFolderName =
+        "Autodesk\\ApplicationPlugins\\Rhino.Inside.AutoCAD.bundle";
 
     /// <summary>
     /// The name of the client folder.
     /// </summary>
-    public const string ClientFolderName = "Bimorph\\RhinoInsideAutoCAD";
+    public const string ApplicationFolderName = "Bimorph\\RhinoInsideAutoCAD";
 
     /// <summary>
     /// The name that is prefixed to the version number of the deployment.
@@ -110,37 +111,44 @@ public class ApplicationConstants
     /// <summary>
     /// The URI for the unselected "Off" button icon in the Grasshopper preview.
     /// </summary>
-    public const string OffButtonUnselected = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Off.png";
+    public const string OffButtonUnselected =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Off.png";
 
     /// <summary>
     /// The URI for the selected "Off" button icon in the Grasshopper preview.
     /// </summary>
-    public const string OffButtonSelected = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Off_Selected.png";
+    public const string OffButtonSelected =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Off_Selected.png";
 
     /// <summary>
     /// The URI for the unselected "Shaded" button icon in the Grasshopper preview.
     /// </summary>
-    public const string ShadedButtonUnselected = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Shaded.png";
+    public const string ShadedButtonUnselected =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Shaded.png";
 
     /// <summary>
     /// The URI for the selected "Shaded" button icon in the Grasshopper preview.
     /// </summary>
-    public const string ShadedButtonSelected = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Shaded_Selected.png";
+    public const string ShadedButtonSelected =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Shaded_Selected.png";
 
     /// <summary>
     /// The URI for the unselected "Wireframe" button icon in the Grasshopper preview.
     /// </summary>
-    public const string WireframeButtonUnselected = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Wireframe.png";
+    public const string WireframeButtonUnselected =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Wireframe.png";
 
     /// <summary>
     /// The URI for the selected "Wireframe" button icon in the Grasshopper preview.
     /// </summary>
-    public const string WireframeButtonSelected = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Wireframe_Selected.png";
+    public const string WireframeButtonSelected =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Wireframe_Selected.png";
 
     /// <summary>
     /// The registry key path for Rhino 8 installation information.
     /// </summary>
-    public const string RhinoRegistryKeyPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\McNeel\Rhinoceros\8.0\Install";
+    public const string RhinoRegistryKeyPath =
+        @"HKEY_LOCAL_MACHINE\SOFTWARE\McNeel\Rhinoceros\8.0\Install";
 
     /// <summary>
     /// The registry value name for Rhino installation path.
@@ -200,22 +208,26 @@ public class ApplicationConstants
     /// <summary>
     /// Error message when Rhino 8 is not installed.
     /// </summary>
-    public const string RhinoNotInstalledErrorMessage = "Rhino 8 not installed or could not be found. The application requires Rhino 8 to run.";
+    public const string RhinoNotInstalledErrorMessage =
+        "Rhino 8 not installed or could not be found. The application requires Rhino 8 to run.";
 
     /// <summary>
     /// Error message when Rhino Core fails to initialize.
     /// </summary>
-    public const string RhinoCoreInitializationFailedErrorMessage = "Failed to initialize Rhino Core";
+    public const string RhinoCoreInitializationFailedErrorMessage =
+        "Failed to initialize Rhino Core";
 
     /// <summary>
     /// Success message displayed when Rhino.Inside.AutoCAD loads successfully.
     /// </summary>
-    public const string ApplicationLoadedSuccessMessage = "\nRhino.Inside.AutoCAD loaded successfully.";
+    public const string ApplicationLoadedSuccessMessage =
+        "\nRhino.Inside.AutoCAD loaded successfully.";
 
     /// <summary>
     /// Format string for error message when Rhino.Inside.AutoCAD fails to load.
     /// </summary>
-    public const string ApplicationLoadErrorMessageFormat = "\nERROR loading Rhino.Inside.AutoCAD: {0}\n";
+    public const string ApplicationLoadErrorMessageFormat =
+        "\nERROR loading Rhino.Inside.AutoCAD: {0}\n";
 
     /// <summary>
     /// Format string for displaying stack trace information.
@@ -246,22 +258,26 @@ public class ApplicationConstants
     /// <summary>
     /// The URI for the Rhinoceros preview shaded icon.
     /// </summary>
-    public const string RhinocerosPreviewShadedIcon = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Rhinoceros_Preview_Shaded.png";
+    public const string RhinocerosPreviewShadedIcon =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Rhinoceros_Preview_Shaded.png";
 
     /// <summary>
     /// The URI for the Rhinoceros preview off icon.
     /// </summary>
-    public const string RhinocerosPreviewOffIcon = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Rhinoceros_Preview_Off.png";
+    public const string RhinocerosPreviewOffIcon =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Rhinoceros_Preview_Off.png";
 
     /// <summary>
     /// The URI for the Grasshopper solver on icon.
     /// </summary>
-    public const string GrasshopperSolverOnIcon = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_SolverOn.png";
+    public const string GrasshopperSolverOnIcon =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_SolverOn.png";
 
     /// <summary>
     /// The URI for the Grasshopper solver off icon.
     /// </summary>
-    public const string GrasshopperSolverOffIcon = "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_SolverOff.png";
+    public const string GrasshopperSolverOffIcon =
+        "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_SolverOff.png";
 
     /// <summary>
     /// The Rhino command name for launching Grasshopper.
@@ -281,5 +297,16 @@ public class ApplicationConstants
     /// <summary>
     /// The Rhino script command for creating a new floating viewport.
     /// </summary>
-    public const string NewFloatingViewportScript = "_NewFloatingViewport _Projection _CopyActive";
+    public const string NewFloatingViewportScript =
+        "_NewFloatingViewport _Projection _CopyActive";
+
+    /// <summary>
+    /// The default rhino Template.   //TODO: This should be added to the settings.
+    /// </summary>
+    public const string DefaultTemplateFormat = "{0}Large Objects - Millimeters.3dm";
+
+    /// <summary>
+    /// The error message when the RhinoDoc fails to load.
+    /// </summary>
+    public const string FailedToLoadRhinoDoc = "Failed to initialize Rhino Doc.";
 }

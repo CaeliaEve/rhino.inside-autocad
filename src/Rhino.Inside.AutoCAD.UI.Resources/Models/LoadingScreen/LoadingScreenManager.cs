@@ -187,7 +187,7 @@ public class LoadingScreenManager : ILoadingScreenManager
 
         _dispatcher?.Invoke(() =>
         {
-            this.ShowFailure(_loadingScreenConstants.FailedServiceMessage!);
+            this.ShowFailure(_loadingScreenConstants.FailedStartupMessage!);
         });
     }
 

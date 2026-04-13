@@ -19,8 +19,6 @@ public readonly struct UnitScale : IUnitScale
     /// </summary>
     private static readonly string _customUnitsName = $"{UnitSystem.CustomUnits}";
 
-    #region Special Values
-
     /// <summary>
     /// Represents an unset or uninitialized unit scale.
     /// </summary>
@@ -36,10 +34,6 @@ public readonly struct UnitScale : IUnitScale
     /// Uses a <see cref="Ratio"/> of (-1, -1) from <see cref="RatioPerMeterDictionary"/> to indicate an invalid state.
     /// </remarks>
     public static readonly UnitScale None = new UnitScale(default, RatioPerMeterDictionary.Lookup(UnitSystem.None));
-
-    #endregion
-
-    #region Metric Units
 
     /// <summary>
     /// Unit scale for angstroms (10⁻¹⁰ meters).
@@ -101,10 +95,6 @@ public readonly struct UnitScale : IUnitScale
     /// </summary>
     public static readonly UnitScale Gigameters = new UnitScale(UnitSystem.Gigameters);
 
-    #endregion
-
-    #region Imperial Units
-
     /// <summary>
     /// Unit scale for microinches (10⁻⁶ inches).
     /// </summary>
@@ -140,10 +130,6 @@ public readonly struct UnitScale : IUnitScale
     /// </summary>
     public static readonly UnitScale NauticalMiles = new UnitScale(UnitSystem.NauticalMiles);
 
-    #endregion
-
-    #region Typographic Units
-
     /// <summary>
     /// Unit scale for printer points (1/72 inch).
     /// </summary>
@@ -153,10 +139,6 @@ public readonly struct UnitScale : IUnitScale
     /// Unit scale for printer picas (1/6 inch, or 12 points).
     /// </summary>
     public static readonly UnitScale PrinterPicas = new UnitScale(UnitSystem.PrinterPicas);
-
-    #endregion
-
-    #region Astronomical Units
 
     /// <summary>
     /// Unit scale for astronomical units (mean Earth-Sun distance, approximately 149.6 billion meters).
@@ -172,10 +154,6 @@ public readonly struct UnitScale : IUnitScale
     /// Unit scale for parsecs (parallax of one arcsecond, approximately 3.26 light-years).
     /// </summary>
     public static readonly UnitScale Parsecs = new UnitScale(UnitSystem.Parsecs);
-
-    #endregion
-
-    #region Regional/Historical Units
 
     /// <summary>
     /// Unit scale for US survey feet (1200/3937 meters exactly).
@@ -194,19 +172,11 @@ public readonly struct UnitScale : IUnitScale
     /// </remarks>
     internal static readonly UnitScale Shaku = new UnitScale("shaku", new Ratio(10.0, 33.0));
 
-    #endregion
-
-    #region Properties
-
     /// <inheritdoc/>
     public string Name { get; }
 
     /// <inheritdoc/>
     public IRatio Ratio { get; }
-
-    #endregion
-
-    #region Constructors
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UnitScale"/> struct with a custom name and ratio.
@@ -246,8 +216,6 @@ public readonly struct UnitScale : IUnitScale
     /// </remarks>
     public UnitScale(Ratio metersPerUnit) : this(_customUnitsName, metersPerUnit) { }
 
-    #endregion
-
     /// <inheritdoc/>
     public bool IsEqualTo(IUnitScale other)
     {
@@ -258,5 +226,4 @@ public readonly struct UnitScale : IUnitScale
 
     /// <inheritdoc/>
     public override string ToString() => this.Name;
-
 }

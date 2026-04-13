@@ -14,7 +14,7 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
     }
 
     ///<inheritdoc />
-    public override void Repopulate()
+    public override void Update()
     {
         _objects.Clear();
 

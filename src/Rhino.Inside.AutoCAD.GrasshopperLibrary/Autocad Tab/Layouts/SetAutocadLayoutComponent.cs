@@ -88,7 +88,7 @@ public class SetAutocadLayoutComponent : RhinoInsideAutocad_ComponentBase
             activeDocument.Editor.Regen();
 
             //Renaming a layout does not trigger a modified event
-            RhinoInsideAutoCadExtension.Application.RhinoInsideManager.AutoCadInstance.ActiveDocument.LayoutRegister.Repopulate();
+            RhinoInsideAutoCadExtension.Application.RhinoInsideManager.AutoCadInstance.ActiveDocument.LayoutRegister.Update();
 
             return new AutocadLayoutWrapper(cadLayout);
 

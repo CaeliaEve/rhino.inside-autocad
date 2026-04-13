@@ -120,7 +120,7 @@ public interface IAutocadDocument
     /// By default, transactions are committed. Set <paramref name="abort"/> to
     /// <c>true</c> when reading data that requires temporary modifications.
     /// </remarks>
-    public T Transaction<T>(Func<ITransactionManager, T> function, bool abort = false);
+    public T Transaction<T>(Func<IAutocadTransaction, T> function, bool abort = false);
 
     /// <summary>
     /// Forces a screen refresh to display pending visual changes.

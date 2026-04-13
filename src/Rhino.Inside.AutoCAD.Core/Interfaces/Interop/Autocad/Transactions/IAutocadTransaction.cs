@@ -12,7 +12,7 @@
 /// </remarks>
 /// <seealso cref="IAutocadDocument.Transaction{T}"/>
 /// <seealso cref="IAutocadBlockTableRecord"/>
-public interface ITransactionManager : IDisposable
+public interface IAutocadTransaction : IDisposable
 {
     /// <summary>
     /// Gets the <see cref="IObjectId"/> of the document's block table.

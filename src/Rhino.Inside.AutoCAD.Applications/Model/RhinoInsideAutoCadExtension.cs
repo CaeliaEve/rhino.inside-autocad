@@ -142,7 +142,13 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     {
         if (Application is not null)
         {
+            e.IsVetoed = true;
+
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
+
             this.SafeTermination();
+
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.Quit();
         }
     }
 
@@ -151,8 +157,6 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// </summary>
     public void Terminate()
     {
-        this.SafeTermination();
-
         Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
     }
 }

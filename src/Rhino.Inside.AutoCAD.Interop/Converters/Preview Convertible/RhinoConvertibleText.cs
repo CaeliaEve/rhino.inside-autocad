@@ -17,7 +17,7 @@ public class RhinoConvertibleText : RhinoConvertibleBase<Rhino.Geometry.TextEnti
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(ITransactionManager transactionManager)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
     {
         var cadText = this.RhinoGeometry.ToAutocadMText();
 

@@ -24,7 +24,7 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
     /// Populates this <see cref="ILineTypeRegister"/> with <see cref="IAutocadLinetypeTableRecord"/>s
     /// from the active <see cref="IAutocadDocument"/>.
     /// </summary>
-    public override void Repopulate()
+    public override void Update()
     {
         _objects.Clear();
 

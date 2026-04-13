@@ -105,7 +105,7 @@ public static class AutocadCurveExtensions
         var weightsCount = weights.Count;
 
         var nurbsDataKnots = nurbsData.GetKnots().ToArray().ToList();
-        var knots = GetKnots(nurbsDataKnots, nurbsData.Degree, point3dCollection.Count);
+        var knots = GetValidKnots(nurbsDataKnots, nurbsData.Degree, point3dCollection.Count);
 
         var rhinoNurbsCurve = new RhinoNurbsCurve(spline.Degree, point3dCollection.Count);
 
@@ -259,30 +259,6 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD EllipticalArc2d to a Rhino Ellipse with interval, applying unit conversion.
-    /// </summary>
-    /// <param name="ellipticalArc2d">The AutoCAD 2D elliptical arc to convert.</param>
-    /// <param name="interval">The interval representing the arc portion of the ellipse.</param>
-    /// <returns>A Rhino Ellipse with radii scaled to Rhino units.</returns>
-    public static RhinoEllipse ToRhinoEllipse(this EllipticalArc2d ellipticalArc2d, out RhinoInterval interval)
-    {
-        var centrePoint = ellipticalArc2d.Center.ToRhinoPoint3d();
-        var majorAxis = ellipticalArc2d.MajorAxis.ToRhinoVector3d();
-        var minorAxis = ellipticalArc2d.MinorAxis.ToRhinoVector3d();
-
-        var majorRadius = UnitConverter.ToRhinoLength(ellipticalArc2d.MajorRadius);
-        var minorRadius = UnitConverter.ToRhinoLength(ellipticalArc2d.MinorRadius);
-
-        var plane = new RhinoPlane(centrePoint, majorAxis, minorAxis);
-        var rhinoEllipse = new RhinoEllipse(plane, majorRadius, minorRadius);
-
-        var ellipticalArc2dInterval = ellipticalArc2d.GetInterval();
-        interval = new RhinoInterval(ellipticalArc2dInterval.LowerBound, ellipticalArc2dInterval.UpperBound);
-
-        return rhinoEllipse;
-    }
-
-    /// <summary>
     /// Converts an AutoCAD SplineEntity2d to a Rhino NurbsCurve, applying unit conversion.
     /// </summary>
     /// <param name="spline2d">The AutoCAD 2D spline to convert.</param>
@@ -322,16 +298,6 @@ public static class AutocadCurveExtensions
 
         var isPeriodic = spline3d.IsPeriodic(out _);
         return RhinoNurbsCurve.CreateSubDFriendly(rhinoPoints, false, isPeriodic);
-    }
-
-    /// <summary>
-    /// Converts an AutoCAD NurbCurve2d to a Rhino NurbsCurve, applying unit conversion.
-    /// </summary>
-    /// <param name="nurbCurve2d">The AutoCAD 2D NURBS curve to convert.</param>
-    /// <returns>A Rhino NurbsCurve with control points scaled to Rhino units.</returns>
-    public static RhinoNurbsCurve ToRhinoNurbsCurve(this NurbCurve2d nurbCurve2d)
-    {
-        return ((SplineEntity2d)nurbCurve2d).ToRhinoNurbsCurve();
     }
 
     /// <summary>
@@ -538,6 +504,66 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
+    /// Converts an <see cref="CadEllipse"/> to a <see cref="RhinoNurbsCurve"/>.
+    /// </summary>
+    /// <remarks>
+    /// The conversion is performed in two steps:
+    /// <list type="number">
+    ///   <item>A circular arc is constructed using the major radius and angle interval,
+    ///   oriented on a plane derived from the ellipse's major and minor axes.</item>
+    ///   <item>A non-uniform scale transform is applied along the minor axis to squash
+    ///   the circle into the correct elliptical shape, using the minor-to-major radius ratio.</item>
+    /// </list>
+    /// Unit conversion is applied to both radii via <see cref="UnitConverter.ToRhinoLength"/>.
+    /// </remarks>
+    /// <param name="ellipse">The source elliptical arc to convert.</param>
+    /// <returns>
+    /// A <see cref="RhinoNurbsCurve"/> representing the elliptical arc,
+    /// or <see langword="null"/> if the NURBS curve could not be created from the arc.
+    /// </returns>
+    public static RhinoNurbsCurve? ToRhinoNurbsCurve(this CadEllipse ellipse)
+    {
+        var center = ellipse.Center.ToRhinoPoint3d();
+
+        var majorRadius = UnitConverter.ToRhinoLength(ellipse.MajorRadius);
+
+        var manorRadius = UnitConverter.ToRhinoLength(ellipse.MinorRadius);
+
+        var startAngle = ellipse.StartAngle;
+
+        var endAngle = ellipse.EndAngle;
+
+        var majorDir = ellipse.MajorAxis.ToRhinoVector3d();
+        majorDir.Unitize();
+
+        var minorDirection = ellipse.MinorAxis.ToRhinoVector3d();
+        minorDirection.Unitize();
+
+        var plane = new RhinoPlane(center, majorDir, minorDirection);
+
+        var circle = new RhinoCircle(plane, majorRadius);
+
+        var arc = new RhinoArc(circle, new RhinoInterval(startAngle, endAngle));
+
+        var nurbsCurve = RhinoNurbsCurve.CreateFromArc(arc);
+
+        if (nurbsCurve == null)
+            return null;
+
+        var radiusRatio = manorRadius / majorRadius;
+        var transform = RhinoTransform.Scale(
+            plane,
+            1.0,
+            radiusRatio,
+            1.0
+        );
+
+        nurbsCurve.Transform(transform);
+
+        return nurbsCurve;
+    }
+
+    /// <summary>
     /// Produces a valid knot vector for Rhino's NURBS representation from a source knot vector
     /// that may use a different convention (e.g. AutoCAD's D + N + 1 convention).
     /// </summary>
@@ -554,7 +580,7 @@ public static class AutocadCurveExtensions
     /// A knot vector containing exactly <c>degree + numberOfControlPoints - 1</c> values,
     /// with per-knot multiplicity capped at <c>degree</c> and relative order preserved.
     /// </returns>
-    public static List<double> GetKnots(
+    public static List<double> GetValidKnots(
         List<double> inputKnots,
         int degree,
         int numberOfControlPoints)
@@ -614,8 +640,7 @@ public static class AutocadCurveExtensions
                 return spline.ToRhinoNurbsCurve();
 
             case CadEllipse ellipse:
-                var rhinoEllipse = ellipse.ToRhinoEllipse();
-                return rhinoEllipse.ToNurbsCurve();
+                return ellipse.ToRhinoNurbsCurve();
 
             case CadArc arc:
                 var rhinoArc = arc.ToRhinoArc();

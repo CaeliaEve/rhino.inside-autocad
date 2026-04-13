@@ -3,6 +3,7 @@ using Rhino.Commands;
 using Rhino.DocObjects;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Services;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -10,6 +11,8 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public class RhinoInstance : IRhinoInstance
 {
     private readonly IInstallationDirectories _installationDirectories;
+    private const string _defaultTemplate = ApplicationConstants.DefaultTemplateFormat;
+    private const string _failedToLoadRhinoDoc = ApplicationConstants.FailedToLoadRhinoDoc;
 
     /// <inheritdoc />
     public event EventHandler? DocumentCreated;
@@ -58,8 +61,7 @@ public class RhinoInstance : IRhinoInstance
     private RhinoDoc CreateRhinoDoc(IStartUpLogger logger,
         RhinoInsideMode mode)
     {
-        var template =
-            $"{_installationDirectories.Resources}Large Objects - Millimeters.3dm";
+        var template = string.Format(_defaultTemplate, _installationDirectories.Resources);
 
         try
         {
@@ -86,7 +88,7 @@ public class RhinoInstance : IRhinoInstance
         }
         catch
         {
-            logger.AddError("Failed to initialize Rhino Doc.");
+            logger.AddError(_failedToLoadRhinoDoc);
 
             throw;
         }
@@ -197,6 +199,8 @@ public class RhinoInstance : IRhinoInstance
         RhinoDoc.SelectObjects -= this.OnSelectedObject;
 
         RhinoDoc.DeselectObjects -= this.OnSelectedObject;
+
+        RhinoDoc.DeselectAllObjects -= this.OnDeselectObjects;
 
         this.RhinoCore.Shutdown();
     }

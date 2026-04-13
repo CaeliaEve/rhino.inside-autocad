@@ -17,7 +17,7 @@ public class RhinoConvertibleLeader : RhinoConvertibleBase<Rhino.Geometry.Leader
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(ITransactionManager transactionManager)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
     {
         var cadLeader = this.RhinoGeometry.ToAutocadMLeader();
 

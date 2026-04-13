@@ -42,14 +42,14 @@ public class BakableRhinoConverter : IAutocadBakeable
     }
 
     /// <inheritdoc />
-    public List<IObjectId> BakeToAutocad(ITransactionManager transactionManager,
+    public List<IObjectId> BakeToAutocad(IAutocadTransaction autocadTransaction,
         IBakingComponent bakingComponent, IBakeSettings? settings = null)
     {
-        var convert = rhinoConvertible.Convert(transactionManager);
+        var convert = rhinoConvertible.Convert(autocadTransaction);
 
-        var transaction = transactionManager.Unwrap();
+        var transaction = autocadTransaction.Unwrap();
 
-        var modelSpace = transactionManager.GetModelSpace(openForWrite: true);
+        var modelSpace = autocadTransaction.GetModelSpace(openForWrite: true);
 
         var modelSpaceRecord = modelSpace.Unwrap();
 
