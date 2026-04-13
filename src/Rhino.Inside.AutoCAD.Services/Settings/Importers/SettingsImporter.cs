@@ -21,7 +21,7 @@ public class SettingsImporter : ISettingsImporter
             }
         };
 
-        var settingsFilePath = $"{installationDirectories.Resources}{_settingCoreJsonName}";
+        var settingsFilePath = $"{installationDirectories.Resources}//{_settingCoreJsonName}";
 
         using var jsonFileStream = File.OpenRead(settingsFilePath);
 

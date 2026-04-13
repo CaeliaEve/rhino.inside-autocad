@@ -77,14 +77,14 @@ public class GH_AutocadBlockReference : GH_AutocadObjectGoo<AutocadBlockReferenc
     }
 
     /// <inheritdoc />
-    public List<IObjectId> BakeToAutocad(ITransactionManager transactionManager, IBakingComponent bakingComponent, IBakeSettings? settings = null)
+    public List<IObjectId> BakeToAutocad(IAutocadTransaction autocadTransaction, IBakingComponent bakingComponent, IBakeSettings? settings = null)
     {
         if (this.Value == null)
             throw new InvalidOperationException("Cannot bake a null block reference");
 
-        var transaction = transactionManager.Unwrap();
+        var transaction = autocadTransaction.Unwrap();
 
-        var modelSpace = transactionManager.GetModelSpace(openForWrite: true);
+        var modelSpace = autocadTransaction.GetModelSpace(openForWrite: true);
 
         var modelSpaceRecord = modelSpace.Unwrap();
 

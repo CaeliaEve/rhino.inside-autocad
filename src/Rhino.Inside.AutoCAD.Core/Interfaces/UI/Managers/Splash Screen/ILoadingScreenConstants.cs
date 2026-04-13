@@ -24,5 +24,5 @@ public interface ILoadingScreenConstants
     /// The message to display to the user in the splash screen if a
     /// there is an error during startup.
     /// </summary>
-    string? FailedServiceMessage { get; set; }
+    string? FailedStartupMessage { get; set; }
 }

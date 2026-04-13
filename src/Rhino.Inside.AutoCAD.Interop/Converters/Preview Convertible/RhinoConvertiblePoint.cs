@@ -17,7 +17,7 @@ public class RhinoConvertiblePoint : RhinoConvertibleBase<Rhino.Geometry.Point>
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(ITransactionManager transactionManager)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
     {
         var cadPoint3d = this.RhinoGeometry.Location.ToAutocadPoint3d();
 

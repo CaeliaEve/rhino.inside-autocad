@@ -176,27 +176,30 @@ public static class RhinoCurveExtensions
     public static CadSpline ToAutocadSpline(this RhinoNurbsCurve nurbsCurve)
     {
         var cadControlPoints = new CadPoint3dCollection();
-        var weightCollection = new DoubleCollection();
+        var cadWeightCollection = new DoubleCollection();
 
         foreach (var rhinoControlPoint in nurbsCurve.Points)
         {
             var cadPoint = rhinoControlPoint.Location.ToAutocadPoint3d();
             var weight = rhinoControlPoint.Weight;
-            weightCollection.Add(weight);
+            cadWeightCollection.Add(weight);
             cadControlPoints.Add(cadPoint);
         }
 
         var rhinoKnotsArray = nurbsCurve.Knots.ToArray();
         var knotCollection = new DoubleCollection(rhinoKnotsArray.Length + 2);
 
+        var first = rhinoKnotsArray.First();
+        var last = rhinoKnotsArray.Last();
+
         // Correct Knots from Rhino Nurbs Specification
-        knotCollection.Add(rhinoKnotsArray.First());
+        knotCollection.Add(first);
         knotCollection.AddRange(rhinoKnotsArray);
-        knotCollection.Add(rhinoKnotsArray.Last());
+        knotCollection.Add(last);
 
         var spline = new CadSpline(nurbsCurve.Degree, nurbsCurve.IsRational,
             nurbsCurve.IsClosed, nurbsCurve.IsPeriodic, cadControlPoints,
-            knotCollection, weightCollection, GeometryConstants.FitTolerance, GeometryConstants.FitTolerance);
+            knotCollection, cadWeightCollection, GeometryConstants.FitTolerance, GeometryConstants.FitTolerance);
 
         spline.UpdateFitData();
 
@@ -310,8 +313,11 @@ public static class RhinoCurveExtensions
             return arcCurve.ToAutocadArc();
         }
 
+        // Ellipse arc will be caught by this condition, so an additional check is needed to
+        // ensure that the start and end points are the same (full ellipse)
         if (nurbsCurve.IsEllipse(GeometryConstants.ZeroTolerance) &&
-            nurbsCurve.TryGetEllipse(out var ellipse, GeometryConstants.ZeroTolerance))
+            nurbsCurve.TryGetEllipse(out var ellipse, GeometryConstants.ZeroTolerance) &&
+            nurbsCurve.PointAtStart.EpsilonEquals(nurbsCurve.PointAtEnd, GeometryConstants.ZeroTolerance))
         {
             return ellipse.ToAutocadEllipse();
         }

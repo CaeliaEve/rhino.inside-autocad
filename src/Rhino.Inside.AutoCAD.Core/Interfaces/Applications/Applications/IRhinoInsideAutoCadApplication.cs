@@ -45,7 +45,7 @@ public interface IRhinoInsideAutoCadApplication
     void ShowAlertDialog(string message);
 
     /// <summary>
-    /// Terminate the <see cref="IRhinoInsideAutoCadApplication"/>
+    /// Terminate the <see cref="IRhinoInsideAutoCadApplication"/>.
     /// </summary>
     void Terminate();
 }

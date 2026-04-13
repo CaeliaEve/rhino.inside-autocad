@@ -17,9 +17,9 @@ public class RhinoConvertibleMesh : RhinoConvertibleBase<Rhino.Geometry.Mesh>
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(ITransactionManager transactionManager)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
     {
-        var cadMesh = this.RhinoGeometry.ToAutocadSubDMesh();
+        var cadMesh = this.RhinoGeometry.ToAutocadPolyFaceMesh();
 
         var entity = new AutocadEntityWrapper(cadMesh);
 

@@ -21,7 +21,7 @@ public abstract class RegisterBase<T> : IRegister<T> where T : INamedDbObject
         _objects = new Dictionary<IObjectId, T>(new ObjectIdEqualityComparer());
         _document = autocadDocument;
 
-        this.Repopulate();
+        this.Update();
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public abstract class RegisterBase<T> : IRegister<T> where T : INamedDbObject
     }
 
     /// <inheritdoc />
-    public abstract void Repopulate();
+    public abstract void Update();
 
     /// <inheritdoc/>
     public bool TryGetByName(string name, out T? dbObject)

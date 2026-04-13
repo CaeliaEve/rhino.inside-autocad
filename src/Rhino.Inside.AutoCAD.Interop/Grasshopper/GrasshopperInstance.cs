@@ -110,8 +110,6 @@ public class GrasshopperInstance : IGrasshopperInstance
         }
     }
 
-    private int count = 0;
-
     /// <summary>
     /// Loads and initializes the Grasshopper environment.
     /// </summary>
@@ -373,8 +371,6 @@ public class GrasshopperInstance : IGrasshopperInstance
     public void Shutdown()
     {
         this.RemoveDocumentSubscriptions();
-
-        this.ActiveDoc?.Dispose();
 
         Grasshopper.Instances.CanvasCreated -= this.OnCanvasCreated;
     }

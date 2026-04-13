@@ -210,10 +210,6 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// <inheritdoc />
     public void Shutdown()
     {
-        this.AutoCadInstance.DocumentCreated -= this.AutocadDocumentSwitched;
-        this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
-        this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
-        this.AutoCadInstance.Shutdown();
 
         this.GrasshopperInstance.PreviewExpired -= this.OnUpdateGrasshopperPreview;
         this.GrasshopperInstance.ObjectRemoved -= this.OnGrasshopperObjectRemoved;
@@ -227,5 +223,11 @@ public class RhinoInsideManager : IRhinoInsideManager
         this.RhinoInstance.ObjectRemoved -= this.RhinoObjectRemoved;
         this.RhinoInstance.DeselectAll -= this.DeselectAllRhinoPreview;
         this.RhinoInstance.Shutdown();
+
+        this.AutoCadInstance.DocumentCreated -= this.AutocadDocumentSwitched;
+        this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
+        this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
+        this.AutoCadInstance.Shutdown();
+
     }
 }

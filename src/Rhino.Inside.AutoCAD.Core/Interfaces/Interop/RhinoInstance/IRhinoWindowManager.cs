@@ -19,4 +19,10 @@ public interface IRhinoWindowManager
     /// Hides the Rhino main window if there is one set, if not this method does nothing.
     /// </summary>
     void HideWindow();
+
+    /// <summary>
+    /// Brings the Rhino main window to the front if there is one set, if not this
+    /// method does nothing.
+    /// </summary>
+    void BringToFront();
 }

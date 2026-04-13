@@ -62,11 +62,11 @@ public class AutocadBlockTableRecordWrapper : AutocadDbObjectWrapper, IAutocadBl
     /// Recursively extracts geometry from nested block references.
     /// Returns a flattened collection of all entities within the block definition.
     /// </remarks>
-    public IEntitySet GetObjects(ITransactionManager transactionManager)
+    public IEntitySet GetObjects(IAutocadTransaction autocadTransaction)
     {
         var entityCollection = new EntitySet();
 
-        var transaction = transactionManager.Unwrap();
+        var transaction = autocadTransaction.Unwrap();
 
         var blockDefinition = transaction.GetObject(_blockTableRecord.Id, OpenMode.ForRead) as BlockTableRecord;
 
@@ -78,7 +78,7 @@ public class AutocadBlockTableRecordWrapper : AutocadDbObjectWrapper, IAutocadBl
             {
                 var wrapper = new AutocadBlockReferenceWrapper(blockReference);
 
-                var nestedBlockReferences = wrapper.GetObjects(transactionManager);
+                var nestedBlockReferences = wrapper.GetObjects(autocadTransaction);
 
                 foreach (var nestedEntity in nestedBlockReferences)
                 {

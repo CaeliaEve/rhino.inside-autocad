@@ -17,7 +17,7 @@ public class RhinoInsideAutoCadApplicationConfig : IApplicationConfig
     public string ProductName => ApplicationConstants.ProductName;
 
     /// <inheritdoc/>
-    public string ClientFolderName => ApplicationConstants.ClientFolderName;
+    public string ApplicationFolderName => ApplicationConstants.ApplicationFolderName;
 
     /// <inheritdoc/>
     public string PackagePrefixName => ApplicationConstants.PackagePrefixName;

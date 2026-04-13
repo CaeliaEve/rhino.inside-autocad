@@ -25,7 +25,7 @@ public interface IApplicationConfig
     /// The folder name used for application data. This can be used in multiple places
     /// for example under the user's AppData\Roaming folder or in the program files folder.
     /// </summary>
-    string ClientFolderName { get; }
+    string ApplicationFolderName { get; }
 
     /// <summary>
     /// The root installation directory of the application.

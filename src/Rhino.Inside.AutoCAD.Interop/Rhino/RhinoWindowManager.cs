@@ -10,6 +10,12 @@ public class RhinoWindowManager : IRhinoWindowManager
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr windowHandle, int windowShowStyle);
 
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr windowHandle);
+
+    [DllImport("user32.dll")]
+    private static extern bool BringWindowToTop(IntPtr windowHandle);
+
     /// <summary>
     /// The pointer to the Rhino main window.
     /// </summary>
@@ -37,6 +43,20 @@ public class RhinoWindowManager : IRhinoWindowManager
             return;
 
         ShowWindow(_mainWindow, (int)WindowShowStyle.Hide);
+    }
+
+    /// <inheritdoc />
+    public void BringToFront()
+    {
+        if (_mainWindow == IntPtr.Zero)
+            return;
+
+        // Restore the window if it's minimised
+        ShowWindow(_mainWindow, (int)WindowShowStyle.Restore);
+
+        // Bring it to the top of the Z-order, then set it as the foreground window
+        BringWindowToTop(_mainWindow);
+        SetForegroundWindow(_mainWindow);
     }
 
     /// <inheritdoc />

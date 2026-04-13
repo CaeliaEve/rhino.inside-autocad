@@ -17,7 +17,7 @@ public class RhinoConvertibleCurve : RhinoConvertibleBase<Rhino.Geometry.Curve>
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(ITransactionManager transactionManager)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
     {
         var cadCurves = this.RhinoGeometry.ToAutocadCurves();
 

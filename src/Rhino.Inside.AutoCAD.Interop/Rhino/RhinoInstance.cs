@@ -3,6 +3,7 @@ using Rhino.Commands;
 using Rhino.DocObjects;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Services;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -10,6 +11,8 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public class RhinoInstance : IRhinoInstance
 {
     private readonly IInstallationDirectories _installationDirectories;
+    private const string _defaultTemplate = ApplicationConstants.DefaultTemplateFormat;
+    private const string _failedToLoadRhinoDoc = ApplicationConstants.FailedToLoadRhinoDoc;
 
     /// <inheritdoc />
     public event EventHandler? DocumentCreated;
@@ -58,8 +61,7 @@ public class RhinoInstance : IRhinoInstance
     private RhinoDoc CreateRhinoDoc(IStartUpLogger logger,
         RhinoInsideMode mode)
     {
-        var template =
-            $"{_installationDirectories.Resources}Large Objects - Millimeters.3dm";
+        var template = string.Format(_defaultTemplate, _installationDirectories.Resources);
 
         try
         {
@@ -86,7 +88,7 @@ public class RhinoInstance : IRhinoInstance
         }
         catch
         {
-            logger.AddError("Failed to initialize Rhino Doc.");
+            logger.AddError(_failedToLoadRhinoDoc);
 
             throw;
         }
@@ -109,7 +111,7 @@ public class RhinoInstance : IRhinoInstance
     /// </summary>
     private void OnSelectedObject(object? sender, RhinoObjectSelectionEventArgs e)
     {
-        for (var index = 0; index < e.RhinoObjectCount; index++)
+        for (var index = 0; index < e.RhinoObjects.Length; index++)
         {
             var rhinoObject = e.RhinoObjects[index];
 
@@ -186,8 +188,6 @@ public class RhinoInstance : IRhinoInstance
     /// <inheritdoc />
     public void Shutdown()
     {
-        this.RhinoCore.Shutdown();
-
         RhinoDoc.DocumentPropertiesChanged -= this.OnDocumentPropertiesModified;
 
         RhinoDoc.AddRhinoObject -= this.OnAddRhinoObject;
@@ -200,6 +200,8 @@ public class RhinoInstance : IRhinoInstance
 
         RhinoDoc.DeselectObjects -= this.OnSelectedObject;
 
-        this.ActiveDoc?.Dispose();
+        RhinoDoc.DeselectAllObjects -= this.OnDeselectObjects;
+
+        this.RhinoCore.Shutdown();
     }
 }

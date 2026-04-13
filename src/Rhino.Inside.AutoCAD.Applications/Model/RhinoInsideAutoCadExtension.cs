@@ -13,6 +13,7 @@ namespace Rhino.Inside.AutoCAD.Applications;
 /// <inheritdoc cref="IRhinoInsideAutoCadApplication"/>
 public class RhinoInsideAutoCadExtension : IExtensionApplication
 {
+
     private const string _applicationLoadedSuccessMessage = ApplicationConstants.ApplicationLoadedSuccessMessage;
     private const string _applicationLoadErrorMessageFormat = ApplicationConstants.ApplicationLoadErrorMessageFormat;
     private const string _stackTraceMessageFormat = ApplicationConstants.StackTraceMessageFormat;
@@ -29,6 +30,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// </summary>
     public void Initialize()
     {
+
         var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
 
         var currentDate = System.DateTime.Now;
@@ -124,8 +126,9 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             Application?.Terminate();
 
             Application = null;
+
         }
-        catch (System.Exception e)
+        catch (System.Exception ex)
         {
 
         }
@@ -137,7 +140,16 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// </summary>
     private void OnApplicationBeginQuit(object sender, Autodesk.AutoCAD.ApplicationServices.BeginQuitEventArgs e)
     {
-        this.SafeTermination();
+        if (Application is not null)
+        {
+            e.IsVetoed = true;
+
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
+
+            this.SafeTermination();
+
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.Quit();
+        }
     }
 
     /// <summary>
@@ -145,8 +157,6 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// </summary>
     public void Terminate()
     {
-        this.SafeTermination();
-
         Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
     }
 }

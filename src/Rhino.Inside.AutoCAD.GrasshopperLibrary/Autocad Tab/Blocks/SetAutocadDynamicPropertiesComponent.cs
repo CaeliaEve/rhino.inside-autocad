@@ -56,16 +56,16 @@ public class SetAutocadDynamicPropertiesComponent : RhinoInsideAutocad_Component
     /// </summary>
 
     private void UpdatePropertyValue(
-        ITransactionManager transactionManagerWrapper, object value,
+        IAutocadTransaction autocadTransactionWrapper, object value,
         DynamicBlockReferencePropertyWrapper property)
     {
-        using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
+        using var transaction = autocadTransactionWrapper.Unwrap().StartTransaction();
 
         var valueObject = value is IGH_Goo valueGoo
             ? valueGoo.GetType().GetProperty("Value").GetValue(valueGoo, null)
             : value;
 
-        _ = property.SetValue(valueObject, transactionManagerWrapper);
+        _ = property.SetValue(valueObject, autocadTransactionWrapper);
 
         transaction.Commit();
     }

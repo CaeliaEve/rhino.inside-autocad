@@ -3,16 +3,16 @@ using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
-/// <inheritdoc cref="ITransactionManager"/>
+/// <inheritdoc cref="IAutocadTransaction"/>
 /// <remarks>
 /// Wraps an AutoCAD <see cref="TransactionManager"/> obtained from the active <see cref="Database"/>.
 /// Provides methods to access model space and other block table records within a transactional context.
 /// All database modifications must occur through this wrapper to ensure proper transaction handling.
 /// </remarks>
-/// <seealso cref="ITransactionManager"/>
+/// <seealso cref="IAutocadTransaction"/>
 /// <seealso cref="IAutocadDocument"/>
 /// <seealso cref="AutocadBlockTableRecordWrapper"/>
-public class TransactionManagerWrapper : AutocadWrapperDisposableBase<TransactionManager>, ITransactionManager
+public class AutocadTransactionWrapper : AutocadWrapperDisposableBase<TransactionManager>, IAutocadTransaction
 {
     private readonly Database _database;
     private readonly DwgVersion _dwgVersion = DwgVersion.Current;
@@ -27,7 +27,7 @@ public class TransactionManagerWrapper : AutocadWrapperDisposableBase<Transactio
     public IDatabase Database => new AutocadDatabaseWrapper(_database);
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TransactionManagerWrapper"/> class.
+    /// Initializes a new instance of the <see cref="AutocadTransactionWrapper"/> class.
     /// </summary>
     /// <param name="database">
     /// The AutoCAD <see cref="Database"/> whose <see cref="TransactionManager"/> will be wrapped.
@@ -36,7 +36,7 @@ public class TransactionManagerWrapper : AutocadWrapperDisposableBase<Transactio
     /// Captures the database reference for subsequent operations and initializes the
     /// <see cref="BlockTableId"/> from the database's block table.
     /// </remarks>
-    public TransactionManagerWrapper(Database database) : base(database.TransactionManager)
+    public AutocadTransactionWrapper(Database database) : base(database.TransactionManager)
     {
         _database = database;
         this.BlockTableId = new AutocadObjectIdWrapper(database.BlockTableId);

@@ -53,14 +53,14 @@ public static class AutocadTextExtensions
     /// Converts an AutoCAD TextStyle to a Rhino DimensionStyle.
     /// </summary>
     /// <param name="textStyleId">The ObjectId of the AutoCAD text style.</param>
-    /// <param name="transactionManager">The transaction manager for database access.</param>
+    /// <param name="autocadTransaction">The transaction manager for database access.</param>
     /// <returns>A Rhino DimensionStyle, or null if conversion fails.</returns>
-    public static DimensionStyle? ToRhinoDimensionStyle(this ObjectId textStyleId, ITransactionManager transactionManager)
+    public static DimensionStyle? ToRhinoDimensionStyle(this ObjectId textStyleId, IAutocadTransaction autocadTransaction)
     {
         if (textStyleId.IsNull)
             return null;
 
-        var transaction = transactionManager.Unwrap();
+        var transaction = autocadTransaction.Unwrap();
 
         var textStyle = (CadTextStyleTableRecord)transaction.GetObject(textStyleId, OpenMode.ForRead);
 

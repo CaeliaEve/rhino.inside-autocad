@@ -153,17 +153,17 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     private void CheckRepositories()
     {
         if (_documentChange.DoesEffectType(typeof(CadLayer)))
-            this.LayerRegister.Repopulate();
+            this.LayerRegister.Update();
 
         if (_documentChange.DoesEffectType(typeof(CadLayout)))
-            this.LayoutRegister.Repopulate();
+            this.LayoutRegister.Update();
 
         if (_documentChange.DoesEffectType(typeof(CadLineType)))
-            this.LineTypeRegister.Repopulate();
+            this.LineTypeRegister.Update();
 
         if (_documentChange.DoesEffectType(typeof(CadBlockTableRecord)))
         {
-            this.BlockTableRecordRegister.Repopulate();
+            this.BlockTableRecordRegister.Update();
             this.Regenerate();
         }
     }
@@ -214,13 +214,13 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     }
 
     /// <inheritdoc/>
-    public T Transaction<T>(Func<ITransactionManager, T> function, bool abort = false)
+    public T Transaction<T>(Func<IAutocadTransaction, T> function, bool abort = false)
     {
         using var documentLock = _document.LockDocument();
 
         var database = _document.Database;
 
-        using var transactionManagerWrapper = new TransactionManagerWrapper(database);
+        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -297,15 +297,13 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     {
         _document.CommandEnded -= this.OnCommandEnded;
         _document.CommandCancelled -= this.OnCommandEnded;
+
         var database = _document.Database;
         database.ObjectAppended -= this.OnObjectAppended;
         database.ObjectModified -= this.OnObjectModified;
         database.ObjectErased -= this.OnObjectErased;
 
-        this.Database.Dispose();
+        this.Database?.Dispose();
         this.LayerRegister?.Dispose();
-
-        if (_document.IsDisposed)
-            return;
     }
 }

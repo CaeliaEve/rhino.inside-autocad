@@ -1,13 +1,15 @@
+using CadInterval = Autodesk.AutoCAD.Geometry.Interval;
+using CadPlane = Autodesk.AutoCAD.Geometry.Plane;
 using CadPoint2d = Autodesk.AutoCAD.Geometry.Point2d;
 using CadPoint3d = Autodesk.AutoCAD.Geometry.Point3d;
 using CadVector2d = Autodesk.AutoCAD.Geometry.Vector2d;
 using CadVector3d = Autodesk.AutoCAD.Geometry.Vector3d;
-using CadPlane = Autodesk.AutoCAD.Geometry.Plane;
+using RhinoInterval = Rhino.Geometry.Interval;
+using RhinoPlane = Rhino.Geometry.Plane;
 using RhinoPoint2d = Rhino.Geometry.Point2d;
 using RhinoPoint3d = Rhino.Geometry.Point3d;
 using RhinoVector2d = Rhino.Geometry.Vector2d;
 using RhinoVector3d = Rhino.Geometry.Vector3d;
-using RhinoPlane = Rhino.Geometry.Plane;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -116,5 +118,16 @@ public static class AutocadGeometryExtensions
         var yAxis = coordinateSystem.Yaxis.ToRhinoVector3d();
 
         return new RhinoPlane(origin, xAxis, yAxis);
+    }
+
+    /// <summary>
+    /// Converts an AutoCAD interval to a Rhino interval, applying unit conversion intervals
+    /// </summary>
+    public static RhinoInterval ToRhinoInterval(this CadInterval interval)
+    {
+        var t0 = UnitConverter.ToRhinoLength(interval.LowerBound);
+        var t1 = UnitConverter.ToRhinoLength(interval.UpperBound);
+
+        return new RhinoInterval(t0, t1);
     }
 }

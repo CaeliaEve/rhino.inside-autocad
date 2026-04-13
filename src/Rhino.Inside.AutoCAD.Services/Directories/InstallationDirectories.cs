@@ -28,33 +28,23 @@ public class InstallationDirectories : IInstallationDirectories
     public string ProductName { get; }
 
     /// <summary>
-    /// Constructs a new <see cref="InstallationDirectories"/>.
+    /// Constructs a new <see cref="IInstallationDirectories"/>.
     /// </summary>
     public InstallationDirectories(IApplicationVersionHistory versionHistory, IApplicationConfig applicationConfig)
     {
-        var rootInstallDirectory = applicationConfig.RootInstallDirectory;
+        var frameworkFolder = this.GetFrameworkFolder();
 
         var currentVersion = versionHistory.GetCurrentVersion();
 
+        var rootInstallDirectory = applicationConfig.RootInstallDirectory;
+
         var applicationName = applicationConfig.ApplicationName;
-
-        var appResourcesDirectory = $"{rootInstallDirectory}{_resourcesFolderName}\\";
-
-        var appData =
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-        var userLocal = $"{appData}\\{applicationConfig.ClientFolderName}\\";
-
-        if (Directory.Exists(userLocal) == false)
-            Directory.CreateDirectory(userLocal);
-
-        var frameworkFolder = this.GetFrameworkFolder();
 
         this.RootInstallationLocation = rootInstallDirectory;
 
-        this.Resources = appResourcesDirectory;
+        this.VersionedAssemblies = Path.Combine(rootInstallDirectory, currentVersion.ToString(), _assemblyFolder, frameworkFolder);
 
-        this.VersionedAssemblies = $"{rootInstallDirectory}{currentVersion}\\{_assemblyFolder}\\{frameworkFolder}\\";
+        this.Resources = Path.Combine(rootInstallDirectory, _resourcesFolderName);
 
         this.ApplicationName = applicationName;
 

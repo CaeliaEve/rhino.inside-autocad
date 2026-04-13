@@ -69,22 +69,20 @@ public class AssemblyResolver : IAssemblyResolver
     /// </summary>
     private Assembly? ResolveAssembly(object sender, ResolveEventArgs args)
     {
-        var assemblyFullName = args.Name;
-
-        var matchingAssemblyName = _assemblyNameRedirects.FirstOrDefault(assemblyFullName.Contains);
-        if (matchingAssemblyName != null)
+        var assemblyName = _assemblyNameRedirects.FirstOrDefault(args.Name.Contains);
+        if (assemblyName != null)
         {
-            if (_resolvedAssemblies.TryGetValue(matchingAssemblyName, out var resolve))
+            if (_resolvedAssemblies.TryGetValue(assemblyName, out var resolve))
                 return resolve;
 
-            var assemblyPath = Path.Combine(_installationDirectories.VersionedAssemblies, $"{matchingAssemblyName}.dll");
+            var assemblyPath = Path.Combine(_installationDirectories.VersionedAssemblies, $"{assemblyName}.dll");
 
             if (!File.Exists(assemblyPath))
                 return null;
 
             var assembly = Assembly.LoadFrom(assemblyPath);
 
-            _resolvedAssemblies[matchingAssemblyName] = assembly;
+            _resolvedAssemblies[assemblyName] = assembly;
 
             return assembly;
         }
