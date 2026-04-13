@@ -15,11 +15,13 @@
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		
+		<UseWindowsForms>true</UseWindowsForms>
 	</PropertyGroup>
 
 	<ItemGroup>
-	<PackageReference Include="AutoCAD.NET.Model" />
+	<PackageReference Include="AutoCAD.NET.Model" >
+		<ExcludeAssets>runtime</ExcludeAssets>
+	</PackageReference>
 	<PackageReference Include="NaturalSort.Extension" />
 		<PackageReference Include="MaterialDesignThemes" />
 		<PackageReference Include="RhinoCommon">

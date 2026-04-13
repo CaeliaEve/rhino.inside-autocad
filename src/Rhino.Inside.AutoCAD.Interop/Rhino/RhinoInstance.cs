@@ -111,7 +111,7 @@ public class RhinoInstance : IRhinoInstance
     /// </summary>
     private void OnSelectedObject(object? sender, RhinoObjectSelectionEventArgs e)
     {
-        for (var index = 0; index < e.RhinoObjectCount; index++)
+        for (var index = 0; index < e.RhinoObjects.Length; index++)
         {
             var rhinoObject = e.RhinoObjects[index];
 

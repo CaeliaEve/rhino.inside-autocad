@@ -3,6 +3,7 @@ using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using System.Windows.Threading;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 

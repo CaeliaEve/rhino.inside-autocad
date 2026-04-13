@@ -1,9 +1,9 @@
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using CadHatch = Autodesk.AutoCAD.DatabaseServices.Hatch;
 using CadNurbsSurface = Autodesk.AutoCAD.DatabaseServices.NurbSurface;
 using CadPoint3dCollection = Autodesk.AutoCAD.Geometry.Point3dCollection;
@@ -13,6 +13,7 @@ using CadPolyMeshType = Autodesk.AutoCAD.DatabaseServices.PolyMeshType;
 using CadSolid3d = Autodesk.AutoCAD.DatabaseServices.Solid3d;
 using CadSubDMesh = Autodesk.AutoCAD.DatabaseServices.SubDMesh;
 using CadSurface = Autodesk.AutoCAD.DatabaseServices.Surface;
+using Region = Autodesk.AutoCAD.DatabaseServices.Region;
 using RhinoBrep = Rhino.Geometry.Brep;
 using RhinoHatch = Rhino.Geometry.Hatch;
 using RhinoMesh = Rhino.Geometry.Mesh;

@@ -2,6 +2,7 @@
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Point = Rhino.Geometry.Point;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
