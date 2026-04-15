@@ -21,6 +21,9 @@ where TRhinoType : GeometryBase
 {
     private const string _referenceHandleDictionaryName = "AutocadReferenceHandle";
 
+    private TRhinoType? _cachedRhinoGeometry;
+    private TWrapperType? _cachedValueForGeometry;
+
     /// <inheritdoc />
     public IAutocadReferenceId Reference { get; private set; }
 
@@ -29,11 +32,29 @@ where TRhinoType : GeometryBase
 
     /// <summary>
     /// Gets the Rhino geometry equivalent of the AutoCAD geometry.
+    /// The result is cached and automatically invalidated when Value changes.
     /// </summary>
-    public TRhinoType? RhinoGeometry =>
-        this.Value == null
-            ? null
-            : this.Convert(this.Value);
+    public TRhinoType? RhinoGeometry
+    {
+        get
+        {
+            if (this.Value == null)
+            {
+                _cachedRhinoGeometry = null;
+                _cachedValueForGeometry = null;
+                return null;
+            }
+
+            // Recompute if Value reference has changed
+            if (!ReferenceEquals(_cachedValueForGeometry, this.Value))
+            {
+                _cachedRhinoGeometry = this.Convert(this.Value);
+                _cachedValueForGeometry = this.Value;
+            }
+
+            return _cachedRhinoGeometry;
+        }
+    }
 
     /// <inheritdoc />
     public override BoundingBox Boundingbox

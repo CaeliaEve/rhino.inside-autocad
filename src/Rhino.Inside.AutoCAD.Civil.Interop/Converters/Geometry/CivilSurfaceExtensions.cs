@@ -1,4 +1,4 @@
-using Autodesk.AutoCAD.ApplicationServices;
+﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using CadPoint3d = Autodesk.AutoCAD.Geometry.Point3d;
@@ -22,34 +22,24 @@ public static class CivilSurfaceExtensions
     {
         var rhinoMesh = new RhinoMesh();
 
-        var vertices = surface.Vertices;
+        var vertexIndexMap = new Dictionary<CadPoint3d, int>(CadPoint3dComparer.Instance);
 
-        var cadPoints = new HashSet<CadPoint3d>();
-
-        foreach (var vertex in vertices)
+        foreach (var vertex in surface.Vertices)
         {
             var location = vertex.Location;
-
-            if (cadPoints.Add(location) == false)
-            {
+            if (vertexIndexMap.ContainsKey(location))
                 continue;
-            }
 
-            var rhinoPoint = location.ToRhinoPoint3d();
-
-            rhinoMesh.Vertices.Add(rhinoPoint);
+            var index = rhinoMesh.Vertices.Count;
+            rhinoMesh.Vertices.Add(location.ToRhinoPoint3d());
+            vertexIndexMap[location] = index;
         }
 
-        var triangles = surface.GetTriangles(false);
-
-        var vertexList = cadPoints.ToList();
-
-        foreach (var surfaceTriangle in triangles)
+        foreach (var triangle in surface.GetTriangles(false))
         {
-            var indexA = vertexList.IndexOf(surfaceTriangle.Vertex1.Location);
-            var indexB = vertexList.IndexOf(surfaceTriangle.Vertex2.Location);
-            var indexC = vertexList.IndexOf(surfaceTriangle.Vertex3.Location);
-
+            var indexA = vertexIndexMap[triangle.Vertex1.Location];
+            var indexB = vertexIndexMap[triangle.Vertex2.Location];
+            var indexC = vertexIndexMap[triangle.Vertex3.Location];
             rhinoMesh.Faces.AddFace(indexA, indexB, indexC);
         }
 
@@ -63,7 +53,7 @@ public static class CivilSurfaceExtensions
     /// <param name="surface">The Civil Surface to convert.</param>
     /// <param name="transactionManager">The transaction manager for database operations.</param>
     /// <returns>A Rhino Mesh with vertices scaled to Rhino units.</returns>
-    public static RhinoMesh ToRhinoMesh(this CivilSurface surface, ITransactionManager transactionManager)
+    public static RhinoMesh ToRhinoMesh(this CivilSurface surface, IAutocadTransaction transactionManager)
     {
         switch (surface)
         {
@@ -92,7 +82,7 @@ public static class CivilSurfaceExtensions
 
         var database = activeDocument.Database;
 
-        using var transactionManagerWrapper = new TransactionManagerWrapper(database);
+        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 

@@ -69,6 +69,16 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CreateCivilTINSurface {
+            get {
+                object obj = ResourceManager.GetObject("CreateCivilTINSurface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
@@ -80,6 +90,16 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilSurfaceStyle {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilSurfaceStyle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -96,6 +116,16 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
         internal static System.Drawing.Bitmap Param_Filter {
             get {
                 object obj = ResourceManager.GetObject("Param_Filter", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_SurfaceDefinitionContour {
+            get {
+                object obj = ResourceManager.GetObject("Param_SurfaceDefinitionContour", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

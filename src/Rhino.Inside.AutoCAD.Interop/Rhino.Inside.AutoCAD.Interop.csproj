@@ -19,7 +19,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	<PackageReference Include="AutoCAD.NET.Model" >
+	<PackageReference Include="AutoCAD.NET.Model">
 		<ExcludeAssets>runtime</ExcludeAssets>
 	</PackageReference>
 	<PackageReference Include="NaturalSort.Extension" />

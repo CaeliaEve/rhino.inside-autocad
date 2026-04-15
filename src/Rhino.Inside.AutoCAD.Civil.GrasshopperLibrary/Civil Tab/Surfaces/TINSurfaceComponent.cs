@@ -1,13 +1,12 @@
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
-using CivilSurface = Autodesk.Civil.DatabaseServices.TinSurface;
+using TinSurface = Autodesk.Civil.DatabaseServices.TinSurface;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
-/// A Grasshopper component that extracts information from an AutoCAD DBObject.
+/// A Grasshopper component that extracts information from a Civil 3D TIN Surface.
 /// </summary>
 [ComponentVersion(introduced: "1.2.19")]
 public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
@@ -19,12 +18,12 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
 
     /// <summary>
-    /// Initializes a new instance example.
+    /// Initializes a new instance of the <see cref="TINSurfaceComponent"/> class.
     /// </summary>
     public TINSurfaceComponent()
         : base("Civil3d TIN Surface", "CVL-Surface",
-            "A TIN Civil 3D surface",
-            "Civil3d", "Example")
+            "Extracts information from a Civil 3D TIN surface",
+            "Civil3d", "Surfaces")
     {
     }
 
@@ -49,34 +48,16 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        CivilSurface? tinSurface = null;
+        TinSurface? tinSurface = null;
 
         if (!DA.GetData(0, ref tinSurface) || tinSurface is null) return;
 
         // Id
         var id = new GH_AutocadObjectId(new AutocadObjectIdWrapper(tinSurface.Id));
-
-        var styleId = new GH_AutocadObjectId(new AutocadObjectIdWrapper(tinSurface.StyleId));
-
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
-
-        var methods = typeof(CivilSurface)
-            .GetMethods(System.Reflection.BindingFlags.Public |
-                        System.Reflection.BindingFlags.Instance)
-            .Select(m => m.Name)
-            .Where(name => name.ToLower().Contains("contour") ||
-                           name.ToLower().Contains("extract"))
-            .Distinct()
-            .OrderBy(n => n);
-
-        foreach (var m in methods)
-            RhinoApp.WriteLine(m);
-
-
-
         DA.SetData(0, id);
-        DA.SetData(1, styleId);
 
+        // StyleId
+        var styleId = new GH_AutocadObjectId(new AutocadObjectIdWrapper(tinSurface.StyleId));
+        DA.SetData(1, styleId);
     }
 }
