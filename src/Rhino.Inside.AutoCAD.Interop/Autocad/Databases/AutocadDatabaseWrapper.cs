@@ -3,7 +3,7 @@ using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
-/// <inheritdoc cref="IDatabase"/>
+/// <inheritdoc cref="IAutocadDatabase"/>
 /// <remarks>
 /// Wraps an AutoCAD <see cref="Database"/> to expose symbol table IDs for blocks,
 /// layers, linetypes, and layouts. Owned by <see cref="IAutocadDocument"/> and
@@ -12,7 +12,7 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// <seealso cref="IAutocadDocument"/>
 /// <seealso cref="IBlockTableRecordRegister"/>
 /// <seealso cref="ILayerRegister"/>
-public class AutocadDatabaseWrapper : AutocadWrapperDisposableBase<Database>, IDatabase
+public class AutocadDatabaseWrapper : AutocadWrapperDisposableBase<Database>, IAutocadDatabase
 {
     /// <inheritdoc/>
     public IObjectId BlockTableId { get; }

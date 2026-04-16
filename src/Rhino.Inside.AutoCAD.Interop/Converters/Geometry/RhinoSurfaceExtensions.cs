@@ -237,9 +237,9 @@ public static class RhinoSurfaceExtensions
     /// Converts a Rhino Hatch to an AutoCAD Hatch, applying unit conversion.
     /// </summary>
     /// <param name="rhinoHatch">The Rhino Hatch to convert.</param>
-    /// <param name="autocadTransaction">The transaction manager for database operations.</param>
+    /// <param name="autocadTransactionManager">The transaction manager for database operations.</param>
     /// <returns>An AutoCAD Hatch.</returns>
-    public static CadHatch ToAutocadHatch(this RhinoHatch rhinoHatch, IAutocadTransaction autocadTransaction)
+    public static CadHatch ToAutocadHatch(this RhinoHatch rhinoHatch, IAutocadTransactionManager autocadTransactionManager)
     {
         var scale = UnitConverter.ToAutoCadLength(rhinoHatch.PatternScale);
 
@@ -261,9 +261,9 @@ public static class RhinoSurfaceExtensions
             outerCurve.Append(curve);
         }
 
-        var transaction = autocadTransaction.Unwrap();
+        var transaction = autocadTransactionManager.Unwrap();
 
-        var modelSpace = autocadTransaction.GetModelSpace(true).UnwrapObject() as BlockTableRecord;
+        var modelSpace = autocadTransactionManager.GetModelSpace(true).UnwrapObject() as BlockTableRecord;
 
         var objectIds = new ObjectIdCollection();
 
@@ -309,9 +309,9 @@ public static class RhinoSurfaceExtensions
     /// Converts a Rhino Extrusion to an array of AutoCAD Solid3ds, applying unit conversion.
     /// </summary>
     /// <param name="extrusion">The Rhino Extrusion to convert.</param>
-    /// <param name="autocadTransaction">The transaction manager for database operations.</param>
+    /// <param name="autocadTransactionManager">The transaction manager for database operations.</param>
     /// <returns>An array of AutoCAD Solid3d objects.</returns>
-    public static CadSolid3d[] ToAutocadSolid3ds(this Extrusion extrusion, IAutocadTransaction autocadTransaction)
+    public static CadSolid3d[] ToAutocadSolid3ds(this Extrusion extrusion, IAutocadTransactionManager autocadTransactionManager)
     {
         var solids = new List<CadSolid3d>();
 
@@ -383,9 +383,7 @@ public static class RhinoSurfaceExtensions
 
         using var documentLock = activeDocument.LockDocument();
 
-        var database = activeDocument.Database;
-
-        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        using var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -401,18 +399,18 @@ public static class RhinoSurfaceExtensions
     /// AutoCAD mesh faces use 1-based indexing, so indices are adjusted accordingly.
     /// </summary>
     /// <param name="mesh">The Rhino Mesh to convert.</param>
-    /// <param name="autocadTransaction">The transaction manager for database operations.</param>
+    /// <param name="autocadTransactionManager">The transaction manager for database operations.</param>
     /// <returns>An AutoCAD PolyFaceMesh with vertices scaled to AutoCAD units.</returns>
-    public static CadPolyFaceMesh? ToAutocadPolyFaceMesh(this RhinoMesh mesh, IAutocadTransaction autocadTransaction)
+    public static CadPolyFaceMesh? ToAutocadPolyFaceMesh(this RhinoMesh mesh, IAutocadTransactionManager autocadTransactionManager)
     {
         var polyFaceMesh = new CadPolyFaceMesh();
         var clone = new CadPolyFaceMesh();
 
         try
         {
-            var transaction = autocadTransaction.Unwrap();
+            var transaction = autocadTransactionManager.Unwrap();
 
-            var blockTable = transaction.GetObject(autocadTransaction.BlockTableId.Unwrap(), OpenMode.ForRead) as BlockTable;
+            var blockTable = transaction.GetObject(autocadTransactionManager.BlockTableId.Unwrap(), OpenMode.ForRead) as BlockTable;
 
             var blockTableRecord = transaction.GetObject(blockTable![BlockTableRecord.ModelSpace],
                 OpenMode.ForWrite) as BlockTableRecord;

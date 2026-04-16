@@ -25,15 +25,27 @@ using RhinoTransform = Rhino.Geometry.Transform;
 namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <summary>
-/// Provides extension methods for converting AutoCAD curve types to Rhino curve types.
+/// Extension methods for converting AutoCAD curve types to their Rhino equivalents.
 /// </summary>
+/// <remarks>
+/// All conversion methods apply unit scaling via <see cref="UnitConverter"/> to ensure
+/// geometric data is correctly transformed between AutoCAD and Rhino coordinate systems.
+/// </remarks>
+/// <seealso cref="RhinoCurveExtensions"/>
+/// <seealso cref="AutocadGeometryExtensions"/>
 public static class AutocadCurveExtensions
 {
     /// <summary>
-    /// Converts an AutoCAD Line to a Rhino LineCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="CadLine"/> to a Rhino <see cref="RhinoLineCurve"/>.
     /// </summary>
-    /// <param name="line">The AutoCAD line to convert.</param>
-    /// <returns>A Rhino LineCurve with endpoints scaled to Rhino units.</returns>
+    /// <param name="line">
+    /// The AutoCAD line to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoLineCurve"/> with endpoints scaled to Rhino units.
+    /// </returns>
+    /// <seealso cref="ToRhinoLineCurve(LineSegment2d)"/>
+    /// <seealso cref="ToRhinoLineCurve(LineSegment3d)"/>
     public static RhinoLineCurve ToRhinoLineCurve(this CadLine line)
     {
         var startPoint = line.StartPoint.ToRhinoPoint3d();
@@ -42,30 +54,44 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Arc to a Rhino Arc, applying unit conversion.
+    /// Converts an AutoCAD <see cref="CadArc"/> to a Rhino <see cref="RhinoArc"/>.
     /// </summary>
-    /// <param name="arc">The AutoCAD arc to convert.</param>
-    /// <returns>A Rhino Arc with radius scaled to Rhino units.</returns>
+    /// <param name="arc">
+    /// The AutoCAD arc to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoArc"/> with radius and plane scaled to Rhino units.
+    /// </returns>
+    /// <remarks>
+    /// The arc's plane is derived from <see cref="CadArc.GetPlane()"/>, preserving the
+    /// original orientation. Start angle and sweep angle are transferred directly.
+    /// </remarks>
+    /// <seealso cref="ToRhinoArc(CircularArc2d)"/>
+    /// <seealso cref="ToRhinoArc(CircularArc3d)"/>
     public static RhinoArc ToRhinoArc(this CadArc arc)
     {
         var plane = arc.GetPlane().ToRhinoPlane();
         var radius = UnitConverter.ToRhinoLength(arc.Radius);
-        var sweep = arc.TotalAngle;
+        var sweepAngle = arc.TotalAngle;
 
-        var rhinoArc = new RhinoArc(plane, radius, sweep)
+        var rhinoArc = new RhinoArc(plane, radius, sweepAngle)
         {
             StartAngle = arc.StartAngle,
-            Angle = sweep
+            Angle = sweepAngle
         };
 
         return rhinoArc;
     }
 
     /// <summary>
-    /// Converts an AutoCAD Circle to a Rhino Circle, applying unit conversion.
+    /// Converts an AutoCAD <see cref="CadCircle"/> to a Rhino <see cref="RhinoCircle"/>.
     /// </summary>
-    /// <param name="circle">The AutoCAD circle to convert.</param>
-    /// <returns>A Rhino Circle with radius scaled to Rhino units.</returns>
+    /// <param name="circle">
+    /// The AutoCAD circle to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoCircle"/> centered at the converted origin with radius scaled to Rhino units.
+    /// </returns>
     public static RhinoCircle ToRhinoCircle(this CadCircle circle)
     {
         var origin = circle.Center.ToRhinoPoint3d();
@@ -74,10 +100,19 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Ellipse to a Rhino Ellipse, applying unit conversion.
+    /// Converts an AutoCAD <see cref="CadEllipse"/> to a Rhino <see cref="RhinoEllipse"/>.
     /// </summary>
-    /// <param name="ellipse">The AutoCAD ellipse to convert.</param>
-    /// <returns>A Rhino Ellipse with radii scaled to Rhino units.</returns>
+    /// <param name="ellipse">
+    /// The AutoCAD ellipse to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoEllipse"/> with both radii scaled to Rhino units.
+    /// </returns>
+    /// <remarks>
+    /// The ellipse plane is constructed from the center point and major/minor axis vectors,
+    /// preserving the original 3D orientation of the ellipse.
+    /// </remarks>
+    /// <seealso cref="ToRhinoNurbsCurve(CadEllipse)"/>
     public static RhinoEllipse ToRhinoEllipse(this CadEllipse ellipse)
     {
         var centrePoint = ellipse.Center.ToRhinoPoint3d();
@@ -93,10 +128,21 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Spline to a Rhino NurbsCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="Spline"/> to a Rhino <see cref="RhinoNurbsCurve"/>.
     /// </summary>
-    /// <param name="spline">The AutoCAD spline to convert.</param>
-    /// <returns>A Rhino NurbsCurve with control points scaled to Rhino units.</returns>
+    /// <param name="spline">
+    /// The AutoCAD spline to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoNurbsCurve"/> with control points scaled to Rhino units.
+    /// </returns>
+    /// <remarks>
+    /// Control points and weights are transferred from the spline's NURBS data.
+    /// The knot vector is normalized via <see cref="GetValidKnots"/> to match Rhino's
+    /// expected format. The curve is trimmed to the original parameter domain.
+    /// </remarks>
+    /// <seealso cref="ToRhinoNurbsCurve(SplineEntity2d)"/>
+    /// <seealso cref="ToRhinoNurbsCurve(SplineEntity3d)"/>
     public static RhinoNurbsCurve ToRhinoNurbsCurve(this Spline spline)
     {
         var nurbsData = spline.NurbsData;
@@ -131,10 +177,20 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD LineSegment2d to a Rhino LineCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="LineSegment2d"/> to a Rhino <see cref="RhinoLineCurve"/>.
     /// </summary>
-    /// <param name="lineSegment2d">The AutoCAD 2D line segment to convert.</param>
-    /// <returns>A Rhino LineCurve with endpoints scaled to Rhino units.</returns>
+    /// <param name="lineSegment2d">
+    /// The AutoCAD 2D line segment to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoLineCurve"/> with endpoints scaled to Rhino units.
+    /// </returns>
+    /// <remarks>
+    /// The 2D endpoints are converted using <see cref="AutocadGeometryExtensions.ToRhinoPoint2d"/>,
+    /// resulting in a line curve on the XY plane.
+    /// </remarks>
+    /// <seealso cref="ToRhinoLineCurve(CadLine)"/>
+    /// <seealso cref="ToRhinoLineCurve(LineSegment3d)"/>
     public static RhinoLineCurve ToRhinoLineCurve(this LineSegment2d lineSegment2d)
     {
         var startPoint = lineSegment2d.StartPoint.ToRhinoPoint2d();
@@ -143,10 +199,16 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD LineSegment3d to a Rhino LineCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="LineSegment3d"/> to a Rhino <see cref="RhinoLineCurve"/>.
     /// </summary>
-    /// <param name="lineSegment3d">The AutoCAD 3D line segment to convert.</param>
-    /// <returns>A Rhino LineCurve with endpoints scaled to Rhino units.</returns>
+    /// <param name="lineSegment3d">
+    /// The AutoCAD 3D line segment to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoLineCurve"/> with endpoints scaled to Rhino units.
+    /// </returns>
+    /// <seealso cref="ToRhinoLineCurve(CadLine)"/>
+    /// <seealso cref="ToRhinoLineCurve(LineSegment2d)"/>
     public static RhinoLineCurve ToRhinoLineCurve(this LineSegment3d lineSegment3d)
     {
         var startPoint = lineSegment3d.StartPoint.ToRhinoPoint3d();
@@ -155,15 +217,27 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Line2d to a Rhino LineCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="Line2d"/> to a Rhino <see cref="RhinoLineCurve"/>.
     /// </summary>
-    /// <param name="line2d">The AutoCAD 2D line to convert.</param>
-    /// <returns>A Rhino LineCurve. If the line is infinite, creates a unit-length line.</returns>
+    /// <param name="line2d">
+    /// The AutoCAD 2D line to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoLineCurve"/> representing the line segment.
+    /// </returns>
     /// <remarks>
-    /// <see cref="Line2d"/> are infinite which isn't supported in Rhino. The
-    /// <see cref="Line2d.PointOnLine"/> is used as the start point and the
-    /// endpoint is the unit translation of its direction.
+    /// AutoCAD <see cref="Line2d"/> objects can be infinite, which Rhino does not support.
+    /// When endpoints are not defined:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <see cref="Line2d.PointOnLine"/> is used as the start point
+    ///   </item>
+    ///   <item>
+    ///     The endpoint is computed by translating the start point along the direction vector
+    ///   </item>
+    /// </list>
     /// </remarks>
+    /// <seealso cref="ToRhinoLineCurve(Line3d)"/>
     public static RhinoLineCurve ToRhinoLineCurve(this Line2d line2d)
     {
         var hasStartPoint = line2d.HasStartPoint;
@@ -188,15 +262,27 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Line3d to a Rhino LineCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="Line3d"/> to a Rhino <see cref="RhinoLineCurve"/>.
     /// </summary>
-    /// <param name="line3d">The AutoCAD 3D line to convert.</param>
-    /// <returns>A Rhino LineCurve. If the line is infinite, creates a unit-length line.</returns>
+    /// <param name="line3d">
+    /// The AutoCAD 3D line to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoLineCurve"/> representing the line segment.
+    /// </returns>
     /// <remarks>
-    /// <see cref="Line2d"/> are infinite which isn't supported in Rhino. The
-    /// <see cref="Line2d.PointOnLine"/> is used as the start point and the
-    /// endpoint is the unit translation of its direction.
+    /// AutoCAD <see cref="Line3d"/> objects can be infinite, which Rhino does not support.
+    /// When endpoints are not defined:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <see cref="Line3d.PointOnLine"/> is used as the start point
+    ///   </item>
+    ///   <item>
+    ///     The endpoint is computed by translating the start point along the direction vector
+    ///   </item>
+    /// </list>
     /// </remarks>
+    /// <seealso cref="ToRhinoLineCurve(Line2d)"/>
     public static RhinoLineCurve ToRhinoLineCurve(this Line3d line3d)
     {
         var hasStartPoint = line3d.HasStartPoint;
@@ -221,13 +307,20 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD CircularArc2d to a Rhino Arc, applying unit conversion.
+    /// Converts an AutoCAD <see cref="CircularArc2d"/> to a Rhino <see cref="RhinoArc"/>.
     /// </summary>
+    /// <param name="circularArc2d">
+    /// The AutoCAD 2D circular arc to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoArc"/> constructed from the start point, tangent direction, and end point.
+    /// </returns>
     /// <remarks>
-    /// Vector has to be negated as the Rhino arc is drawn in the opposite direction
+    /// The tangent vector at the start point is negated because Rhino arcs
+    /// are drawn in the opposite direction compared to AutoCAD arcs.
     /// </remarks>
-    /// <param name="circularArc2d">The AutoCAD 2D circular arc to convert.</param>
-    /// <returns>A Rhino Arc with endpoints scaled to Rhino units.</returns>
+    /// <seealso cref="ToRhinoArc(CadArc)"/>
+    /// <seealso cref="ToRhinoArc(CircularArc3d)"/>
     public static RhinoArc ToRhinoArc(this CircularArc2d circularArc2d)
     {
         var startPoint = circularArc2d.StartPoint.ToRhinoPoint3d();
@@ -240,13 +333,20 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD CircularArc2d to a Rhino Arc, applying unit conversion.
+    /// Converts an AutoCAD <see cref="CircularArc3d"/> to a Rhino <see cref="RhinoArc"/>.
     /// </summary>
+    /// <param name="circularArc3d">
+    /// The AutoCAD 3D circular arc to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoArc"/> constructed from the start point, tangent direction, and end point.
+    /// </returns>
     /// <remarks>
-    /// Vector has to be negated as the Rhino arc is drawn in the opposite direction
+    /// The tangent vector at the start point is negated because Rhino arcs
+    /// are drawn in the opposite direction compared to AutoCAD arcs.
     /// </remarks>
-    /// <param name="circularArc3d">The AutoCAD 2D circular arc to convert.</param>
-    /// <returns>A Rhino Arc with endpoints scaled to Rhino units.</returns>
+    /// <seealso cref="ToRhinoArc(CadArc)"/>
+    /// <seealso cref="ToRhinoArc(CircularArc2d)"/>
     public static RhinoArc ToRhinoArc(this CircularArc3d circularArc3d)
     {
         var startPoint = circularArc3d.StartPoint.ToRhinoPoint3d();
@@ -259,10 +359,20 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD SplineEntity2d to a Rhino NurbsCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="SplineEntity2d"/> to a Rhino <see cref="RhinoNurbsCurve"/>.
     /// </summary>
-    /// <param name="spline2d">The AutoCAD 2D spline to convert.</param>
-    /// <returns>A Rhino NurbsCurve with control points scaled to Rhino units.</returns>
+    /// <param name="spline2d">
+    /// The AutoCAD 2D spline to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoNurbsCurve"/> with control points scaled to Rhino units.
+    /// </returns>
+    /// <remarks>
+    /// Creates a SubD-friendly NURBS curve from the control points.
+    /// The periodicity of the source spline is preserved.
+    /// </remarks>
+    /// <seealso cref="ToRhinoNurbsCurve(Spline)"/>
+    /// <seealso cref="ToRhinoNurbsCurve(SplineEntity3d)"/>
     public static RhinoNurbsCurve ToRhinoNurbsCurve(this SplineEntity2d spline2d)
     {
         var pointCount = spline2d.NumControlPoints;
@@ -280,10 +390,20 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD SplineEntity3d to a Rhino NurbsCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="SplineEntity3d"/> to a Rhino <see cref="RhinoNurbsCurve"/>.
     /// </summary>
-    /// <param name="spline3d">The AutoCAD 3D spline to convert.</param>
-    /// <returns>A Rhino NurbsCurve with control points scaled to Rhino units.</returns>
+    /// <param name="spline3d">
+    /// The AutoCAD 3D spline to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoNurbsCurve"/> with control points scaled to Rhino units.
+    /// </returns>
+    /// <remarks>
+    /// Creates a SubD-friendly NURBS curve from the control points.
+    /// The periodicity of the source spline is preserved.
+    /// </remarks>
+    /// <seealso cref="ToRhinoNurbsCurve(Spline)"/>
+    /// <seealso cref="ToRhinoNurbsCurve(SplineEntity2d)"/>
     public static RhinoNurbsCurve ToRhinoNurbsCurve(this SplineEntity3d spline3d)
     {
         var pointCount = spline3d.NumberOfControlPoints;
@@ -301,10 +421,19 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD CompositeCurve2d to a Rhino PolyCurve, applying unit conversion.
+    /// Converts an AutoCAD <see cref="CompositeCurve2d"/> to a Rhino <see cref="RhinoPolyCurve"/>.
     /// </summary>
-    /// <param name="compositeCurve2d">The AutoCAD 2D composite curve to convert.</param>
-    /// <returns>A Rhino PolyCurve containing all converted segments.</returns>
+    /// <param name="compositeCurve2d">
+    /// The AutoCAD 2D composite curve to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoPolyCurve"/> containing all converted curve segments.
+    /// </returns>
+    /// <remarks>
+    /// Each segment in the composite curve is individually converted using <see cref="ToRhinoCurve(Curve2d)"/>
+    /// and appended to the resulting polycurve. Unsupported segment types are skipped.
+    /// </remarks>
+    /// <seealso cref="ToRhinoPolyCurve(CadPolyline)"/>
     public static RhinoPolyCurve ToRhinoPolyCurve(this CompositeCurve2d compositeCurve2d)
     {
         var curves = compositeCurve2d.GetCurves();
@@ -321,10 +450,25 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Curve2d to the appropriate Rhino curve type.
+    /// Converts an AutoCAD <see cref="Curve2d"/> to the appropriate Rhino curve type.
     /// </summary>
-    /// <param name="curve">The AutoCAD 2D curve to convert.</param>
-    /// <returns>A Rhino Curve, or null if the curve type is not supported.</returns>
+    /// <param name="curve">
+    /// The AutoCAD 2D curve to convert.
+    /// </param>
+    /// <returns>
+    /// A Rhino <see cref="Rhino.Geometry.Curve"/>, or <see langword="null"/> if the curve type is not supported.
+    /// </returns>
+    /// <remarks>
+    /// Supported types include:
+    /// <list type="bullet">
+    ///   <item><see cref="LineSegment2d"/> and <see cref="Line2d"/></item>
+    ///   <item><see cref="CircularArc2d"/></item>
+    ///   <item><see cref="SplineEntity2d"/></item>
+    ///   <item><see cref="EllipticalArc2d"/></item>
+    /// </list>
+    /// </remarks>
+    /// <seealso cref="ToRhinoCurve(Curve3d)"/>
+    /// <seealso cref="ToRhinoCurve(CadCurve)"/>
     public static Rhino.Geometry.Curve? ToRhinoCurve(this Curve2d curve)
     {
         switch (curve)
@@ -351,10 +495,26 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Curve3d to the appropriate Rhino curve type.
+    /// Converts an AutoCAD <see cref="Curve3d"/> to the appropriate Rhino curve type.
     /// </summary>
-    /// <param name="curve">The AutoCAD 3D curve to convert.</param>
-    /// <returns>A Rhino Curve, or null if the curve type is not supported.</returns>
+    /// <param name="curve">
+    /// The AutoCAD 3D curve to convert.
+    /// </param>
+    /// <returns>
+    /// A Rhino <see cref="Rhino.Geometry.Curve"/>, or <see langword="null"/> if the curve type is not supported.
+    /// </returns>
+    /// <remarks>
+    /// Supported types include:
+    /// <list type="bullet">
+    ///   <item><see cref="LineSegment3d"/> and <see cref="Line3d"/></item>
+    ///   <item><see cref="CircularArc3d"/></item>
+    ///   <item><see cref="SplineEntity3d"/></item>
+    ///   <item><see cref="EllipticalArc3d"/></item>
+    ///   <item><see cref="ExternalCurve3d"/> (recursively converts native curve)</item>
+    /// </list>
+    /// </remarks>
+    /// <seealso cref="ToRhinoCurve(Curve2d)"/>
+    /// <seealso cref="ToRhinoCurve(CadCurve)"/>
     public static Rhino.Geometry.Curve? ToRhinoCurve(this Curve3d curve)
     {
         switch (curve)
@@ -386,21 +546,29 @@ public static class AutocadCurveExtensions
     /// <summary>
     /// Converts an <see cref="EllipticalArc2d"/> to a <see cref="RhinoNurbsCurve"/>.
     /// </summary>
-    /// <remarks>
-    /// The conversion is performed in two steps:
-    /// <list type="number">
-    ///   <item>A circular arc is constructed using the major radius and angle interval,
-    ///   oriented on a plane derived from the ellipse's major and minor axes.</item>
-    ///   <item>A non-uniform scale transform is applied along the minor axis to squash
-    ///   the circle into the correct elliptical shape, using the minor-to-major radius ratio.</item>
-    /// </list>
-    /// Unit conversion is applied to both radii via <see cref="UnitConverter.ToRhinoLength"/>.
-    /// </remarks>
-    /// <param name="ellipticalArc2d">The source elliptical arc to convert.</param>
+    /// <param name="ellipticalArc2d">
+    /// The source elliptical arc to convert.
+    /// </param>
     /// <returns>
     /// A <see cref="RhinoNurbsCurve"/> representing the elliptical arc,
-    /// or <see langword="null"/> if the NURBS curve could not be created from the arc.
+    /// or <see langword="null"/> if the NURBS curve could not be created.
     /// </returns>
+    /// <remarks>
+    /// The conversion uses a two-step approach:
+    /// <list type="number">
+    ///   <item>
+    ///     A circular arc is constructed using the major radius, oriented on a plane
+    ///     derived from the ellipse's major and minor axes
+    ///   </item>
+    ///   <item>
+    ///     A non-uniform scale transform squashes the circle into the correct elliptical
+    ///     shape using the minor-to-major radius ratio
+    ///   </item>
+    /// </list>
+    /// Unit conversion is applied via <see cref="UnitConverter.ToRhinoLength"/>.
+    /// </remarks>
+    /// <seealso cref="ToRhinoNurbsCurve(EllipticalArc3d)"/>
+    /// <seealso cref="ToRhinoNurbsCurve(CadEllipse)"/>
     public static RhinoNurbsCurve? ToRhinoNurbsCurve(this EllipticalArc2d ellipticalArc2d)
     {
         var center = ellipticalArc2d.Center.ToRhinoPoint3d();
@@ -446,21 +614,29 @@ public static class AutocadCurveExtensions
     /// <summary>
     /// Converts an <see cref="EllipticalArc3d"/> to a <see cref="RhinoNurbsCurve"/>.
     /// </summary>
-    /// <remarks>
-    /// The conversion is performed in two steps:
-    /// <list type="number">
-    ///   <item>A circular arc is constructed using the major radius and angle interval,
-    ///   oriented on a plane derived from the ellipse's major and minor axes.</item>
-    ///   <item>A non-uniform scale transform is applied along the minor axis to squash
-    ///   the circle into the correct elliptical shape, using the minor-to-major radius ratio.</item>
-    /// </list>
-    /// Unit conversion is applied to both radii via <see cref="UnitConverter.ToRhinoLength"/>.
-    /// </remarks>
-    /// <param name="ellipticalArc3d">The source elliptical arc to convert.</param>
+    /// <param name="ellipticalArc3d">
+    /// The source elliptical arc to convert.
+    /// </param>
     /// <returns>
     /// A <see cref="RhinoNurbsCurve"/> representing the elliptical arc,
-    /// or <see langword="null"/> if the NURBS curve could not be created from the arc.
+    /// or <see langword="null"/> if the NURBS curve could not be created.
     /// </returns>
+    /// <remarks>
+    /// The conversion uses a two-step approach:
+    /// <list type="number">
+    ///   <item>
+    ///     A circular arc is constructed using the major radius, oriented on a plane
+    ///     derived from the ellipse's major and minor axes
+    ///   </item>
+    ///   <item>
+    ///     A non-uniform scale transform squashes the circle into the correct elliptical
+    ///     shape using the minor-to-major radius ratio
+    ///   </item>
+    /// </list>
+    /// Unit conversion is applied via <see cref="UnitConverter.ToRhinoLength"/>.
+    /// </remarks>
+    /// <seealso cref="ToRhinoNurbsCurve(EllipticalArc2d)"/>
+    /// <seealso cref="ToRhinoNurbsCurve(CadEllipse)"/>
     public static RhinoNurbsCurve? ToRhinoNurbsCurve(this EllipticalArc3d ellipticalArc3d)
     {
         var center = ellipticalArc3d.Center.ToRhinoPoint3d();
@@ -504,23 +680,32 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an <see cref="CadEllipse"/> to a <see cref="RhinoNurbsCurve"/>.
+    /// Converts an AutoCAD database <see cref="CadEllipse"/> to a <see cref="RhinoNurbsCurve"/>.
     /// </summary>
-    /// <remarks>
-    /// The conversion is performed in two steps:
-    /// <list type="number">
-    ///   <item>A circular arc is constructed using the major radius and angle interval,
-    ///   oriented on a plane derived from the ellipse's major and minor axes.</item>
-    ///   <item>A non-uniform scale transform is applied along the minor axis to squash
-    ///   the circle into the correct elliptical shape, using the minor-to-major radius ratio.</item>
-    /// </list>
-    /// Unit conversion is applied to both radii via <see cref="UnitConverter.ToRhinoLength"/>.
-    /// </remarks>
-    /// <param name="ellipse">The source elliptical arc to convert.</param>
+    /// <param name="ellipse">
+    /// The AutoCAD ellipse entity to convert.
+    /// </param>
     /// <returns>
-    /// A <see cref="RhinoNurbsCurve"/> representing the elliptical arc,
-    /// or <see langword="null"/> if the NURBS curve could not be created from the arc.
+    /// A <see cref="RhinoNurbsCurve"/> representing the ellipse,
+    /// or <see langword="null"/> if the NURBS curve could not be created.
     /// </returns>
+    /// <remarks>
+    /// The conversion uses a two-step approach:
+    /// <list type="number">
+    ///   <item>
+    ///     A circular arc is constructed using the major radius, oriented on a plane
+    ///     derived from the ellipse's major and minor axes
+    ///   </item>
+    ///   <item>
+    ///     A non-uniform scale transform squashes the circle into the correct elliptical
+    ///     shape using the minor-to-major radius ratio
+    ///   </item>
+    /// </list>
+    /// Unit conversion is applied via <see cref="UnitConverter.ToRhinoLength"/>.
+    /// </remarks>
+    /// <seealso cref="ToRhinoEllipse"/>
+    /// <seealso cref="ToRhinoNurbsCurve(EllipticalArc2d)"/>
+    /// <seealso cref="ToRhinoNurbsCurve(EllipticalArc3d)"/>
     public static RhinoNurbsCurve? ToRhinoNurbsCurve(this CadEllipse ellipse)
     {
         var center = ellipse.Center.ToRhinoPoint3d();
@@ -564,22 +749,29 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Produces a valid knot vector for Rhino's NURBS representation from a source knot vector
-    /// that may use a different convention (e.g. AutoCAD's D + N + 1 convention).
+    /// Produces a valid knot vector for Rhino's NURBS representation from a source knot vector.
     /// </summary>
     /// <param name="inputKnots">
     /// A non-empty, non-decreasing sequence of knot values from the source system.
     /// </param>
     /// <param name="degree">
-    /// The polynomial degree of the NURBS curve. Must be a positive integer.
+    /// The polynomial degree of the NURBS curve.
     /// </param>
     /// <param name="numberOfControlPoints">
-    /// The number of control points on the curve. Must be a positive integer.
+    /// The number of control points on the curve.
     /// </param>
     /// <returns>
-    /// A knot vector containing exactly <c>degree + numberOfControlPoints - 1</c> values,
-    /// with per-knot multiplicity capped at <c>degree</c> and relative order preserved.
+    /// A knot vector containing exactly <c>degree + numberOfControlPoints - 1</c> values.
     /// </returns>
+    /// <remarks>
+    /// AutoCAD uses a D + N + 1 knot convention while Rhino uses D + N - 1.
+    /// This method normalizes the knot vector by:
+    /// <list type="bullet">
+    ///   <item>Capping per-knot multiplicity at the degree value</item>
+    ///   <item>Preserving the relative order of knots</item>
+    ///   <item>Using <see cref="GeometryConstants.ZeroTolerance"/> for duplicate detection</item>
+    /// </list>
+    /// </remarks>
     public static List<double> GetValidKnots(
         List<double> inputKnots,
         int degree,
@@ -625,10 +817,28 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD database Curve to the appropriate Rhino curve type.
+    /// Converts an AutoCAD database <see cref="CadCurve"/> to the appropriate Rhino curve type.
     /// </summary>
-    /// <param name="curve">The AutoCAD curve to convert.</param>
-    /// <returns>A Rhino Curve, or null if the curve type is not supported.</returns>
+    /// <param name="curve">
+    /// The AutoCAD database curve entity to convert.
+    /// </param>
+    /// <returns>
+    /// A Rhino <see cref="RhinoCurve"/>, or <see langword="null"/> if the curve type is not supported.
+    /// </returns>
+    /// <remarks>
+    /// This is the primary entry point for converting AutoCAD database curve entities.
+    /// Supported types include:
+    /// <list type="bullet">
+    ///   <item><see cref="CadLine"/></item>
+    ///   <item><see cref="Spline"/></item>
+    ///   <item><see cref="CadEllipse"/></item>
+    ///   <item><see cref="CadArc"/></item>
+    ///   <item><see cref="CadCircle"/></item>
+    ///   <item><see cref="CadPolyline"/></item>
+    /// </list>
+    /// </remarks>
+    /// <seealso cref="ToRhinoCurve(Curve2d)"/>
+    /// <seealso cref="ToRhinoCurve(Curve3d)"/>
     public static RhinoCurve? ToRhinoCurve(this CadCurve curve)
     {
         switch (curve)
@@ -659,10 +869,21 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Polyline to a Rhino PolyCurve.
+    /// Converts an AutoCAD <see cref="CadPolyline"/> to a Rhino <see cref="RhinoPolyCurve"/>.
     /// </summary>
-    /// <param name="polyline">The AutoCAD polyline to convert.</param>
-    /// <returns>A Rhino PolyCurve containing line and arc segments.</returns>
+    /// <param name="polyline">
+    /// The AutoCAD polyline to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoPolyCurve"/> containing line and arc segments.
+    /// </returns>
+    /// <remarks>
+    /// Iterates through each vertex and extracts the appropriate segment type
+    /// (<see cref="SegmentType.Line"/> or <see cref="SegmentType.Arc"/>).
+    /// Other segment types are skipped.
+    /// </remarks>
+    /// <seealso cref="ToRhinoPolyCurve(CompositeCurve2d)"/>
+    /// <seealso cref="ToRhinoPolyCurve(Curve2dCollection)"/>
     public static RhinoPolyCurve ToRhinoPolyCurve(this CadPolyline polyline)
     {
         var vertexCount = polyline.NumberOfVertices;
@@ -698,10 +919,15 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD DBPoint to a Rhino Point.
+    /// Converts an AutoCAD <see cref="CadDBPoint"/> to a Rhino <see cref="RhinoPoint"/>.
     /// </summary>
-    /// <param name="point">The AutoCAD point to convert.</param>
-    /// <returns>A Rhino Point with coordinates scaled to Rhino units.</returns>
+    /// <param name="point">
+    /// The AutoCAD database point to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoPoint"/> with coordinates scaled to Rhino units.
+    /// </returns>
+    /// <seealso cref="AutocadGeometryExtensions.ToRhinoPoint3d"/>
     public static RhinoPoint ToRhinoPoint(this CadDBPoint point)
     {
         var point3d = point.Position.ToRhinoPoint3d();
@@ -709,10 +935,20 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD Curve2dCollection to a Rhino PolyCurve.
+    /// Converts an AutoCAD <see cref="Curve2dCollection"/> to a Rhino <see cref="RhinoPolyCurve"/>.
     /// </summary>
-    /// <param name="cadCurveCollection">The AutoCAD 2D curve collection to convert.</param>
-    /// <returns>A Rhino PolyCurve containing all converted curves.</returns>
+    /// <param name="cadCurveCollection">
+    /// The AutoCAD 2D curve collection to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoPolyCurve"/> containing all successfully converted curves.
+    /// </returns>
+    /// <remarks>
+    /// Each curve in the collection is converted using <see cref="ToRhinoCurve(Curve2d)"/>.
+    /// Curves that fail conversion (return <see langword="null"/>) are skipped.
+    /// </remarks>
+    /// <seealso cref="ToRhinoPolyCurve(CadPolyline)"/>
+    /// <seealso cref="ToRhinoPolyCurve(BulgeVertexCollection)"/>
     public static RhinoPolyCurve ToRhinoPolyCurve(this Curve2dCollection cadCurveCollection)
     {
         var rhinoPolyCurve = new RhinoPolyCurve();
@@ -728,10 +964,20 @@ public static class AutocadCurveExtensions
     }
 
     /// <summary>
-    /// Converts an AutoCAD BulgeVertexCollection to a Rhino PolyCurve.
+    /// Converts an AutoCAD <see cref="BulgeVertexCollection"/> to a Rhino <see cref="RhinoPolyCurve"/>.
     /// </summary>
-    /// <param name="bulgeVertexCollection">The AutoCAD bulge vertex collection to convert.</param>
-    /// <returns>A Rhino PolyCurve containing line and arc segments.</returns>
+    /// <param name="bulgeVertexCollection">
+    /// The AutoCAD bulge vertex collection to convert.
+    /// </param>
+    /// <returns>
+    /// A <see cref="RhinoPolyCurve"/> containing line and arc segments derived from bulge values.
+    /// </returns>
+    /// <remarks>
+    /// Bulge vertices are first assembled into a temporary <see cref="CadPolyline"/>,
+    /// which is then converted using <see cref="ToRhinoPolyCurve(CadPolyline)"/>.
+    /// The bulge value determines whether each segment is a line (bulge = 0) or arc (bulge != 0).
+    /// </remarks>
+    /// <seealso cref="ToRhinoPolyCurve(CadPolyline)"/>
     public static RhinoPolyCurve ToRhinoPolyCurve(this BulgeVertexCollection bulgeVertexCollection)
     {
         var polyline = new CadPolyline();

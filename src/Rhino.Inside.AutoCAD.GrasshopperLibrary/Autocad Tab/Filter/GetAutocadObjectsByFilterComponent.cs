@@ -116,33 +116,35 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
 
         var count = Math.Min(selectionSet.Count, limit);
 
-        var elements = autocadDocument.Transaction((transactionManager) =>
-        {
-            var result = new List<IGH_Goo>();
-            var transaction = transactionManager.Unwrap();
-            var processedCount = 0;
+        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
 
-            foreach (SelectedObject selectedObject in selectionSet)
-            {
-                if (selectedObject == null) continue;
-                if (processedCount >= limit) break;
+        var elements = transactionManagerWrapper.PerformTask(() =>
+       {
+           var result = new List<IGH_Goo>();
+           var transaction = transactionManagerWrapper.Unwrap();
+           var processedCount = 0;
 
-                var entity = transaction.GetObject(selectedObject.ObjectId, OpenMode.ForRead) as DBObject;
-                if (entity == null) continue;
+           foreach (SelectedObject selectedObject in selectionSet)
+           {
+               if (selectedObject == null) continue;
+               if (processedCount >= limit) break;
 
-                processedCount++;
+               var entity = transaction.GetObject(selectedObject.ObjectId, OpenMode.ForRead) as DBObject;
+               if (entity == null) continue;
 
-                var wrapped = new AutocadDbObjectWrapper(entity);
+               processedCount++;
 
-                var goo = _gooConverter.CreateGoo(wrapped);
+               var wrapped = new AutocadDbObjectWrapper(entity);
 
-                if (goo != null)
-                {
-                    result.Add(goo);
-                }
-            }
-            return result;
-        });
+               var goo = _gooConverter.CreateGoo(wrapped);
+
+               if (goo != null)
+               {
+                   result.Add(goo);
+               }
+           }
+           return result;
+       });
 
         DA.SetDataList(0, elements);
         DA.SetData(1, count);

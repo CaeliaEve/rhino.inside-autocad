@@ -11,7 +11,7 @@
 /// Used extensively by Grasshopper components such as AutocadDocumentComponent and
 /// GetAutocadDocumentsComponent for document-level operations.
 /// </remarks>
-/// <seealso cref="IDatabase"/>
+/// <seealso cref="IAutocadDatabase"/>
 /// <seealso cref="IAutocadDocumentChangeEventArgs"/>
 public interface IAutocadDocument
 {
@@ -36,13 +36,13 @@ public interface IAutocadDocument
     IAutocadDocumentId DocumentId { get; }
 
     /// <summary>
-    /// Gets the <see cref="IDatabase"/> containing all objects in this document.
+    /// Gets the <see cref="IAutocadDatabase"/> containing all objects in this document.
     /// </summary>
     /// <remarks>
     /// The database provides low-level access to AutoCAD's object storage and is used
     /// for operations that require direct database manipulation.
     /// </remarks>
-    IDatabase Database { get; }
+    IAutocadDatabase AutocadDatabase { get; }
 
     /// <summary>
     /// Gets file information for this document, including path and name.
@@ -100,27 +100,9 @@ public interface IAutocadDocument
     bool IsReadOnly { get; }
 
     /// <summary>
-    /// Executes a function within a database transaction and returns the result.
+    /// Creates a new transaction manager for performing database operations within this document.
     /// </summary>
-    /// <typeparam name="T">
-    /// The type of value returned by the transaction function.
-    /// </typeparam>
-    /// <param name="function">
-    /// The function to execute within the transaction scope.
-    /// </param>
-    /// <param name="abort">
-    /// When <c>true</c>, aborts the transaction to roll back changes. Useful for
-    /// read operations that temporarily modify the database to obtain data.
-    /// </param>
-    /// <returns>
-    /// The value returned by <paramref name="function"/>.
-    /// </returns>
-    /// <remarks>
-    /// All database modifications in AutoCAD must occur within a transaction.
-    /// By default, transactions are committed. Set <paramref name="abort"/> to
-    /// <c>true</c> when reading data that requires temporary modifications.
-    /// </remarks>
-    public T Transaction<T>(Func<IAutocadTransaction, T> function, bool abort = false);
+    public IAutocadTransactionManager CreateTransactionManager();
 
     /// <summary>
     /// Forces a screen refresh to display pending visual changes.

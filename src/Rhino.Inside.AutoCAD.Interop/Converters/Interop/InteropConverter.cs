@@ -40,17 +40,17 @@ public static class InteropConverter
     }
 
     /// <summary>
-    /// Unwraps an <see cref="IDatabase"/> to its underlying AutoCAD <see cref="Database"/>.
+    /// Unwraps an <see cref="IAutocadDatabase"/> to its underlying AutoCAD <see cref="Database"/>.
     /// </summary>
-    /// <param name="database">
+    /// <param name="autocadDatabase">
     /// The database wrapper to unwrap.
     /// </param>
     /// <returns>
     /// The native AutoCAD <see cref="Database"/> instance.
     /// </returns>
-    public static Database Unwrap(this IDatabase database)
+    public static Database Unwrap(this IAutocadDatabase autocadDatabase)
     {
-        var databaseWrapper = (AutocadWrapperDisposableBase<Database>)database;
+        var databaseWrapper = (AutocadWrapperDisposableBase<Database>)autocadDatabase;
 
         return databaseWrapper.AutocadObject;
     }
@@ -92,17 +92,17 @@ public static class InteropConverter
     }
 
     /// <summary>
-    /// Unwraps an <see cref="IAutocadTransaction"/> to its underlying AutoCAD <see cref="TransactionManager"/>.
+    /// Unwraps an <see cref="IAutocadTransactionManager"/> to its underlying AutoCAD <see cref="TransactionManager"/>.
     /// </summary>
-    /// <param name="autocadTransaction">
+    /// <param name="autocadTransactionManager">
     /// The transaction manager wrapper to unwrap.
     /// </param>
     /// <returns>
     /// The native AutoCAD <see cref="TransactionManager"/> instance.
     /// </returns>
-    public static TransactionManager Unwrap(this IAutocadTransaction autocadTransaction)
+    public static TransactionManager Unwrap(this IAutocadTransactionManager autocadTransactionManager)
     {
-        var objectIdWrapper = (AutocadWrapperDisposableBase<TransactionManager>)autocadTransaction;
+        var objectIdWrapper = (AutocadWrapperDisposableBase<TransactionManager>)autocadTransactionManager;
 
         return objectIdWrapper.AutocadObject;
     }

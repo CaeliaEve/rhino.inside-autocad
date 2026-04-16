@@ -47,74 +47,104 @@ public class AutocadLinetypeTableRecordWrapper : AutocadDbObjectWrapper, IAutoca
         this.IsScaledToFit = lineTypeTableRecord.IsScaledToFit;
         this.Comments = lineTypeTableRecord.Comments ?? string.Empty;
     }
-
-    /// <inheritdoc/>
-    public IList<LineCurve> CreateDash(Point3d originPoint, double patternTotalLength,
-        int maxIterations)
+    /// <summary>
+    /// Creates a single continuous line segment starting from the specified origin point.
+    /// </summary>
+    /// <param name="originPoint">The starting point of the line in Rhino coordinates.</param>
+    /// <param name="patternTotalLength">The total length of the line segment to create.</param>
+    /// <returns>
+    /// A list containing a single <see cref="LineCurve"/> representing the continuous line segment.
+    /// </returns>
+    private IList<LineCurve> CreateSingleLine(Point3d originPoint, double patternTotalLength)
     {
-        var dashNumber = _lineTypeTableRecord.NumDashes;
+        var cadOrigin = originPoint.ToAutocadPoint3d();
+        var end = new CadPoint3d(cadOrigin.X + patternTotalLength, cadOrigin.Y, cadOrigin.Z);
+        var line = new CadLine(cadOrigin, end).ToRhinoLineCurve();
 
+        return [line];
+    }
+
+    /// <summary>
+    /// Retrieves the lengths of all dashes in the line type pattern.
+    /// </summary>
+    /// <param name="dashCount">The number of dashes in the pattern.</param>
+    /// <returns>
+    /// A list of dash lengths, where positive values represent dashes and negative values represent gaps.
+    /// </returns>
+    private List<double> GetDashLengths(int dashCount)
+    {
+        return Enumerable.Range(0, dashCount)
+            .Select(i => _lineTypeTableRecord.DashLengthAt(i))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Determines whether the specified length represents a point in the pattern.
+    /// </summary>
+    /// <param name="absLength">The absolute length to evaluate.</param>
+    /// <returns>
+    /// <c>true</c> if the length is less than the threshold for a pattern point; otherwise, <c>false</c>.
+    /// </returns>
+    private bool IsPatternPoint(double absLength) => absLength < _patternPointLength;
+
+    /// <summary>
+    /// Determines whether the specified dash length represents a visible dash.
+    /// </summary>
+    /// <param name="dashLength">The length of the dash to evaluate.</param>
+    /// <returns>
+    /// <c>true</c> if the dash length is non-negative; otherwise, <c>false</c>.
+    /// </returns>
+    private bool IsVisibleDash(double dashLength) => Math.Sign(dashLength) >= 0;
+
+    /// <summary>
+    /// Creates a dash pattern consisting of multiple line segments based on the specified parameters.
+    /// </summary>
+    /// <param name="startX">The starting X-coordinate for the pattern.</param>
+    /// <param name="patternTotalLength">The total length over which to generate the pattern.</param>
+    /// <param name="maxIterations">The maximum number of dash segments to generate.</param>
+    /// <param name="dashLengths">The lengths of the dashes and gaps in the pattern.</param>
+    /// <returns>
+    /// A list of <see cref="LineCurve"/> objects representing the visible dash segments.
+    /// </returns>
+    private IList<LineCurve> CreateDashPattern(double startX, double patternTotalLength,
+        int maxIterations, IList<double> dashLengths)
+    {
         var linePattern = new List<LineCurve>();
 
-        var cadOriginPoint = originPoint.ToAutocadPoint3d();
+        var currentX = startX;
 
-        if (dashNumber <= 1)
+        var dashCount = dashLengths.Count;
+
+        for (var i = 0; i < maxIterations && currentX < patternTotalLength; i++)
         {
-            var line = new CadLine(cadOriginPoint,
-                new CadPoint3d(cadOriginPoint.X + patternTotalLength, cadOriginPoint.Y, cadOriginPoint.Z));
+            var dashLength = dashLengths[i % dashCount];
 
-            var rhinoLine = line.ToRhinoLineCurve();
+            var absLength = Math.Abs(dashLength);
 
-            linePattern.Add(rhinoLine);
+            var endX = this.IsPatternPoint(absLength) ? currentX + absLength + _patternPointLength : currentX + absLength;
 
-            return linePattern;
-        }
-
-        var lengths = new List<double>();
-        for (var i = 0; i < dashNumber; i++)
-        {
-            var dashLength = _lineTypeTableRecord.DashLengthAt(i);
-
-            lengths.Add(dashLength);
-        }
-
-        var index = 0;
-
-        var currentPosition = originPoint.X;
-
-        while (index < maxIterations)
-        {
-            if (currentPosition >= patternTotalLength)
-                break;
-
-            var dashLength = lengths[index % dashNumber];
-
-            var lineLength = Math.Abs(dashLength);
-
-            var start = new CadPoint3d(currentPosition, 0, 0);
-
-            currentPosition += lineLength;
-
-            var endXCoordinate = lineLength < _patternPointLength
-                ? currentPosition + _patternPointLength
-                : currentPosition;
-
-            var end = new CadPoint3d(endXCoordinate, 0, 0);
-
-            // Negative values are gaps.
-            if (Math.Sign(dashLength) > -1)
+            if (this.IsVisibleDash(dashLength))
             {
-                var line = new CadLine(start, end);
-
-                var rhinoLine = line.ToRhinoLineCurve();
-
-                linePattern.Add(rhinoLine);
+                var line = new CadLine(new CadPoint3d(currentX, 0, 0), new CadPoint3d(endX, 0, 0));
+                linePattern.Add(line.ToRhinoLineCurve());
             }
 
-            index++;
+            currentX += absLength;
         }
 
         return linePattern;
+    }
+
+    /// <inheritdoc/>
+    public IList<LineCurve> CreateDash(Point3d originPoint, double patternTotalLength, int maxIterations)
+    {
+        var dashCount = _lineTypeTableRecord.NumDashes;
+
+        if (dashCount <= 1)
+            return this.CreateSingleLine(originPoint, patternTotalLength);
+
+        var dashLengths = this.GetDashLengths(dashCount);
+        return this.CreateDashPattern(originPoint.X, patternTotalLength, maxIterations, dashLengths);
     }
 
     /// <summary>

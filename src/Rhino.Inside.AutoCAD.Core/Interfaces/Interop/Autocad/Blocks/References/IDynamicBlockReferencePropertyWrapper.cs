@@ -67,8 +67,8 @@ public interface IDynamicBlockReferencePropertyWrapper
     /// <param name="propertyValue">
     /// The new value to assign. Will be converted to the appropriate type based on <see cref="TypeCode"/>.
     /// </param>
-    /// <param name="autocadTransaction">
-    /// The <see cref="IAutocadTransaction"/> for the database operation.
+    /// <param name="autocadTransactionManager">
+    /// The <see cref="IAutocadTransactionManager"/> for the database operation.
     /// </param>
     /// <returns>
     /// <c>true</c> if the value was set successfully; otherwise, <c>false</c>.
@@ -79,5 +79,5 @@ public interface IDynamicBlockReferencePropertyWrapper
     /// </remarks>
     /// <seealso cref="Value"/>
     /// <seealso cref="AllowedValues"/>
-    bool SetValue(object propertyValue, IAutocadTransaction autocadTransaction);
+    bool SetValue(object propertyValue, IAutocadTransactionManager autocadTransactionManager);
 }

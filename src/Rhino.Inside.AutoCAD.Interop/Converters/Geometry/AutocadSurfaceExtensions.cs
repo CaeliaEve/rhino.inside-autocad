@@ -191,9 +191,7 @@ public static class AutocadSurfaceExtensions
 
         using var documentLock = activeDocument.LockDocument();
 
-        var database = activeDocument.Database;
-
-        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        using var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -208,15 +206,15 @@ public static class AutocadSurfaceExtensions
     /// Converts an AutoCAD PolyFaceMesh to a Rhino Mesh, applying unit conversion.
     /// </summary>
     /// <param name="mesh">The AutoCAD PolyFaceMesh to convert.</param>
-    /// <param name="autocadTransaction">The transaction manager for database operations.</param>
+    /// <param name="autocadTransactionManager">The transaction manager for database operations.</param>
     /// <returns>A Rhino Mesh with vertices scaled to Rhino units.</returns>
-    public static RhinoMesh ToRhinoMesh(this CadPolyFaceMesh mesh, IAutocadTransaction autocadTransaction)
+    public static RhinoMesh ToRhinoMesh(this CadPolyFaceMesh mesh, IAutocadTransactionManager autocadTransactionManager)
     {
         var rhinoMesh = new RhinoMesh();
 
         try
         {
-            var transaction = autocadTransaction.Unwrap();
+            var transaction = autocadTransactionManager.Unwrap();
 
             foreach (CadObjectId id in mesh)
             {

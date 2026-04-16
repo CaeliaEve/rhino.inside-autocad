@@ -20,9 +20,11 @@ public class BlockTableRecordRegister : RegisterBase<IAutocadBlockTableRecord>, 
     {
         this.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
-            var database = _document.Database;
+            var database = _document.AutocadDatabase;
 
             var blockTableId = database.BlockTableId;
 
