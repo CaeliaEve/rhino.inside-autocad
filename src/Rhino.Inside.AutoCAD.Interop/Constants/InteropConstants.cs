@@ -79,4 +79,29 @@ public class InteropConstants
     /// The precision used when writing and reading DXF files for geometry conversion.
     /// </summary>
     public const int DxfPrecision = 16;
+
+    /// <summary>
+    /// The folder name used to store Rhino.Inside.AutoCAD-specific files.
+    /// </summary>
+    public const string RhinoInsideAutocadFolder = "RhinoInsideAutocad";
+
+    /// <summary>
+    /// The folder name used to store converter-related files.
+    /// </summary>
+    public const string ConvertersFolder = "Converters";
+
+    /// <summary>
+    /// The file name of the temporary Rhino file used during conversions.
+    /// </summary>
+    public const string RhinoFileName = "rhinoToAutoCad.3dm";
+
+    /// <summary>
+    /// The AutoCAD command used to import geometry from external files.
+    /// </summary>
+    public const string ImportCommand = "._IMPORT";
+
+    /// <summary>
+    /// The error message displayed when a Brep conversion fails.
+    /// </summary>
+    public const string BrepConversionErrorMessage = "\nError Converting brep: ";
 }

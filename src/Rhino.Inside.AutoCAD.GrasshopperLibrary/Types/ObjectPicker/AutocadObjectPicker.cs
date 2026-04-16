@@ -30,7 +30,9 @@ public class AutocadObjectPicker : IAutocadObjectPicker
     {
         Application.MainWindow.Focus();
 
-        return _document.Transaction((transactionManager) =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        return transactionManagerWrapper.PerformTask(() =>
         {
             var entities = new List<IEntity>();
             var options = new PromptSelectionOptions()
@@ -49,7 +51,7 @@ public class AutocadObjectPicker : IAutocadObjectPicker
 
             if (promptSelectionResult.Status != PromptStatus.OK) return null;
 
-            var transaction = transactionManager.Unwrap();
+            var transaction = transactionManagerWrapper.Unwrap();
 
             var selectionSet = promptSelectionResult.Value;
 
@@ -75,7 +77,9 @@ public class AutocadObjectPicker : IAutocadObjectPicker
     {
         Application.MainWindow.Focus();
 
-        return _document.Transaction((transactionManager) =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        return transactionManagerWrapper.PerformTask(() =>
         {
             var entities = new List<IEntity>();
             var options = new PromptSelectionOptions()
@@ -95,7 +99,7 @@ public class AutocadObjectPicker : IAutocadObjectPicker
 
             if (promptSelectionResult.Status != PromptStatus.OK) return entities;
 
-            var transaction = transactionManager.Unwrap();
+            var transaction = transactionManagerWrapper.Unwrap();
 
             var selectionSet = promptSelectionResult.Value;
 
@@ -119,12 +123,14 @@ public class AutocadObjectPicker : IAutocadObjectPicker
     /// <inheritdoc/>
     public bool TryGetUpdatedObject(IObjectId objectId, out IEntity? entity)
     {
-        entity = _document.Transaction((transactionManager) =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        entity = transactionManagerWrapper.PerformTask(() =>
         {
             if (objectId.IsValid == false) return null;
             try
             {
-                var transaction = transactionManager.Unwrap();
+                var transaction = transactionManagerWrapper.Unwrap();
 
                 var cadEntity = transaction.GetObject(objectId.Unwrap(),
                        OpenMode.ForRead) as CadEntity;

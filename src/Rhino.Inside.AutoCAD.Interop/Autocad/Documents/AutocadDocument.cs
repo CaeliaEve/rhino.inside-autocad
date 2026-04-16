@@ -9,6 +9,8 @@ using CadBlockTableRecord = Autodesk.AutoCAD.DatabaseServices.BlockTableRecord;
 using CadLayer = Autodesk.AutoCAD.DatabaseServices.LayerTableRecord;
 using CadLayout = Autodesk.AutoCAD.DatabaseServices.Layout;
 using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
+using Document = Autodesk.AutoCAD.ApplicationServices.Document;
+using Handle = Autodesk.AutoCAD.DatabaseServices.Handle;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -216,37 +218,9 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     }
 
     /// <inheritdoc/>
-    public T Transaction<T>(Func<IAutocadTransaction, T> function, bool abort = false)
+    public IAutocadTransactionManager CreateTransactionManager()
     {
-        Debug.WriteLine($"IsApplicationContext: {Application.DocumentManager.IsApplicationContext}");
-        Debug.WriteLine($"ManagedThreadId: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        Debug.WriteLine($"IsBackground: {System.Threading.Thread.CurrentThread.IsBackground}");
-        Debug.WriteLine($"Document locked: {_document.LockMode()}");
-
-        T result = default;
-
-        Application.DocumentManager.ExecuteInApplicationContext(_ =>
-        {
-            Debug.WriteLine($"_document == MdiActiveDocument: {_document == Application.DocumentManager.MdiActiveDocument}");
-            Debug.WriteLine($"_document.IsActive: {_document.IsActive}");
-
-            using var documentLock = _document.LockDocument();
-            Debug.WriteLine($"Lock mode AFTER locking: {_document.LockMode()}");
-
-            var database = _document.Database;
-            var transactionManagerWrapper = new AutocadTransactionWrapper(database);
-            using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
-
-            result = function.Invoke(transactionManagerWrapper); // ← assign outer result
-
-            if (abort)
-                transaction.Abort();
-            else
-                transaction.Commit();
-
-        }, null);
-
-        return result;
+        return new AutocadTransactionManagerWrapper(_document);
     }
 
     /// <inheritdoc/>
@@ -284,7 +258,9 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     {
         if (objectId.IsValid == false) return null;
 
-        return this.Transaction((transactionManagerWrapper) =>
+        var transactionManagerWrapper = this.CreateTransactionManager();
+
+        return transactionManagerWrapper.PerformTask(() =>
         {
             var cadObjectId = objectId.Unwrap();
 

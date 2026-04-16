@@ -295,14 +295,14 @@ where TRhinoType : GeometryBase
     }
 
     /// <inheritdoc />
-    public virtual List<IObjectId> BakeToAutocad(IAutocadTransaction autocadTransaction, IBakingComponent bakingComponent, IBakeSettings? settings = null)
+    public virtual List<IObjectId> BakeToAutocad(IAutocadTransactionManager autocadTransactionManager, IBakingComponent bakingComponent, IBakeSettings? settings = null)
     {
         if (this.Value == null)
             throw new InvalidOperationException("Cannot bake a null block reference");
 
-        var transaction = autocadTransaction.Unwrap();
+        var transaction = autocadTransactionManager.Unwrap();
 
-        var modelSpace = autocadTransaction.GetModelSpace(openForWrite: true);
+        var modelSpace = autocadTransactionManager.GetModelSpace(openForWrite: true);
 
         var modelSpaceRecord = modelSpace.Unwrap();
 

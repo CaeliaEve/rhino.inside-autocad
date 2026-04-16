@@ -36,26 +36,28 @@ public class AutocadDocumentId : IAutocadDocumentId
     /// </summary>
     private bool TryGetExistingId(IAutocadDocument document, out Guid id)
     {
-        id = document.Transaction(transactionManager =>
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        id = transactionManagerWrapper.PerformTask(() =>
         {
-            var blockModelSpace = transactionManager.GetModelSpace().Unwrap();
+            var blockModelSpace = transactionManagerWrapper.GetModelSpace().Unwrap();
 
             var xData = blockModelSpace.XData == null
                 ? new ResultBuffer()
                 : blockModelSpace.XData;
 
-            var idKey = (short)_documentIdKey;
+            var documentIdKey = (short)_documentIdKey;
 
-            var typedValues = xData.AsArray().Where(v => v.TypeCode == idKey);
+            var typedValues = xData.AsArray().Where(v => v.TypeCode == documentIdKey);
 
-            var documentId = Guid.Empty;
+            var documentGuid = Guid.Empty;
             foreach (var typedValue in typedValues)
             {
-                if (Guid.TryParse(typedValue.Value.ToString(), out documentId))
+                if (Guid.TryParse(typedValue.Value.ToString(), out documentGuid))
                     break;
             }
 
-            return documentId;
+            return documentGuid;
 
         });
 
@@ -67,9 +69,11 @@ public class AutocadDocumentId : IAutocadDocumentId
     /// </summary>
     private Guid CreateNewId(IAutocadDocument document)
     {
-        return document.Transaction(transactionManager =>
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        return transactionManagerWrapper.PerformTask(() =>
         {
-            var blockModelSpace = transactionManager.GetModelSpace().Unwrap();
+            var blockModelSpace = transactionManagerWrapper.GetModelSpace().Unwrap();
 
             var xData = blockModelSpace.XData == null
                 ? new ResultBuffer()
@@ -86,7 +90,7 @@ public class AutocadDocumentId : IAutocadDocumentId
 
             blockModelSpace.XData = xData;
 
-            transactionManager.SaveDatabase(document);
+            transactionManagerWrapper.SaveDatabase(document);
 
             return documentId;
 
@@ -102,11 +106,13 @@ public class AutocadDocumentId : IAutocadDocumentId
     /// </remarks>
     private void Register(IAutocadDocument document)
     {
-        document.Transaction(transactionManager =>
-        {
-            var transaction = transactionManager.Unwrap();
+        var transactionManagerWrapper = document.CreateTransactionManager();
 
-            var regAppTableId = transactionManager.RegAppTableId.Unwrap();
+        _ = transactionManagerWrapper.PerformTask(() =>
+        {
+            var transaction = transactionManagerWrapper.Unwrap();
+
+            var regAppTableId = transactionManagerWrapper.RegAppTableId.Unwrap();
 
             var regAppTable = (RegAppTable)transaction.GetObject(regAppTableId, OpenMode.ForRead);
 

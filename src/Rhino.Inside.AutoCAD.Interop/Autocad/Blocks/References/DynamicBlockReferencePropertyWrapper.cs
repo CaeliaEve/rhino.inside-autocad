@@ -47,11 +47,11 @@ public class DynamicBlockReferencePropertyWrapper : AutocadWrapperBase<DynamicBl
     }
 
     /// <inheritdoc />
-    public bool SetValue(object propertyValue, IAutocadTransaction autocadTransaction)
+    public bool SetValue(object propertyValue, IAutocadTransactionManager autocadTransactionManager)
     {
         if (this.IsReadOnly) return false;
 
-        var transaction = autocadTransaction.Unwrap();
+        var transaction = autocadTransactionManager.Unwrap();
 
         _ = transaction.GetObject(_dynamicBlockReferenceProperty.BlockId, OpenMode.ForWrite) as BlockReference;
 

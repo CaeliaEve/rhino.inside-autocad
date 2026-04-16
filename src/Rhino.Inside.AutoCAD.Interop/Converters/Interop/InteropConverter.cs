@@ -92,17 +92,17 @@ public static class InteropConverter
     }
 
     /// <summary>
-    /// Unwraps an <see cref="IAutocadTransaction"/> to its underlying AutoCAD <see cref="TransactionManager"/>.
+    /// Unwraps an <see cref="IAutocadTransactionManager"/> to its underlying AutoCAD <see cref="TransactionManager"/>.
     /// </summary>
-    /// <param name="autocadTransaction">
+    /// <param name="autocadTransactionManager">
     /// The transaction manager wrapper to unwrap.
     /// </param>
     /// <returns>
     /// The native AutoCAD <see cref="TransactionManager"/> instance.
     /// </returns>
-    public static TransactionManager Unwrap(this IAutocadTransaction autocadTransaction)
+    public static TransactionManager Unwrap(this IAutocadTransactionManager autocadTransactionManager)
     {
-        var objectIdWrapper = (AutocadWrapperBase<TransactionManager>)autocadTransaction;
+        var objectIdWrapper = (AutocadWrapperBase<TransactionManager>)autocadTransactionManager;
 
         return objectIdWrapper.AutocadObject;
     }

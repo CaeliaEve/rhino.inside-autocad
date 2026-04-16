@@ -138,7 +138,6 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
         GH_BakeSettings? settingsGoo = null;
         DA.GetData(2, ref settingsGoo);
 
-
         var settings = settingsGoo?.Value;
 
         var converterFactory = new RhinoConvertibleFactory();
@@ -166,30 +165,30 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
 
         var bakedIds = new List<GH_AutocadObjectId>();
 
-        using var documentLock = autocadDocument.Unwrap().LockDocument();
+        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
 
-        autocadDocument.Transaction(transactionManager =>
-        {
-            foreach (var bakeable in bakeables)
-            {
-                try
-                {
-                    var objectIds = bakeable.BakeToAutocad(transactionManager, this, settings);
+        _ = transactionManagerWrapper.PerformTask(() =>
+         {
+             foreach (var bakeable in bakeables)
+             {
+                 try
+                 {
+                     var objectIds = bakeable.BakeToAutocad(transactionManagerWrapper, this, settings);
 
-                    foreach (var objectId in objectIds)
-                    {
-                        bakedIds.Add(new GH_AutocadObjectId(objectId));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                        $"Failed to bake object: {ex.Message}");
-                }
-            }
+                     foreach (var objectId in objectIds)
+                     {
+                         bakedIds.Add(new GH_AutocadObjectId(objectId));
+                     }
+                 }
+                 catch (Exception ex)
+                 {
+                     this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                         $"Failed to bake object: {ex.Message}");
+                 }
+             }
 
-            return true;
-        });
+             return true;
+         });
 
         DA.SetDataList(0, bakedIds);
     }

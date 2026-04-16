@@ -45,13 +45,13 @@ public abstract class RhinoConvertibleBase<TRhinoType> : IRhinoConvertibleTyped<
     /// <summary>
     /// Converts the Rhino geometry to AutoCAD entities.
     /// </summary>
-    protected abstract List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction);
+    protected abstract List<IEntity> ConvertGeometry(IAutocadTransactionManager autocadTransactionManager);
 
     /// <inheritdoc />
-    public List<IEntity> Convert(IAutocadTransaction autocadTransaction,
+    public List<IEntity> Convert(IAutocadTransactionManager autocadTransactionManager,
         IGeometryPreviewSettings previewSettings)
     {
-        var converted = this.ConvertGeometry(autocadTransaction);
+        var converted = this.ConvertGeometry(autocadTransactionManager);
 
         foreach (var convertedEntity in converted)
         {
@@ -61,8 +61,8 @@ public abstract class RhinoConvertibleBase<TRhinoType> : IRhinoConvertibleTyped<
     }
 
     /// <inheritdoc />
-    public List<IEntity> Convert(IAutocadTransaction autocadTransaction)
+    public List<IEntity> Convert(IAutocadTransactionManager autocadTransactionManager)
     {
-        return this.ConvertGeometry(autocadTransaction);
+        return this.ConvertGeometry(autocadTransactionManager);
     }
 }

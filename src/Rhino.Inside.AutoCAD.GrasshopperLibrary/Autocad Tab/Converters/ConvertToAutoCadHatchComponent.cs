@@ -54,7 +54,9 @@ public class ConvertToAutoCadHatchComponent : RhinoInsideAutocad_ComponentBase
         var activeDocument = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
-        var cadHatch = activeDocument.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = activeDocument.CreateTransactionManager();
+
+        var cadHatch = transactionManagerWrapper.PerformTask(() =>
             rhinoHatch.ToAutocadHatch(transactionManagerWrapper));
 
         if (cadHatch == null)

@@ -18,7 +18,9 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
     {
         _objects.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
@@ -43,9 +45,9 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
     /// </summary>
     private IAutocadLayout CreateLayout(string name)
     {
-        using var documentLock = _document.Unwrap().LockDocument();
+        var transactionManagerWrapper = _document.CreateTransactionManager();
 
-        var layoutWrapper = _document.Transaction(transactionManagerWrapper =>
+        var layoutWrapper = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 

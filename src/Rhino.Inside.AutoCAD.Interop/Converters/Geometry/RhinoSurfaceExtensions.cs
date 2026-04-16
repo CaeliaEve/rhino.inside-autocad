@@ -110,9 +110,9 @@ public static class RhinoSurfaceExtensions
     /// Converts a Rhino Hatch to an AutoCAD Hatch, applying unit conversion.
     /// </summary>
     /// <param name="rhinoHatch">The Rhino Hatch to convert.</param>
-    /// <param name="autocadTransaction">The transaction manager for database operations.</param>
+    /// <param name="autocadTransactionManager">The transaction manager for database operations.</param>
     /// <returns>An AutoCAD Hatch.</returns>
-    public static CadHatch ToAutocadHatch(this RhinoHatch rhinoHatch, IAutocadTransaction autocadTransaction)
+    public static CadHatch ToAutocadHatch(this RhinoHatch rhinoHatch, IAutocadTransactionManager autocadTransactionManager)
     {
         var scale = UnitConverter.ToAutoCadLength(rhinoHatch.PatternScale);
 
@@ -134,9 +134,9 @@ public static class RhinoSurfaceExtensions
             outerCurve.Append(curve);
         }
 
-        var transaction = autocadTransaction.Unwrap();
+        var transaction = autocadTransactionManager.Unwrap();
 
-        var modelSpace = autocadTransaction.GetModelSpace(true).UnwrapObject() as BlockTableRecord;
+        var modelSpace = autocadTransactionManager.GetModelSpace(true).UnwrapObject() as BlockTableRecord;
 
         var objectIds = new ObjectIdCollection();
 
@@ -182,9 +182,9 @@ public static class RhinoSurfaceExtensions
     /// Converts a Rhino Extrusion to an array of AutoCAD Solid3ds, applying unit conversion.
     /// </summary>
     /// <param name="extrusion">The Rhino Extrusion to convert.</param>
-    /// <param name="autocadTransaction">The transaction manager for database operations.</param>
+    /// <param name="autocadTransactionManager">The transaction manager for database operations.</param>
     /// <returns>An array of AutoCAD Solid3d objects.</returns>
-    public static CadSolid3d[] ToAutocadSolid3ds(this Extrusion extrusion, IAutocadTransaction autocadTransaction)
+    public static CadSolid3d[] ToAutocadSolid3ds(this Extrusion extrusion, IAutocadTransactionManager autocadTransactionManager)
     {
         var solids = new List<CadSolid3d>();
 

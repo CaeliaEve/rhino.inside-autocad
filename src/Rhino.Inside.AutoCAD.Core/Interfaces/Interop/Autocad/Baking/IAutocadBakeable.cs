@@ -11,6 +11,6 @@ public interface IAutocadBakeable
     /// <returns>
     /// The ObjectId of the newly created AutoCAD entity.
     /// </returns>
-    List<IObjectId> BakeToAutocad(IAutocadTransaction autocadTransaction,
+    List<IObjectId> BakeToAutocad(IAutocadTransactionManager autocadTransactionManager,
         IBakingComponent bakingComponent, IBakeSettings? settings = null);
 }

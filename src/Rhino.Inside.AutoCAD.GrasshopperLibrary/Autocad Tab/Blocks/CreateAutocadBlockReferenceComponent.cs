@@ -95,9 +95,9 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
 
         var blockReferences = new List<GH_AutocadBlockReference>();
 
-        using var documentLock = autocadDocument.Unwrap().LockDocument();
+        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
 
-        autocadDocument.Transaction(_ =>
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             foreach (var rhinoPoint in insertionPoints)
             {

@@ -51,9 +51,9 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
     }
 
     /// <inheritdoc/>
-    public IDynamicPropertySet GetDynamicProperties(IAutocadTransaction autocadTransaction)
+    public IDynamicPropertySet GetDynamicProperties(IAutocadTransactionManager autocadTransactionManager)
     {
-        var transaction = autocadTransaction.Unwrap();
+        var transaction = autocadTransactionManager.Unwrap();
 
         var cadBlockReference = transaction.GetObject(_blockReference.ObjectId,
             OpenMode.ForRead) as BlockReference;
@@ -73,7 +73,7 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
     /// <summary>
     /// Retrieves all attribute references attached to this block reference.
     /// </summary>
-    /// <param name="autocadTransaction">
+    /// <param name="autocadTransactionManager">
     /// The transaction manager for database access.
     /// </param>
     /// <returns>
@@ -83,9 +83,9 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
     /// Iterates the block's <see cref="AttributeCollection"/> and wraps each
     /// <see cref="AttributeReference"/> for use in Grasshopper components.
     /// </remarks>
-    public IBlockAttributeSet GetAttributes(IAutocadTransaction autocadTransaction)
+    public IBlockAttributeSet GetAttributes(IAutocadTransactionManager autocadTransactionManager)
     {
-        var transaction = autocadTransaction.Unwrap();
+        var transaction = autocadTransactionManager.Unwrap();
 
         var cadBlockReference = transaction.GetObject(_blockReference.ObjectId,
             OpenMode.ForRead) as BlockReference;
@@ -111,12 +111,12 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
     /// Recursively processes nested block references to return flattened geometry.
     /// Skips invisible entities.
     /// </remarks>
-    public IEntitySet GetObjects(IAutocadTransaction autocadTransaction)
+    public IEntitySet GetObjects(IAutocadTransactionManager autocadTransactionManager)
     {
         var entityCollection = new EntitySet();
         var blockTableRecord = _blockReference.AnonymousBlockTableRecord;
 
-        var transaction = autocadTransaction.Unwrap();
+        var transaction = autocadTransactionManager.Unwrap();
 
         var blockDefinition = transaction.GetObject(blockTableRecord, OpenMode.ForRead) as BlockTableRecord;
 
@@ -136,7 +136,7 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
             {
                 var wrapper = new AutocadBlockReferenceWrapper(blockReference);
 
-                var nestedBlockReferences = wrapper.GetObjects(autocadTransaction);
+                var nestedBlockReferences = wrapper.GetObjects(autocadTransactionManager);
 
                 foreach (var nestedEntity in nestedBlockReferences)
                 {

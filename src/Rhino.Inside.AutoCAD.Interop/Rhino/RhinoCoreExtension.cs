@@ -6,9 +6,7 @@ using System.Reflection;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
-/// <summary>
-/// Launches the Rhino inside instance.
-/// </summary>
+/// <inheritdoc cref="IRhinoCoreExtension"/>
 public class RhinoCoreExtension : IRhinoCoreExtension
 {
     private const string _rhinoRegistryKeyPath = ApplicationConstants.RhinoRegistryKeyPath;
@@ -38,14 +36,10 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     /// </summary>
     public static RhinoCoreExtension Instance { get; }
 
-    /// <summary>
-    /// The <see cref="IStartUpLogger"/>.
-    /// </summary>
+    /// <inheritdoc />
     public IStartUpLogger StartUpLogger { get; }
 
-    /// <summary>
-    /// Access to the Rhino window manager.
-    /// </summary>
+    /// <inheritdoc />
     public IRhinoWindowManager WindowManager { get; }
 
     /// <summary>

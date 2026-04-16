@@ -12,15 +12,15 @@ public interface IRhinoConvertible
 {
     /// <summary>
     /// Converts the Rhino object to a list of <see cref="IEntity"/> objects using
-    /// the provided <see cref="IAutocadTransaction"/>. The <see
+    /// the provided <see cref="IAutocadTransactionManager"/>. The <see
     /// cref="IGeometryPreviewSettings"/> are applied to the object. This is used
     /// primarily for preview purposes.
     /// </summary>
-    List<IEntity> Convert(IAutocadTransaction autocadTransaction, IGeometryPreviewSettings previewSettings);
+    List<IEntity> Convert(IAutocadTransactionManager autocadTransactionManager, IGeometryPreviewSettings previewSettings);
 
     /// <summary>
     /// Converts the Rhino object to a list of <see cref="IEntity"/> objects using
-    /// the provided <see cref="IAutocadTransaction"/>.
+    /// the provided <see cref="IAutocadTransactionManager"/>.
     /// </summary>
-    List<IEntity> Convert(IAutocadTransaction autocadTransaction);
+    List<IEntity> Convert(IAutocadTransactionManager autocadTransactionManager);
 }

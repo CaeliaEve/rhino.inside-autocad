@@ -17,9 +17,9 @@ public class RhinoConvertibleExtrusion : RhinoConvertibleBase<Rhino.Geometry.Ext
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransactionManager autocadTransactionManager)
     {
-        var cadSolids = this.RhinoGeometry.ToAutocadSolid3ds(autocadTransaction);
+        var cadSolids = this.RhinoGeometry.ToAutocadSolid3ds(autocadTransactionManager);
 
         var entities = new List<IEntity>();
         foreach (var cadSolid in cadSolids)

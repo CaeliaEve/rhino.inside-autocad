@@ -28,7 +28,9 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
     {
         _objects.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
@@ -53,9 +55,9 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
     /// </summary>
     private IAutocadLinetypeTableRecord CreateLineType(string name, double patternLength, int numberOfDashes, bool scaleToFit)
     {
-        using var documentLock = _document.Unwrap().LockDocument();
+        var transactionManagerWrapper = _document.CreateTransactionManager();
 
-        var lineTypeWrapper = _document.Transaction(transactionManagerWrapper =>
+        var lineTypeWrapper = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 

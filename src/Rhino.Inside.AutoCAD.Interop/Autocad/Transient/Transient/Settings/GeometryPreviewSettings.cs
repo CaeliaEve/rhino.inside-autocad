@@ -34,7 +34,9 @@ public class GeometryPreviewSettings : IGeometryPreviewSettings
     /// <inheritdoc/>
     public void CreateMaterial(IAutocadDocument document)
     {
-        _ = document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 

@@ -17,7 +17,7 @@ public class RhinoConvertibleBrep : RhinoConvertibleBase<Rhino.Geometry.Brep>
     }
 
     /// <inheritdoc />
-    protected override List<IEntity> ConvertGeometry(IAutocadTransaction autocadTransaction)
+    protected override List<IEntity> ConvertGeometry(IAutocadTransactionManager autocadTransactionManager)
     {
         var cadSolids = this.RhinoGeometry.ToAutocadNurbSurfaces();
 

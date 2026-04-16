@@ -24,13 +24,13 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
     /// </summary>
     private IAutocadLayerTableRecord CreateLayer(IColor color, string name)
     {
-        using var documentLock = _document.Unwrap().LockDocument();
+        var transactionManagerWrapper = _document.CreateTransactionManager();
 
-        var layerWrapper = _document.Transaction(transactionManagerWrapper =>
+        var layerWrapper = transactionManagerWrapper.PerformTask(() =>
          {
              var transactionManager = transactionManagerWrapper.Unwrap();
 
-             var layerTableRecord = new LayerTableRecord
+             var newLayer = new LayerTableRecord
              {
                  Name = name,
                  Color = CadColor.FromRgb(color.Red, color.Green, color.Blue)
@@ -39,11 +39,11 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
              using var layerTable = (LayerTable)transactionManager.GetObject(
                  _document.AutocadDatabase.LayerTableId.Unwrap(), OpenMode.ForWrite);
 
-             layerTable.Add(layerTableRecord);
+             layerTable.Add(newLayer);
 
-             transactionManager.AddNewlyCreatedDBObject(layerTableRecord, true);
+             transactionManager.AddNewlyCreatedDBObject(newLayer, true);
 
-             return new AutocadLayerTableRecordWrapper(layerTableRecord);
+             return new AutocadLayerTableRecordWrapper(newLayer);
          });
 
         _document.Regenerate();
@@ -59,7 +59,9 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
     {
         _objects.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
