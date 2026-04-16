@@ -1,4 +1,4 @@
-﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using AutocadCurve = Autodesk.AutoCAD.DatabaseServices.Curve;
@@ -9,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD curves.
 /// </summary>
-public class GH_AutocadCurve : GH_AutocadGeometricGoo<AutocadCurve, RhinoCurve>
+public class GH_AutocadCurve : GH_AutocadGeometricGoo<AutocadCurve, RhinoGeometryAdapter<RhinoCurve>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadCurve"/> class with no
@@ -38,7 +38,7 @@ public class GH_AutocadCurve : GH_AutocadGeometricGoo<AutocadCurve, RhinoCurve>
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadCurve, RhinoCurve> CreateClonedInstance(AutocadCurve entity)
+    protected override GH_AutocadGeometricGoo<AutocadCurve, RhinoGeometryAdapter<RhinoCurve>> CreateClonedInstance(AutocadCurve entity)
     {
         if (this.Reference.IsValid)
         {
@@ -54,27 +54,27 @@ public class GH_AutocadCurve : GH_AutocadGeometricGoo<AutocadCurve, RhinoCurve>
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadCurve, RhinoCurve> CreateInstance(AutocadCurve entity)
+    protected override GH_AutocadGeometricGoo<AutocadCurve, RhinoGeometryAdapter<RhinoCurve>> CreateInstance(AutocadCurve entity)
     {
         return new GH_AutocadCurve(entity);
     }
 
     /// <inheritdoc />
-    protected override AutocadCurve? Convert(RhinoCurve rhinoType)
+    protected override AutocadCurve? Convert(RhinoGeometryAdapter<RhinoCurve> rhinoType)
     {
-        return rhinoType.ToAutocadSingleCurve();
+        return rhinoType.Geometry?.ToAutocadSingleCurve();
     }
 
     /// <inheritdoc />
-    protected override RhinoCurve? Convert(AutocadCurve wrapperType)
+    protected override RhinoGeometryAdapter<RhinoCurve>? Convert(AutocadCurve wrapperType)
     {
-        return wrapperType.ToRhinoCurve();
+        return new RhinoGeometryAdapter<RhinoCurve>(wrapperType.ToRhinoCurve());
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        args.Pipeline.DrawCurve(this.RhinoGeometry, args.Color, args.Thickness);
+        args.Pipeline.DrawCurve(this.RhinoGeometry?.Geometry, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />
@@ -86,10 +86,10 @@ public class GH_AutocadCurve : GH_AutocadGeometricGoo<AutocadCurve, RhinoCurve>
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
-        if (rhinoGeometry != null)
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry != null)
         {
-            previewData.Wires.Add(this.RhinoGeometry);
+            previewData.Wires.Add(geometry);
         }
     }
 }

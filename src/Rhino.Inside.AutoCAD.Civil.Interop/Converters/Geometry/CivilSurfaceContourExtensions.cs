@@ -21,7 +21,7 @@ public static class CivilSurfaceContourExtensions
     /// <returns>A list of contour wrappers containing both major (Type=1) and minor (Type=2) contours.</returns>
     public static IReadOnlyList<CivilSurfaceContourWrapper> GetContours(
         this TinSurface surfaceRaw,
-        IAutocadTransaction transaction)
+        IAutocadTransactionManager transaction)
     {
         var contours = new List<CivilSurfaceContourWrapper>();
 
@@ -45,7 +45,7 @@ public static class CivilSurfaceContourExtensions
     /// </summary>
     private static void ExtractContoursOfType(
         TinSurface surface,
-      IAutocadTransaction transaction,
+      IAutocadTransactionManager transaction,
         List<CivilSurfaceContourWrapper> contours,
         int contourType)
     {
@@ -103,7 +103,7 @@ public static class CivilSurfaceContourExtensions
     /// </summary>
     private static RhinoCurve? ConvertPolyline3dToRhinoCurve(
         Polyline3d polyline3d,
-        IAutocadTransaction trans,
+        IAutocadTransactionManager trans,
         out double elevation)
     {
         var points = new List<Rhino.Geometry.Point3d>();

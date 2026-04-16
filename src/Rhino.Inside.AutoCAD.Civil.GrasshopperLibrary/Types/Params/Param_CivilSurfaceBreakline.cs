@@ -48,8 +48,8 @@ public class Param_CivilSurfaceBreakline : GH_Param<GH_CivilSurfaceBreakline>
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilSurfaceBreakline"/> class.
     /// </summary>
-    public Param_CivilSurfaceBreakline()
+  /*  public Param_CivilSurfaceBreakline()
         : base("Civil3d Surface Breakline", "Breakline",
             "A breakline definition extracted from a Civil 3D TIN Surface", "Params", "Civil3d", GH_ParamAccess.item)
-    { }
+    { }*/
 }

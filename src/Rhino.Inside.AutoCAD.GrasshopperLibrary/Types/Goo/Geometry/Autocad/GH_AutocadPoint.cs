@@ -1,4 +1,4 @@
-﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using AutocadPoint = Autodesk.AutoCAD.DatabaseServices.DBPoint;
@@ -9,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD points.
 /// </summary>
-public class GH_AutocadPoint : GH_AutocadGeometricGoo<AutocadPoint, RhinoPoint>
+public class GH_AutocadPoint : GH_AutocadGeometricGoo<AutocadPoint, RhinoGeometryAdapter<RhinoPoint>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadPoint"/> class with no
@@ -38,33 +38,35 @@ public class GH_AutocadPoint : GH_AutocadGeometricGoo<AutocadPoint, RhinoPoint>
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadPoint, RhinoPoint> CreateClonedInstance(AutocadPoint entity)
+    protected override GH_AutocadGeometricGoo<AutocadPoint, RhinoGeometryAdapter<RhinoPoint>> CreateClonedInstance(AutocadPoint entity)
     {
         return new GH_AutocadPoint(entity.Clone() as AutocadPoint, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadPoint, RhinoPoint> CreateInstance(AutocadPoint entity)
+    protected override GH_AutocadGeometricGoo<AutocadPoint, RhinoGeometryAdapter<RhinoPoint>> CreateInstance(AutocadPoint entity)
     {
         return new GH_AutocadPoint(entity);
     }
 
     /// <inheritdoc />
-    protected override AutocadPoint? Convert(RhinoPoint rhinoType)
+    protected override AutocadPoint? Convert(RhinoGeometryAdapter<RhinoPoint> rhinoType)
     {
-        return rhinoType.ToAutocadDBPoint();
+        return rhinoType.Geometry?.ToAutocadDBPoint();
     }
 
     /// <inheritdoc />
-    protected override RhinoPoint? Convert(AutocadPoint wrapperType)
+    protected override RhinoGeometryAdapter<RhinoPoint>? Convert(AutocadPoint wrapperType)
     {
-        return wrapperType.ToRhinoPoint();
+        return new RhinoGeometryAdapter<RhinoPoint>(wrapperType.ToRhinoPoint());
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        args.Pipeline.DrawPoint(this.RhinoGeometry.Location, args.Color);
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry != null)
+            args.Pipeline.DrawPoint(geometry.Location, args.Color);
     }
 
     /// <inheritdoc />
@@ -76,10 +78,10 @@ public class GH_AutocadPoint : GH_AutocadGeometricGoo<AutocadPoint, RhinoPoint>
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
+        var geometry = this.RhinoGeometry?.Geometry;
 
-        if (rhinoGeometry == null) return;
+        if (geometry == null) return;
 
-        previewData.Points.Add(new RhinoPoint(rhinoGeometry.Location));
+        previewData.Points.Add(new RhinoPoint(geometry.Location));
     }
 }

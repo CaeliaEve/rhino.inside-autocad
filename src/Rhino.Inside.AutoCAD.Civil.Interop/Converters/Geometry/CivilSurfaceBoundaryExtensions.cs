@@ -18,7 +18,7 @@ public static class CivilSurfaceBoundaryExtensions
     /// </summary>
     /// <param name="surface">The TIN surface to extract boundaries from.</param>
     /// <returns>A list of boundary wrappers containing the extracted boundary data.</returns>
-    public static IReadOnlyList<CivilSurfaceBoundaryWrapper> GetBoundaries(this TinSurface surfaceRaw, IAutocadTransaction transaction)
+    public static IReadOnlyList<CivilSurfaceBoundaryWrapper> GetBoundaries(this TinSurface surfaceRaw, IAutocadTransactionManager transaction)
     {
         var boundaries = new List<CivilSurfaceBoundaryWrapper>();
 
@@ -65,7 +65,7 @@ public static class CivilSurfaceBoundaryExtensions
     /// <summary>
     /// Extracts the outer border of the surface.
     /// </summary>
-    private static RhinoPolyline? ExtractOuterBorder(TinSurface surface, IAutocadTransaction transactionWrapper)
+    private static RhinoPolyline? ExtractOuterBorder(TinSurface surface, IAutocadTransactionManager transactionWrapper)
     {
         try
         {

@@ -47,6 +47,7 @@
 			<Private>False</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Civil.Interop\Rhino.Inside.AutoCAD.Civil.Interop.csproj" />
 		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Core\Rhino.Inside.AutoCAD.Core.csproj">
 			<Private>False</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>

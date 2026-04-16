@@ -2,10 +2,12 @@ using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.Civil.DatabaseServices;
+using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Civil.Interop.TIN_Naming;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using CivilTinSurface = Autodesk.Civil.DatabaseServices.TinSurface;
+using CivilTinVolumeSurface = Autodesk.Civil.DatabaseServices.TinVolumeSurface;
 using RhinoMesh = Rhino.Geometry.Mesh;
 
 namespace Rhino.Inside.AutoCAD.Interop;
@@ -28,9 +30,7 @@ public static class RhinoMeshExtensions
 
         using var documentLock = activeDocument.LockDocument();
 
-        var database = activeDocument.Database;
-
-        var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -47,9 +47,8 @@ public static class RhinoMeshExtensions
     /// <param name="mesh">The Rhino Mesh to convert.</param>
     /// <param name="transactionManager">The transaction manager for database operations.</param>
     /// <returns>A Civil 3D TIN Surface with vertices scaled to AutoCAD units.</returns>
-    public static CivilTinSurface? ToTinSurface(this RhinoMesh mesh, IAutocadTransaction transactionManager)
+    public static CivilTinSurface? ToTinSurface(this RhinoMesh mesh, IAutocadTransactionManager transactionManager)
     {
-
         var name = AutoNamer.GenerateUniqueSurfaceName(transactionManager.AutocadDatabase, "RiA_");
 
         return mesh.ToTinSurface(transactionManager, name, null);
@@ -65,7 +64,7 @@ public static class RhinoMeshExtensions
     /// <returns>A Civil 3D TIN Surface with vertices scaled to AutoCAD units, or null if creation fails.</returns>
     public static CivilTinSurface? ToTinSurface(
         this RhinoMesh mesh,
-        IAutocadTransaction transactionManager,
+        IAutocadTransactionManager transactionManager,
         string surfaceName,
         ObjectId? styleId = null)
     {
@@ -109,5 +108,49 @@ public static class RhinoMeshExtensions
         }
 
         return null;
+    }
+
+    public static CivilTinVolumeSurface? ToCivilTinVolumeSurface(this VolumeSurfaceAdapter adapter)
+    {
+        var activeDocument = Application.DocumentManager.MdiActiveDocument;
+
+        using var documentLock = activeDocument.LockDocument();
+
+        var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
+
+        using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
+
+        var result = adapter.ToCivilTinVolumeSurface(transactionManagerWrapper);
+
+        transaction.Commit();
+
+        return result;
+    }
+
+    /// <summary>
+    /// Converts a Rhino Mesh to a Civil 3D TIN Surface, applying unit conversion.
+    /// </summary>
+    /// <param name="adapter">The Rhino Mesh to convert inside a VolumeSurfaceAdapter.</param>
+    /// <param name="transactionManager">The transaction manager for database operations.</param>
+    /// <returns>A Civil 3D TIN Surface with vertices scaled to AutoCAD units.</returns>
+    public static CivilTinVolumeSurface? ToCivilTinVolumeSurface(this VolumeSurfaceAdapter adapter,
+        IAutocadTransactionManager transactionManager)
+    {
+        var name = AutoNamer.GenerateUniqueSurfaceName(transactionManager.AutocadDatabase, "RiA_");
+
+        var baseMesh = adapter.BaseMesh;
+
+        var comparisonMesh = adapter.ComparisonMesh;
+
+        var baseSurface = baseMesh.ToTinSurface(transactionManager);
+
+        var comparisonSurface = comparisonMesh.ToTinSurface(transactionManager);
+
+        //TODO actually get the surface id
+
+        return TinVolumeSurfaceCreator.Create(transactionManager,
+            new AutocadObjectIdWrapper(baseSurface.Id),
+            new AutocadObjectIdWrapper(comparisonSurface.Id), name);
+
     }
 }

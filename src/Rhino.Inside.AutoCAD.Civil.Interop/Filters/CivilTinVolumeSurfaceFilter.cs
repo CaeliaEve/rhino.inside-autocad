@@ -1,5 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Runtime;
+using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Interop;
@@ -14,7 +16,7 @@ public class CivilTinVolumeSurfaceFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new TypedValue((int)DxfCode.Start, "AECC_TIN_VOLUME_SURFACE")
+            new TypedValue((int)DxfCode.Start,   RXClass.GetClass(typeof(TinVolumeSurface)).DxfName)
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);

@@ -1,11 +1,13 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Runtime;
+using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <summary>
-/// A filter that selects AutoCAD Solid3d entities.
+/// A filter that selects AutoCAD TinSurface entities.
 /// </summary>
 public class CivilTinSurfaceFilter : IObjectFilter
 {
@@ -14,7 +16,7 @@ public class CivilTinSurfaceFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "AECC_TIN_SURFACE")
+            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start,  RXClass.GetClass(typeof(TinSurface)).DxfName)
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);

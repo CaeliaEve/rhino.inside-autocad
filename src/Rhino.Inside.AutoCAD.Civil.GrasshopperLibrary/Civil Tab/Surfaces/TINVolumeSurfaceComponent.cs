@@ -49,32 +49,14 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
             "The Id of the Style of the Volume Surface.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Unadjusted Cut", "UCut",
-            "Raw cut volume before factors (cubic units).", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilVolumeProperties(), "Volume Properties", "VP",
+            "Volume statistics (use Volume Properties component to extract values).", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Unadjusted Fill", "UFill",
-            "Raw fill volume before factors (cubic units).", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilTinSurface(), "Base Surface", "BS",
+            "The base TIN surface.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Unadjusted Net", "UNet",
-            "Raw net volume (unadjusted cut - unadjusted fill).", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("Cut Factor", "CutF",
-            "Cut volume adjustment factor.", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("Fill Factor", "FillF",
-            "Fill volume adjustment factor.", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("Adjusted Cut", "ACut",
-            "Adjusted cut volume (raw * factor).", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("Adjusted Fill", "AFill",
-            "Adjusted fill volume (raw * factor).", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("Adjusted Net", "ANet",
-            "Adjusted net volume.", GH_ParamAccess.item);
-
-        pManager.AddMeshParameter("Mesh", "M",
-            "Volume surface as Rhino Mesh (approximation using elevation sampling).", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilTinSurface(), "Comparison Surface", "CS",
+            "The comparison TIN surface.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -89,11 +71,11 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
         var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
-        var volumeSurface = document.Transaction(transactionManager =>
-        {
-            return transactionManager.Unwrap().GetObject(surfaceId.Unwrap(), OpenMode.ForRead) as
-                TinVolumeSurface;
-        });
+        var transactionManager = document.CreateTransactionManager();
+
+        var volumeSurface = transactionManager.PerformTask(() =>
+            transactionManager.Unwrap().GetObject(surfaceId.Unwrap(), OpenMode.ForRead) as
+            TinVolumeSurface);
 
         if (volumeSurface == null)
         {
@@ -112,25 +94,27 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
         var styleId = new GH_AutocadObjectId(new AutocadObjectIdWrapper(volumeSurface.StyleId));
         DA.SetData(2, styleId);
 
-        // Volume statistics
+        // Volume Properties
+        var volumePropsWrapper = new CivilVolumePropertiesWrapper(volumeSurface);
+        DA.SetData(3, new GH_CivilVolumeProperties(volumePropsWrapper));
+
+        // Get the base and comparison surfaces
         var volumeProps = volumeSurface.GetVolumeProperties();
+        var baseSurfaceId = volumeProps.BaseSurface;
+        var comparisonSurfaceId = volumeProps.ComparisonSurface;
 
-        // Unadjusted volumes
-        DA.SetData(3, volumeProps.UnadjustedCutVolume);
-        DA.SetData(4, volumeProps.UnadjustedFillVolume);
-        DA.SetData(5, volumeProps.UnadjustedCutVolume - volumeProps.UnadjustedFillVolume);
+        var baseSurface = transactionManager.PerformTask(() =>
+            transactionManager.Unwrap().GetObject(baseSurfaceId, OpenMode.ForRead) as TinSurface);
 
-        // Factors
-        DA.SetData(6, volumeProps.CutFactor);
-        DA.SetData(7, volumeProps.FillFactor);
+        var comparisonSurface = transactionManager.PerformTask(() =>
+            transactionManager.Unwrap().GetObject(comparisonSurfaceId, OpenMode.ForRead) as TinSurface);
 
-        // Adjusted volumes
-        DA.SetData(8, volumeProps.AdjustedCutVolume);
-        DA.SetData(9, volumeProps.AdjustedFillVolume);
-        DA.SetData(10, volumeProps.AdjustedCutVolume - volumeProps.AdjustedFillVolume);
+        // Base Surface
+        if (baseSurface != null)
+            DA.SetData(4, new GH_CivilTinSurface(baseSurface));
 
-        // Mesh (approximation using elevation sampling since triangles are not directly accessible)
-        var mesh = volumeSurface.ToRhinoMesh();
-        DA.SetData(11, mesh);
+        // Comparison Surface
+        if (comparisonSurface != null)
+            DA.SetData(5, new GH_CivilTinSurface(comparisonSurface));
     }
 }

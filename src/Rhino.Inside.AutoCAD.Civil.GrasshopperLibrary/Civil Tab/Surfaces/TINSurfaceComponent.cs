@@ -46,14 +46,20 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
             "The Id of the Style of the Surface.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_CivilSurfaceBoundary(), "Boundaries", "B",
+        pManager.AddParameter(new Param_CivilTinProperties(), "TIN Properties", "TP",
+            "Surface statistics (use TIN Properties component to extract values).", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilSurfaceBoundary(GH_ParamAccess.list), "Boundaries", "B",
             "The boundary definitions of the Surface.", GH_ParamAccess.list);
 
-        pManager.AddParameter(new Param_CivilSurfaceContour(), "Contours", "C",
+        pManager.AddParameter(new Param_CivilSurfaceContour(GH_ParamAccess.list), "Contours", "C",
             "The contour lines of the Surface.", GH_ParamAccess.list);
 
-        pManager.AddParameter(new Param_CivilSurfaceBreakline(), "Breaklines", "BL",
+        pManager.AddParameter(new Param_CivilSurfaceBreakline(GH_ParamAccess.list), "Breaklines", "BL",
             "The breakline definitions of the Surface.", GH_ParamAccess.list);
+
+        pManager.AddMeshParameter("Mesh", "M",
+            "The surface as a Rhino mesh.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -68,11 +74,17 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
-        var tinSurface = document.Transaction(transactionManager =>
+        var transactionManager = document.CreateTransactionManager();
+
+        var tinSurface = transactionManager.PerformTask(() =>
+            transactionManager.Unwrap().GetObject(surfaceId.Unwrap(), OpenMode.ForRead) as
+            TinSurface);
+
+        if (tinSurface == null)
         {
-            return transactionManager.Unwrap().GetObject(surfaceId.Unwrap(), OpenMode.ForRead) as
-                TinSurface;
-        });
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read TIN Surface");
+            return;
+        }
 
         // Id
         var id = new GH_AutocadObjectId(surfaceId);
@@ -82,40 +94,36 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         var styleId = new GH_AutocadObjectId(new AutocadObjectIdWrapper(tinSurface.StyleId));
         DA.SetData(1, styleId);
 
-        // Boundaries
-        var boundaries = document.Transaction(transactionManager =>
+        // TIN Properties
+        var tinPropsWrapper = new CivilTinPropertiesWrapper(tinSurface);
+        DA.SetData(2, new GH_CivilTinProperties(tinPropsWrapper));
+
+        // Surface data
+        var surfaceData = transactionManager.PerformTask(() => new
         {
-            return tinSurface.GetBoundaries(transactionManager);
+            Boundaries = tinSurface.GetBoundaries(transactionManager),
+            Contours = tinSurface.GetContours(transactionManager),
+            Breaklines = tinSurface.GetBreaklines(transactionManager),
+            Mesh = tinSurface.ToRhinoMesh(transactionManager)
         });
 
-        var boundaryGooList = boundaries
+        var boundaryGooList = surfaceData.Boundaries
             .Select(b => new GH_CivilSurfaceBoundary(b))
             .ToList();
 
-        DA.SetDataList(2, boundaryGooList);
-
-        // Contours
-        var contours = document.Transaction(transactionManager =>
-        {
-            return tinSurface.GetContours(transactionManager);
-        });
-
-        var contourGooList = contours
+        var contourGooList = surfaceData.Contours
             .Select(c => new GH_CivilSurfaceContour(c))
             .ToList();
 
-        DA.SetDataList(3, contourGooList);
-
-        // Breaklines
-        var breaklines = document.Transaction(transactionManager =>
-        {
-            return tinSurface.GetBreaklines(transactionManager);
-        });
-
-        var breaklineGooList = breaklines
+        var breaklineGooList = surfaceData.Breaklines
             .Select(bl => new GH_CivilSurfaceBreakline(bl))
             .ToList();
 
-        DA.SetDataList(4, breaklineGooList);
+        DA.SetDataList(3, boundaryGooList);
+        DA.SetDataList(4, contourGooList);
+        DA.SetDataList(5, breaklineGooList);
+
+        // Mesh
+        DA.SetData(6, surfaceData.Mesh);
     }
 }

@@ -150,9 +150,7 @@ public static class RhinoMeshExtensions
 
         using var documentLock = activeDocument.LockDocument();
 
-        var database = activeDocument.Database;
-
-        var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -175,7 +173,7 @@ public static class RhinoMeshExtensions
     /// ToAutocadSubDMesh instead for better compatibility.
     /// </remarks>
     public static CadPolyFaceMesh? ToAutocadPolyFaceMesh(this RhinoMesh mesh,
-        IAutocadTransaction autocadTransaction)
+        IAutocadTransactionManager autocadTransaction)
     {
         var polyFaceMesh = new CadPolyFaceMesh();
         var clone = new CadPolyFaceMesh();

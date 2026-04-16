@@ -1,6 +1,5 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -51,10 +50,10 @@ public class Param_CivilSurfaceStyle : GH_Param<GH_CivilSurfaceStyle>, IReferenc
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilSurfaceStyle"/> class.
     /// </summary>
-    public Param_CivilSurfaceStyle()
+  /*  public Param_CivilSurfaceStyle()
         : base("Civil3d Surface Style", "Style",
             "A Surface Style in Civil 3D", "Params", "Civil3d", GH_ParamAccess.item)
-    { }
+    { }*/
 
     /// <inheritdoc />
     public bool NeedsToBeExpired(IAutocadDocumentChange change)

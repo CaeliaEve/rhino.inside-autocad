@@ -29,7 +29,7 @@ public class CivilSurfaceBoundaryComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddParameter(new Param_CivilSurfaceBoundary(), "Boundary",
+        pManager.AddParameter(new Param_CivilSurfaceBoundary(GH_ParamAccess.item), "Boundary",
             "B", "A surface boundary to deconstruct", GH_ParamAccess.item);
     }
 

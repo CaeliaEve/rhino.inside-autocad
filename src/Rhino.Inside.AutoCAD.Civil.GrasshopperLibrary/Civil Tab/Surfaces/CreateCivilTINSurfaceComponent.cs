@@ -111,7 +111,9 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
 
         _errorMessage = string.Empty;
 
-        var result = autocadDocument.Transaction((transactionManager) =>
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        var result = transactionManager.PerformTask(() =>
         {
             try
             {

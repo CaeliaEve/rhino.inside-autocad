@@ -5,14 +5,13 @@ using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilVolumeSurface = Autodesk.Civil.DatabaseServices.TinVolumeSurface;
-using RhinoMesh = Rhino.Geometry.Mesh;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D TIN Volume Surfaces.
 /// </summary>
-public class GH_CivilTinVolumeSurface : GH_AutocadGeometricGoo<CivilVolumeSurface, RhinoMesh>
+public class GH_CivilTinVolumeSurface : GH_AutocadGeometricGoo<CivilVolumeSurface, VolumeSurfaceAdapter>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilTinVolumeSurface"/> class with no value.
@@ -41,55 +40,56 @@ public class GH_CivilTinVolumeSurface : GH_AutocadGeometricGoo<CivilVolumeSurfac
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilVolumeSurface, RhinoMesh> CreateClonedInstance(
+    protected override GH_AutocadGeometricGoo<CivilVolumeSurface, VolumeSurfaceAdapter> CreateClonedInstance(
         CivilVolumeSurface entity)
     {
         return new GH_CivilTinVolumeSurface(entity.Clone() as CivilVolumeSurface, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilVolumeSurface, RhinoMesh> CreateInstance(
+    protected override GH_AutocadGeometricGoo<CivilVolumeSurface, VolumeSurfaceAdapter> CreateInstance(
         CivilVolumeSurface entity)
     {
         return new GH_CivilTinVolumeSurface(entity);
     }
 
     /// <inheritdoc />
-    protected override CivilVolumeSurface? Convert(RhinoMesh rhinoType)
+    protected override CivilVolumeSurface? Convert(VolumeSurfaceAdapter rhinoType)
     {
-        // Volume surfaces cannot be created from a Rhino mesh directly
-        // They require two TIN surfaces to be created
-        return null;
+        return rhinoType.ToCivilTinVolumeSurface();
     }
 
     /// <inheritdoc />
-    protected override RhinoMesh? Convert(CivilVolumeSurface wrapperType)
+    protected override VolumeSurfaceAdapter? Convert(CivilVolumeSurface wrapperType)
     {
-        return wrapperType.ToRhinoMesh();
+        return wrapperType.ToVolumeSurfaceAdapter();
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        args.Pipeline.DrawMeshWires(this.RhinoGeometry, args.Color, args.Thickness);
+        var combined = this.RhinoGeometry?.CombinedMesh;
+        if (combined != null)
+            args.Pipeline.DrawMeshWires(combined, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryMeshes(GH_PreviewMeshArgs args)
     {
-        args.Pipeline.DrawMeshShaded(this.RhinoGeometry, args.Material);
+        var combined = this.RhinoGeometry?.CombinedMesh;
+        if (combined != null)
+            args.Pipeline.DrawMeshShaded(combined, args.Material);
     }
 
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
+        var adapter = this.RhinoGeometry;
+        if (adapter?.CombinedMesh == null) return;
 
-        if (rhinoGeometry == null) return;
+        previewData.Meshes.Add(adapter.CombinedMesh);
 
-        previewData.Meshes.Add(rhinoGeometry);
-
-        var polylines = rhinoGeometry.GetNakedEdges();
+        var polylines = adapter.CombinedMesh.GetNakedEdges();
 
         foreach (var polyline in polylines)
         {

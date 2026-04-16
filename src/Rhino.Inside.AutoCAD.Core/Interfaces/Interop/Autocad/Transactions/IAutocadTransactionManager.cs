@@ -11,7 +11,7 @@
 /// when disposed.
 /// </remarks>
 /// <seealso cref="IAutocadBlockTableRecord"/>
-public interface IAutocadTransactionManager : IDisposable
+public interface IAutocadTransactionManager
 {
     /// <summary>
     /// Gets the <see cref="IObjectId"/> of the document's block table.

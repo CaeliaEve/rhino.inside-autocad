@@ -4,6 +4,7 @@ using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Civil.Interop.Constants;
 using Rhino.Inside.AutoCAD.Civil.Interop.TIN_Naming;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -123,10 +124,12 @@ public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_Component
 
         _errorMessage = string.Empty;
 
-        var baseSurfaceId = baseSurfaceGoo.Reference.ObjectId.Unwrap();
-        var comparisonSurfaceId = comparisonSurfaceGoo.Reference.ObjectId.Unwrap();
+        var baseSurfaceId = baseSurfaceGoo.Reference.ObjectId;
+        var comparisonSurfaceId = comparisonSurfaceGoo.Reference.ObjectId;
 
-        var result = autocadDocument.Transaction((transactionManager) =>
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        var result = transactionManager.PerformTask(() =>
         {
             try
             {
@@ -135,15 +138,15 @@ public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_Component
                     : surfaceName;
 
                 // Get style ObjectId if provided
-                ObjectId? styleId = null;
+                IObjectId? styleId = null;
                 if (styleGoo?.Value != null)
                 {
-                    styleId = styleGoo.Value.Id.Unwrap();
+                    styleId = styleGoo.Value.Id;
                 }
 
                 // Create the TIN Volume Surface
                 // Note: CutFactor and FillFactor are read-only in Civil 3D API and default to 1.0
-                var volumeSurface = TinVolumeSurfaceCreator.CreateVolumeSurface(
+                var volumeSurface = TinVolumeSurfaceCreator.Create(
                     transactionManager,
                     baseSurfaceId,
                     comparisonSurfaceId,

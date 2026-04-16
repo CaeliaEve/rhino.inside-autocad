@@ -21,7 +21,7 @@ public static class CivilSurfaceBreaklineExtensions
     /// <returns>A list of breakline wrappers containing the extracted breakline data.</returns>
     public static IReadOnlyList<CivilSurfaceBreaklineWrapper> GetBreaklines(
         this TinSurface surfaceRaw,
-        IAutocadTransaction transaction)
+        IAutocadTransactionManager transaction)
     {
         var breaklines = new List<CivilSurfaceBreaklineWrapper>();
 

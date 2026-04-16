@@ -28,7 +28,7 @@ public class CivilSurfaceBreaklineComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddParameter(new Param_CivilSurfaceBreakline(), "Breakline",
+        pManager.AddParameter(new Param_CivilSurfaceBreakline(GH_ParamAccess.item), "Breakline",
             "BL", "A surface breakline to deconstruct", GH_ParamAccess.item);
     }
 

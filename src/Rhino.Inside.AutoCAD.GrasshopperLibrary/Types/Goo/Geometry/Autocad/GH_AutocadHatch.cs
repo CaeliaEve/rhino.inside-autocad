@@ -9,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD hatches.
 /// </summary>
-public class GH_AutocadHatch : GH_AutocadGeometricGoo<CadHatch, RhinoHatch>
+public class GH_AutocadHatch : GH_AutocadGeometricGoo<CadHatch, RhinoGeometryAdapter<RhinoHatch>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadHatch"/> class with no
@@ -38,7 +38,7 @@ public class GH_AutocadHatch : GH_AutocadGeometricGoo<CadHatch, RhinoHatch>
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CadHatch, RhinoHatch> CreateClonedInstance(CadHatch entity)
+    protected override GH_AutocadGeometricGoo<CadHatch, RhinoGeometryAdapter<RhinoHatch>> CreateClonedInstance(CadHatch entity)
     {
         if (this.Reference.IsValid)
         {
@@ -54,36 +54,36 @@ public class GH_AutocadHatch : GH_AutocadGeometricGoo<CadHatch, RhinoHatch>
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CadHatch, RhinoHatch> CreateInstance(CadHatch entity)
+    protected override GH_AutocadGeometricGoo<CadHatch, RhinoGeometryAdapter<RhinoHatch>> CreateInstance(CadHatch entity)
     {
         return new GH_AutocadHatch(entity);
     }
 
     /// <inheritdoc />
-    protected override CadHatch? Convert(RhinoHatch rhinoType)
+    protected override CadHatch? Convert(RhinoGeometryAdapter<RhinoHatch> rhinoType)
     {
-        return rhinoType.ToAutocadHatch(null!);
+        return rhinoType.Geometry?.ToAutocadHatch(null!);
     }
 
     /// <inheritdoc />
-    protected override RhinoHatch? Convert(CadHatch wrapperType)
+    protected override RhinoGeometryAdapter<RhinoHatch>? Convert(CadHatch wrapperType)
     {
-        return wrapperType.ToRhinoHatch();
+        return new RhinoGeometryAdapter<RhinoHatch>(wrapperType.ToRhinoHatch());
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        var rhinoGeometry = this.RhinoGeometry;
-        if (rhinoGeometry == null)
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry == null)
             return;
 
-        foreach (var curve in rhinoGeometry.Get3dCurves(true))
+        foreach (var curve in geometry.Get3dCurves(true))
         {
             args.Pipeline.DrawCurve(curve, args.Color, args.Thickness);
         }
 
-        foreach (var curve in rhinoGeometry.Get3dCurves(false))
+        foreach (var curve in geometry.Get3dCurves(false))
         {
             args.Pipeline.DrawCurve(curve, args.Color, args.Thickness);
         }
@@ -92,26 +92,26 @@ public class GH_AutocadHatch : GH_AutocadGeometricGoo<CadHatch, RhinoHatch>
     /// <inheritdoc />
     protected override void DrawViewportGeometryMeshes(GH_PreviewMeshArgs args)
     {
-        var rhinoGeometry = this.RhinoGeometry;
-        if (rhinoGeometry == null)
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry == null)
             return;
 
-        args.Pipeline.DrawHatch(rhinoGeometry, args.Material.BackDiffuse, args.Material.BackDiffuse);
+        args.Pipeline.DrawHatch(geometry, args.Material.BackDiffuse, args.Material.BackDiffuse);
     }
 
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
-        if (rhinoGeometry == null)
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry == null)
             return;
 
-        foreach (var curve in rhinoGeometry.Get3dCurves(true))
+        foreach (var curve in geometry.Get3dCurves(true))
         {
             previewData.Wires.Add(curve);
         }
 
-        foreach (var curve in rhinoGeometry.Get3dCurves(false))
+        foreach (var curve in geometry.Get3dCurves(false))
         {
             previewData.Wires.Add(curve);
         }

@@ -102,7 +102,9 @@ public class CivilBoundedVolumeComponent : RhinoInsideAutocad_ComponentBase
             return;
         }
 
-        var result = document.Transaction(transactionManager =>
+        var transactionManager = document.CreateTransactionManager();
+
+        var result = transactionManager.PerformTask(() =>
         {
             try
             {

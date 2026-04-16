@@ -17,7 +17,7 @@ public abstract class GH_AutocadGeometricGoo<TWrapperType, TRhinoType>
     : GH_GeometricGoo<TWrapperType>, IGH_AutocadReferenceDatabaseObject,
         IGH_PreviewData, IGH_AutocadGeometryPreview, IAutocadBakeable
 where TWrapperType : Entity
-where TRhinoType : GeometryBase
+where TRhinoType : class, IRhinoAdapter
 {
     private const string _referenceHandleDictionaryName = "AutocadReferenceHandle";
 
@@ -183,9 +183,10 @@ where TRhinoType : GeometryBase
         if (rhinoGeometry == null)
             return this;
 
-        rhinoGeometry.Transform(xform);
+        var duplicate = (TRhinoType)rhinoGeometry.Duplicate();
+        duplicate.Transform(xform);
 
-        var transformed = this.Convert(rhinoGeometry);
+        var transformed = this.Convert(duplicate);
 
         return this.CreateInstance(transformed);
     }
@@ -198,9 +199,10 @@ where TRhinoType : GeometryBase
         if (rhinoGeometry == null)
             return this;
 
-        xmorph.Morph(rhinoGeometry);
+        var duplicate = (TRhinoType)rhinoGeometry.Duplicate();
+        duplicate.Morph(xmorph);
 
-        var morphed = this.Convert(rhinoGeometry);
+        var morphed = this.Convert(duplicate);
 
         return this.CreateInstance(morphed);
     }

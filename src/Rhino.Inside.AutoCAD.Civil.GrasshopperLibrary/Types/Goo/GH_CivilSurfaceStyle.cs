@@ -97,7 +97,9 @@ public class GH_CivilSurfaceStyle : GH_AutocadObjectGoo<CivilSurfaceStyleWrapper
         if (activeDoc == null)
             return false;
 
-        var result = activeDoc.Transaction((transactionManager) =>
+        var transactionManager = activeDoc.CreateTransactionManager();
+
+        var result = transactionManager.PerformTask(() =>
         {
             var transaction = transactionManager.Unwrap();
 
@@ -138,7 +140,9 @@ public class GH_CivilSurfaceStyle : GH_AutocadObjectGoo<CivilSurfaceStyleWrapper
         if (activeDoc == null)
             return false;
 
-        var result = activeDoc.Transaction((transactionManager) =>
+        var transactionManager = activeDoc.CreateTransactionManager();
+
+        var result = transactionManager.PerformTask(() =>
         {
             if (objectId.IsValid == false)
                 return null;

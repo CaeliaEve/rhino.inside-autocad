@@ -28,7 +28,7 @@ public class CivilSurfaceContourComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddParameter(new Param_CivilSurfaceContour(), "Contour",
+        pManager.AddParameter(new Param_CivilSurfaceContour(GH_ParamAccess.item), "Contour",
             "C", "A surface contour to deconstruct", GH_ParamAccess.item);
     }
 

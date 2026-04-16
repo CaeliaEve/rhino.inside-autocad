@@ -48,8 +48,8 @@ public class Param_CivilSurfaceContour : GH_Param<GH_CivilSurfaceContour>
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilSurfaceContour"/> class.
     /// </summary>
-    public Param_CivilSurfaceContour()
+   /* public Param_CivilSurfaceContour()
         : base("Civil3d Surface Contour", "Contour",
             "A contour line extracted from a Civil 3D TIN Surface", "Params", "Civil3d", GH_ParamAccess.item)
-    { }
+    { }*/
 }

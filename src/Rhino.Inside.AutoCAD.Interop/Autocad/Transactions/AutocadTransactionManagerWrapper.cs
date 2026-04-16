@@ -14,7 +14,7 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// <seealso cref="IAutocadTransactionManager"/>
 /// <seealso cref="IAutocadDocument"/>
 /// <seealso cref="AutocadBlockTableRecordWrapper"/>
-public class AutocadTransactionManagerWrapper : AutocadWrapperDisposableBase<TransactionManager>, IAutocadTransactionManager
+public class AutocadTransactionManagerWrapper : AutocadWrapperBase<TransactionManager>, IAutocadTransactionManager
 {
     private readonly Document _document;
     private readonly Database _database;
