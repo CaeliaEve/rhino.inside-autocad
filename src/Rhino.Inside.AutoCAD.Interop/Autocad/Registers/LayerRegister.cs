@@ -37,7 +37,7 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
              };
 
              using var layerTable = (LayerTable)transactionManager.GetObject(
-                 _document.Database.LayerTableId.Unwrap(), OpenMode.ForWrite);
+                 _document.AutocadDatabase.LayerTableId.Unwrap(), OpenMode.ForWrite);
 
              layerTable.Add(layerTableRecord);
 
@@ -64,7 +64,7 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var layerTable = (LayerTable)transactionManager.GetObject(
-                _document.Database.LayerTableId.Unwrap(), OpenMode.ForRead);
+                _document.AutocadDatabase.LayerTableId.Unwrap(), OpenMode.ForRead);
 
             foreach (var layerId in layerTable)
             {

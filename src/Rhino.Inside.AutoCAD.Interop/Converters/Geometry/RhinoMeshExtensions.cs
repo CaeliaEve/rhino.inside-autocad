@@ -152,7 +152,7 @@ public static class RhinoMeshExtensions
 
         var database = activeDocument.Database;
 
-        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        var transactionManagerWrapper = new AutocadTransactionWrapper(database);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -170,7 +170,12 @@ public static class RhinoMeshExtensions
     /// <param name="mesh">The Rhino Mesh to convert.</param>
     /// <param name="autocadTransaction">The transaction manager for database operations.</param>
     /// <returns>An AutoCAD PolyFaceMesh with vertices scaled to AutoCAD units.</returns>
-    public static CadPolyFaceMesh? ToAutocadPolyFaceMesh(this RhinoMesh mesh, IAutocadTransaction autocadTransaction)
+    /// <remarks>
+    /// This does not work in Civil 3d because it does not support PolyFaceMesh. Use
+    /// ToAutocadSubDMesh instead for better compatibility.
+    /// </remarks>
+    public static CadPolyFaceMesh? ToAutocadPolyFaceMesh(this RhinoMesh mesh,
+        IAutocadTransaction autocadTransaction)
     {
         var polyFaceMesh = new CadPolyFaceMesh();
         var clone = new CadPolyFaceMesh();

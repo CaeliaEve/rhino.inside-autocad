@@ -22,7 +22,7 @@ public class BlockTableRecordRegister : RegisterBase<IAutocadBlockTableRecord>, 
 
         _ = _document.Transaction(transactionManagerWrapper =>
         {
-            var database = _document.Database;
+            var database = _document.AutocadDatabase;
 
             var blockTableId = database.BlockTableId;
 

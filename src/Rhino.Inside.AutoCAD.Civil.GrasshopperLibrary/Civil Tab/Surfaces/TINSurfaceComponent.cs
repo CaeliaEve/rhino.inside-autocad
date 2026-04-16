@@ -1,7 +1,10 @@
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
-using TinSurface = Autodesk.Civil.DatabaseServices.TinSurface;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -43,21 +46,76 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
             "The Id of the Style of the Surface.", GH_ParamAccess.item);
 
+        pManager.AddParameter(new Param_CivilSurfaceBoundary(), "Boundaries", "B",
+            "The boundary definitions of the Surface.", GH_ParamAccess.list);
+
+        pManager.AddParameter(new Param_CivilSurfaceContour(), "Contours", "C",
+            "The contour lines of the Surface.", GH_ParamAccess.list);
+
+        pManager.AddParameter(new Param_CivilSurfaceBreakline(), "Breaklines", "BL",
+            "The breakline definitions of the Surface.", GH_ParamAccess.list);
     }
 
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        TinSurface? tinSurface = null;
+        GH_CivilTinSurface? tinSurfaceGoo = null;
 
-        if (!DA.GetData(0, ref tinSurface) || tinSurface is null) return;
+        if (!DA.GetData(0, ref tinSurfaceGoo) || tinSurfaceGoo is null) return;
+
+        var surfaceId = tinSurfaceGoo.Reference.ObjectId;
+
+        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
+            .AutoCadInstance.ActiveDocument;
+
+        var tinSurface = document.Transaction(transactionManager =>
+        {
+            return transactionManager.Unwrap().GetObject(surfaceId.Unwrap(), OpenMode.ForRead) as
+                TinSurface;
+        });
 
         // Id
-        var id = new GH_AutocadObjectId(new AutocadObjectIdWrapper(tinSurface.Id));
+        var id = new GH_AutocadObjectId(surfaceId);
         DA.SetData(0, id);
 
         // StyleId
         var styleId = new GH_AutocadObjectId(new AutocadObjectIdWrapper(tinSurface.StyleId));
         DA.SetData(1, styleId);
+
+        // Boundaries
+        var boundaries = document.Transaction(transactionManager =>
+        {
+            return tinSurface.GetBoundaries(transactionManager);
+        });
+
+        var boundaryGooList = boundaries
+            .Select(b => new GH_CivilSurfaceBoundary(b))
+            .ToList();
+
+        DA.SetDataList(2, boundaryGooList);
+
+        // Contours
+        var contours = document.Transaction(transactionManager =>
+        {
+            return tinSurface.GetContours(transactionManager);
+        });
+
+        var contourGooList = contours
+            .Select(c => new GH_CivilSurfaceContour(c))
+            .ToList();
+
+        DA.SetDataList(3, contourGooList);
+
+        // Breaklines
+        var breaklines = document.Transaction(transactionManager =>
+        {
+            return tinSurface.GetBreaklines(transactionManager);
+        });
+
+        var breaklineGooList = breaklines
+            .Select(bl => new GH_CivilSurfaceBreakline(bl))
+            .ToList();
+
+        DA.SetDataList(4, breaklineGooList);
     }
 }

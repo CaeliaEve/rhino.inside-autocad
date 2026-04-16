@@ -1,5 +1,4 @@
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using CadObjectId = Autodesk.AutoCAD.DatabaseServices.ObjectId;
@@ -115,7 +114,7 @@ public static class AutocadMeshExtensions
 
         var database = activeDocument.Database;
 
-        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        var transactionManagerWrapper = new AutocadTransactionWrapper(database);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 

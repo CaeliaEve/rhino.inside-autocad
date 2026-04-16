@@ -50,7 +50,7 @@ public class ConvertToAutoCadMeshComponent : RhinoInsideAutocad_ComponentBase
         if (!DA.GetData(0, ref rhinoMesh)
         || rhinoMesh is null) return;
 
-        var cadMesh = rhinoMesh.ToAutocadPolyFaceMesh();
+        var cadMesh = rhinoMesh.ToAutocadSubDMesh();
 
         if (cadMesh == null)
         {

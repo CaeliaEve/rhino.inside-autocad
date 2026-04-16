@@ -11,7 +11,7 @@
 /// Used extensively by Grasshopper components such as AutocadDocumentComponent and
 /// GetAutocadDocumentsComponent for document-level operations.
 /// </remarks>
-/// <seealso cref="IDatabase"/>
+/// <seealso cref="IAutocadDatabase"/>
 /// <seealso cref="IAutocadDocumentChangeEventArgs"/>
 public interface IAutocadDocument
 {
@@ -36,13 +36,13 @@ public interface IAutocadDocument
     IAutocadDocumentId DocumentId { get; }
 
     /// <summary>
-    /// Gets the <see cref="IDatabase"/> containing all objects in this document.
+    /// Gets the <see cref="IAutocadDatabase"/> containing all objects in this document.
     /// </summary>
     /// <remarks>
     /// The database provides low-level access to AutoCAD's object storage and is used
     /// for operations that require direct database manipulation.
     /// </remarks>
-    IDatabase Database { get; }
+    IAutocadDatabase AutocadDatabase { get; }
 
     /// <summary>
     /// Gets file information for this document, including path and name.

@@ -1,11 +1,11 @@
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.Civil.ApplicationServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Civil.Interop.Constants;
+using Rhino.Inside.AutoCAD.Civil.Interop.TIN_Naming;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using RhinoMesh = Rhino.Geometry.Mesh;
-using TinSurface = Autodesk.Civil.DatabaseServices.TinSurface;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -16,6 +16,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
 {
     private string _errorMessage = string.Empty;
+    private const string _ghPrefix = CivilConstants.GhPrefix;
 
     /// <inheritdoc />
     public override Guid ComponentGuid => new("B4C8D9E2-6F3A-4B7C-8D5E-2A9F1C4B3D6E");
@@ -114,11 +115,8 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         {
             try
             {
-                var database = transactionManager.Database.Unwrap();
-
-                // Generate unique name if not provided
                 var finalName = string.IsNullOrWhiteSpace(surfaceName)
-                    ? GenerateUniqueSurfaceName(database)
+                    ? AutoNamer.GenerateUniqueSurfaceName(transactionManager.AutocadDatabase, _ghPrefix)
                     : surfaceName;
 
                 // Get style ObjectId if provided
@@ -169,45 +167,5 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(0, new GH_CivilTinSurface(tinSurface));
         DA.SetData(1, createdName);
         DA.SetData(2, new GH_AutocadObjectId(new AutocadObjectIdWrapper(objectId)));
-    }
-
-    /// <summary>
-    /// Generates a unique surface name by checking existing surfaces in the database.
-    /// </summary>
-    /// <param name="database">The database to check for existing surface names.</param>
-    /// <returns>A unique surface name in the format "GH_TINSurface_NNN".</returns>
-    private static string GenerateUniqueSurfaceName(Database database)
-    {
-        var civilDoc = CivilApplication.ActiveDocument;
-        var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        // Collect existing surface names
-        foreach (ObjectId surfaceId in civilDoc.GetSurfaceIds())
-        {
-            if (surfaceId.IsValid && !surfaceId.IsNull && !surfaceId.IsErased)
-            {
-                using var transaction = database.TransactionManager.StartTransaction();
-                var surface = transaction.GetObject(surfaceId, OpenMode.ForRead) as TinSurface;
-                if (surface != null)
-                {
-                    existingNames.Add(surface.Name);
-                }
-                transaction.Commit();
-            }
-        }
-
-        // Generate unique name
-        const string baseName = "GH_TINSurface";
-        var counter = 1;
-        string candidateName;
-
-        do
-        {
-            candidateName = $"{baseName}_{counter:D3}";
-            counter++;
-        }
-        while (existingNames.Contains(candidateName));
-
-        return candidateName;
     }
 }

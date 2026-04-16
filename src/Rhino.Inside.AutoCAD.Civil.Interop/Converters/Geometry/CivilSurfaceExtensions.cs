@@ -82,7 +82,7 @@ public static class CivilSurfaceExtensions
 
         var database = activeDocument.Database;
 
-        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        var transactionManagerWrapper = new AutocadTransactionWrapper(database);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 

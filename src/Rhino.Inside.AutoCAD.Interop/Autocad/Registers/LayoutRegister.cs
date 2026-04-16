@@ -23,7 +23,7 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var layouts = (DBDictionary)transactionManager
-                .GetObject(_document.Database.LayoutDictionaryId.Unwrap(), OpenMode.ForRead);
+                .GetObject(_document.AutocadDatabase.LayoutDictionaryId.Unwrap(), OpenMode.ForRead);
 
             foreach (var entity in layouts)
             {
@@ -55,7 +55,7 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
             };
 
             using var layoutDictionary = (DBDictionary)transactionManager.GetObject(
-                _document.Database.LayoutDictionaryId.Unwrap(), OpenMode.ForWrite);
+                _document.AutocadDatabase.LayoutDictionaryId.Unwrap(), OpenMode.ForWrite);
 
             layoutDictionary[name] = layout;
 

@@ -39,7 +39,7 @@ public class GeometryPreviewSettings : IGeometryPreviewSettings
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var dbDictionary =
-                (DBDictionary)transactionManager.GetObject(document.Database.Unwrap().MaterialDictionaryId,
+                (DBDictionary)transactionManager.GetObject(document.AutocadDatabase.Unwrap().MaterialDictionaryId,
                     OpenMode.ForWrite);
 
             if (dbDictionary.Contains(this.MaterialName))

@@ -33,7 +33,7 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var lineTypeTable = (LinetypeTable)transactionManager.GetObject(
-                _document.Database.LinetypeTableId.Unwrap(), OpenMode.ForRead);
+                _document.AutocadDatabase.LinetypeTableId.Unwrap(), OpenMode.ForRead);
 
             foreach (var lineTypeRecordId in lineTypeTable)
             {
@@ -71,7 +71,7 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
             this.SetSimpleDashPattern(linetypeTableRecord, patternLength, numberOfDashes);
 
             using var linetypeTable = (LinetypeTable)transactionManager.GetObject(
-                _document.Database.LinetypeTableId.Unwrap(), OpenMode.ForWrite);
+                _document.AutocadDatabase.LinetypeTableId.Unwrap(), OpenMode.ForWrite);
 
             linetypeTable.Add(linetypeTableRecord);
 

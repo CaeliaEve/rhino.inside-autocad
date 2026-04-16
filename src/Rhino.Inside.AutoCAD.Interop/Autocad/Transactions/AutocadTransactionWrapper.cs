@@ -5,14 +5,14 @@ namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <inheritdoc cref="IAutocadTransaction"/>
 /// <remarks>
-/// Wraps an AutoCAD <see cref="TransactionManager"/> obtained from the active <see cref="Database"/>.
+/// Wraps an AutoCAD <see cref="TransactionManager"/> obtained from the active <see cref="AutocadDatabase"/>.
 /// Provides methods to access model space and other block table records within a transactional context.
 /// All database modifications must occur through this wrapper to ensure proper transaction handling.
 /// </remarks>
 /// <seealso cref="IAutocadTransaction"/>
 /// <seealso cref="IAutocadDocument"/>
 /// <seealso cref="AutocadBlockTableRecordWrapper"/>
-public class AutocadTransactionWrapper : AutocadWrapperDisposableBase<TransactionManager>, IAutocadTransaction
+public class AutocadTransactionWrapper : AutocadWrapperBase<TransactionManager>, IAutocadTransaction
 {
     private readonly Database _database;
     private readonly DwgVersion _dwgVersion = DwgVersion.Current;
@@ -24,13 +24,13 @@ public class AutocadTransactionWrapper : AutocadWrapperDisposableBase<Transactio
     public IObjectId RegAppTableId { get; }
 
     /// <inheritdoc/>
-    public IDatabase Database => new AutocadDatabaseWrapper(_database);
+    public IAutocadDatabase AutocadDatabase => new AutocadDatabaseWrapper(_database);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutocadTransactionWrapper"/> class.
     /// </summary>
     /// <param name="database">
-    /// The AutoCAD <see cref="Database"/> whose <see cref="TransactionManager"/> will be wrapped.
+    /// The AutoCAD <see cref="AutocadDatabase"/> whose <see cref="TransactionManager"/> will be wrapped.
     /// </param>
     /// <remarks>
     /// Captures the database reference for subsequent operations and initializes the

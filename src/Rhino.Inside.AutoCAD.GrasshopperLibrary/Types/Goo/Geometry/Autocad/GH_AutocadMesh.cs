@@ -2,7 +2,7 @@
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using AutocadMesh = Autodesk.AutoCAD.DatabaseServices.PolyFaceMesh;
+using AutocadMesh = Autodesk.AutoCAD.DatabaseServices.SubDMesh;
 using RhinoMesh = Rhino.Geometry.Mesh;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -53,7 +53,7 @@ public class GH_AutocadMesh : GH_AutocadGeometricGoo<AutocadMesh, RhinoMesh>
     /// <inheritdoc />
     protected override AutocadMesh? Convert(RhinoMesh rhinoType)
     {
-        return rhinoType.ToAutocadPolyFaceMesh();
+        return rhinoType.ToAutocadSubDMesh();
     }
 
     /// <inheritdoc />

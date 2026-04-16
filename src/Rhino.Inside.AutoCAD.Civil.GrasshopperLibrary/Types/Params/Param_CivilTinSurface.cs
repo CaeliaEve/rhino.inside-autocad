@@ -30,7 +30,7 @@ public class Param_CivilTinSurface : Param_AutocadObjectBase<GH_CivilTinSurface,
     /// </summary>
     public Param_CivilTinSurface()
         : base("Civil3d Surface", "CVL-Srf",
-            "A TIN Surface in Civil3d", "Params", "AutoCAD")
+            "A TIN Surface in Civil3d", "Params", "Civil3d")
     { }
 
     /// <inheritdoc />

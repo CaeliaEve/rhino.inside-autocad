@@ -2,6 +2,7 @@ using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.Civil.DatabaseServices;
+using Rhino.Inside.AutoCAD.Civil.Interop.TIN_Naming;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using CivilTinSurface = Autodesk.Civil.DatabaseServices.TinSurface;
@@ -29,7 +30,7 @@ public static class RhinoMeshExtensions
 
         var database = activeDocument.Database;
 
-        using var transactionManagerWrapper = new AutocadTransactionWrapper(database);
+        var transactionManagerWrapper = new AutocadTransactionWrapper(database);
 
         using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
 
@@ -48,7 +49,10 @@ public static class RhinoMeshExtensions
     /// <returns>A Civil 3D TIN Surface with vertices scaled to AutoCAD units.</returns>
     public static CivilTinSurface? ToTinSurface(this RhinoMesh mesh, IAutocadTransaction transactionManager)
     {
-        return mesh.ToTinSurface(transactionManager, "ExampleTINSurface", null);
+
+        var name = AutoNamer.GenerateUniqueSurfaceName(transactionManager.AutocadDatabase, "RiA_");
+
+        return mesh.ToTinSurface(transactionManager, name, null);
     }
 
     /// <summary>
@@ -67,7 +71,7 @@ public static class RhinoMeshExtensions
     {
         try
         {
-            var database = transactionManager.Database.Unwrap();
+            var database = transactionManager.AutocadDatabase.Unwrap();
 
             var surfaceId = TinSurface.Create(database, surfaceName);
 

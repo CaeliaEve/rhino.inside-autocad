@@ -40,17 +40,17 @@ public static class InteropConverter
     }
 
     /// <summary>
-    /// Unwraps an <see cref="IDatabase"/> to its underlying AutoCAD <see cref="Database"/>.
+    /// Unwraps an <see cref="IAutocadDatabase"/> to its underlying AutoCAD <see cref="Database"/>.
     /// </summary>
-    /// <param name="database">
+    /// <param name="autocadDatabase">
     /// The database wrapper to unwrap.
     /// </param>
     /// <returns>
     /// The native AutoCAD <see cref="Database"/> instance.
     /// </returns>
-    public static Database Unwrap(this IDatabase database)
+    public static Database Unwrap(this IAutocadDatabase autocadDatabase)
     {
-        var databaseWrapper = (AutocadWrapperDisposableBase<Database>)database;
+        var databaseWrapper = (AutocadWrapperDisposableBase<Database>)autocadDatabase;
 
         return databaseWrapper.AutocadObject;
     }
@@ -102,7 +102,7 @@ public static class InteropConverter
     /// </returns>
     public static TransactionManager Unwrap(this IAutocadTransaction autocadTransaction)
     {
-        var objectIdWrapper = (AutocadWrapperDisposableBase<TransactionManager>)autocadTransaction;
+        var objectIdWrapper = (AutocadWrapperBase<TransactionManager>)autocadTransaction;
 
         return objectIdWrapper.AutocadObject;
     }
