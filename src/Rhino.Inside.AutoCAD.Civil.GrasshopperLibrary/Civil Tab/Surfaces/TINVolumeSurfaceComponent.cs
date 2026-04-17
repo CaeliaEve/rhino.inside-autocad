@@ -49,7 +49,7 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
             "The Id of the Style of the Volume Surface.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_CivilVolumeProperties(), "Volume Properties", "VP",
+        pManager.AddParameter(new Param_CivilVolumeProperties(GH_ParamAccess.item), "Volume Properties", "VP",
             "Volume statistics (use Volume Properties component to extract values).", GH_ParamAccess.item);
 
         pManager.AddParameter(new Param_CivilTinSurface(), "Base Surface", "BS",

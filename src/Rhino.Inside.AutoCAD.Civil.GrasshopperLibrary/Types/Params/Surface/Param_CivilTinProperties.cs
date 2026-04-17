@@ -44,12 +44,4 @@ public class Param_CivilTinProperties : GH_Param<GH_CivilTinProperties>
         : base("Civil3d TIN Properties", "TINProps",
             "General statistics from a Civil 3D TIN Surface", "Params", "Civil3d", access)
     { }
-
-    /*  /// <summary>
-      /// Initializes a new instance of the <see cref="Param_CivilTinProperties"/> class.
-      /// </summary>
-      public Param_CivilTinProperties()
-          : base("Civil3d TIN Properties", "TINProps",
-              "General statistics from a Civil 3D TIN Surface", "Params", "Civil3d", GH_ParamAccess.item)
-      { }*/
 }

@@ -2,6 +2,7 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
+using AutocadDBText = Autodesk.AutoCAD.DatabaseServices.DBText;
 using AutocadText = Autodesk.AutoCAD.DatabaseServices.MText;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -11,6 +12,55 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// </summary>
 public class GH_AutocadText : GH_AutocadGeometricGoo<AutocadText, RhinoGeometryAdapter<TextEntity>>
 {
+    /// <summary>
+    /// Creates a GH_AutocadText from an AutoCAD text entity, which can be either a DBText or an MText.
+    /// If the input is a DBText, it will be converted to an MText for consistency.
+    /// </summary>
+    public static GH_AutocadText CreateFromTextEntity(IEntity textEntity)
+    {
+        switch (textEntity)
+        {
+            case AutocadDBText text:
+                {
+                    var mtext = ConvertToMText(text);
+
+                    return new GH_AutocadText(mtext);
+                }
+            case AutocadText mText:
+                return new GH_AutocadText(mText);
+            default:
+                throw new ArgumentException($"Unsupported text entity type: {textEntity.GetType().FullName}");
+        }
+    }
+
+    /// <summary>
+    /// Converts a DBText to an MText.
+    /// </summary>
+    private static AutocadText ConvertToMText(AutocadDBText dbText)
+    {
+        var mText = new AutocadText();
+
+        mText.Contents = dbText.TextString;
+
+        mText.Location = dbText.Position;
+
+        mText.TextHeight = dbText.Height;
+
+        mText.Rotation = dbText.Rotation;
+
+        mText.TextStyleId = dbText.TextStyleId;
+
+        mText.Layer = dbText.Layer;
+
+        mText.Color = dbText.Color;
+
+        mText.Attachment = dbText.Justify;
+
+        mText.Width = 0;
+
+        return mText;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadText"/> class with no value.
     /// </summary>

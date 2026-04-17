@@ -44,12 +44,4 @@ public class Param_CivilVolumeProperties : GH_Param<GH_CivilVolumeProperties>
         : base("Civil3d Volume Properties", "VolProps",
             "Volume statistics from a Civil 3D TIN Volume Surface", "Params", "Civil3d", access)
     { }
-
-    /*  /// <summary>
-      /// Initializes a new instance of the <see cref="Param_CivilVolumeProperties"/> class.
-      /// </summary>
-      public Param_CivilVolumeProperties()
-          : base("Civil3d Volume Properties", "VolProps",
-              "Volume statistics from a Civil 3D TIN Volume Surface", "Params", "Civil3d", GH_ParamAccess.item)
-      { }*/
 }

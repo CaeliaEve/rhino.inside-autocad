@@ -229,5 +229,45 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentLine {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentLine", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentArc {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentArc", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentSpiral {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentSpiral", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentComposite {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentComposite", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

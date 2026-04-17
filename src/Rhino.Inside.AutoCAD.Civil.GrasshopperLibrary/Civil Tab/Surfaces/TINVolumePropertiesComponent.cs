@@ -28,7 +28,7 @@ public class TINVolumePropertiesComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddParameter(new Param_CivilVolumeProperties(), "Volume Properties",
+        pManager.AddParameter(new Param_CivilVolumeProperties(GH_ParamAccess.item), "Volume Properties",
             "VP", "Volume properties from a Civil3d Volume Surface", GH_ParamAccess.item);
     }
 

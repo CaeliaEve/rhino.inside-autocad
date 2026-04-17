@@ -169,4 +169,22 @@
   <data name="Param_CivilTinVolumeSurface" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Param_CivilAlignment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentEntity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentEntity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

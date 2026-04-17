@@ -46,7 +46,7 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
             "The Id of the Style of the Surface.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_CivilTinProperties(), "TIN Properties", "TP",
+        pManager.AddParameter(new Param_CivilTinProperties(GH_ParamAccess.item), "TIN Properties", "TP",
             "Surface statistics (use TIN Properties component to extract values).", GH_ParamAccess.item);
 
         pManager.AddParameter(new Param_CivilSurfaceBoundary(GH_ParamAccess.list), "Boundaries", "B",

@@ -44,12 +44,4 @@ public class Param_CivilSurfaceBoundary : GH_Param<GH_CivilSurfaceBoundary>
         : base("Civil3d Surface Boundary", "Boundary",
             "A boundary definition from a Civil 3D TIN Surface", "Params", "Civil3d", access)
     { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Param_CivilSurfaceBoundary"/> class.
-    /// </summary>
-  /*  public Param_CivilSurfaceBoundary()
-        : base("Civil3d Surface Boundary", "Boundary",
-            "A boundary definition from a Civil 3D TIN Surface", "Params", "Civil3d", GH_ParamAccess.item)
-    { }*/
 }
