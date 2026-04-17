@@ -11,25 +11,6 @@ public static class CivilLabelExtensions
 {
 
     /// <summary>
-    /// Creates a label group wrapper from a Civil 3D LabelGroup.
-    /// </summary>
-    public static CivilAlignmentLabelGroupWrapperBase? CreateLabelGroupWrapper(this LabelGroup labelGroup)
-    {
-
-        return labelGroup switch
-        {
-            AlignmentCantLabelGroup cant => new CivilAlignmentCantLabelGroupWrapper(cant.StyleName, (int)cant.SubEntityCount),
-            AlignmentDesignSpeedLabelGroup designSpeed => new CivilAlignmentDesignSpeedLabelGroupWrapper(designSpeed.StyleName, (int)designSpeed.SubEntityCount),
-            AlignmentGeometryPointLabelGroup geometryPoint => new CivilAlignmentGeometryPointLabelGroupWrapper(geometryPoint.StyleName, (int)geometryPoint.SubEntityCount),
-            AlignmentStationEquationLabelGroup stationEquation => new CivilAlignmentStationEquationLabelGroupWrapper(stationEquation.StyleName, (int)stationEquation.SubEntityCount),
-            AlignmentStationLabelGroup station => new CivilAlignmentStationLabelGroupWrapper(station.StyleName, (int)station.SubEntityCount),
-            AlignmentSuperelevationLabelGroup superElevationLabelGroup => new CivilAlignmentSuperelevationLabelGroupWrapper(superElevationLabelGroup.StyleName, (int)superElevationLabelGroup.SubEntityCount),
-            AlignmentVerticalGeometryPointLabelGroup verticalGeometryPoint => new CivilAlignmentVerticalGeometryPointLabelGroupWrapper(verticalGeometryPoint.StyleName, (int)verticalGeometryPoint.SubEntityCount),
-            _ => throw new Exception("Alignment Label Group type not supported")
-        };
-    }
-
-    /// <summary>
     /// Creates the appropriate label wrapper based on the object type.
     /// </summary>
     public static ICivilFeatureLabel? CreateLabelWrapper(

@@ -66,11 +66,11 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
     /// <summary>
     /// Extracts all label groups from a Civil 3D Alignment.
     /// </summary>
-    public List<CivilAlignmentLabelGroupWrapperBase> GetAlignmentLabelGroups(
+    public List<ICivilAlignmentLabelGroup> GetAlignmentLabelGroups(
         Alignment alignment,
         IAutocadTransactionManager transactionManager)
     {
-        var labelGroups = new List<CivilAlignmentLabelGroupWrapperBase>();
+        var labelGroups = new List<ICivilAlignmentLabelGroup>();
 
         try
         {
@@ -82,16 +82,13 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
                     continue;
 
                 var labelGroup = transactionManager.Unwrap()
-                    .GetObject(labelGroupId, OpenMode.ForRead) as LabelGroup;
+                    .GetObject(labelGroupId, OpenMode.ForRead) as AlignmentLabelGroup;
 
                 if (labelGroup == null)
                     continue;
 
-                var wrapper = labelGroup.CreateLabelGroupWrapper();
-                if (wrapper != null)
-                {
-                    labelGroups.Add(wrapper);
-                }
+                var wrapper = new CivilAlignmentLabelGroupWrapper(labelGroup);
+                labelGroups.Add(wrapper);
             }
         }
         catch

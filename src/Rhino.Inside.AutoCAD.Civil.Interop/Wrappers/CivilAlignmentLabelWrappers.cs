@@ -92,7 +92,10 @@ public class CivilFeatureLabelWrapperBase<T> : AutocadWrapperDisposableBase<T>, 
 public class CivilAlignmentCurveLabelWrapper : CivilFeatureLabelWrapperBase<AlignmentCurveLabel>, ICivilAlignmentCurveLabel
 {
     public CivilAlignmentCurveLabelWrapper(AlignmentCurveLabel label)
-        : base(label) { }
+        : base(label)
+    {
+
+    }
 }
 
 /// <summary>

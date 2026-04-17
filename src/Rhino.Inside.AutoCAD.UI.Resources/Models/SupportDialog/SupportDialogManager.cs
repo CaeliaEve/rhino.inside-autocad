@@ -125,6 +125,7 @@ public class SupportDialogManager : ISupportDialogManager
 
         if (disposing)
         {
+            AppDomain.CurrentDomain.AssemblyResolve -= this.CurrentDomain_AssemblyResolve;
             _dialog?.Close();
         }
 

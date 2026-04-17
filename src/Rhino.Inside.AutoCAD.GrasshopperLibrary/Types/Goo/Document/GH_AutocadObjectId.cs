@@ -1,6 +1,7 @@
 using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
+using CadObjectId = Autodesk.AutoCAD.DatabaseServices.ObjectId;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -82,6 +83,15 @@ public class GH_AutocadObjectId : GH_Goo<AutocadObjectIdWrapper>
         {
             this.Value = new AutocadObjectIdWrapper(target!.Unwrap());
             return true;
+        }
+
+        if (source is GH_String stringSource)
+        {
+            var intSource = int.Parse(stringSource.Value);
+
+            var cadId = new CadObjectId(intSource);
+
+            this.Value = new AutocadObjectIdWrapper(cadId);
         }
 
         return false;

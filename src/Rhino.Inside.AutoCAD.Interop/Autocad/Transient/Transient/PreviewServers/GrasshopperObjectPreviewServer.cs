@@ -88,4 +88,14 @@ public class GrasshopperObjectPreviewServer : IGrasshopperObjectPreviewServer
         _shadedPreviewServer.RemoveObject(rhinoObjectId);
         _wireframePreviewServer.RemoveObject(rhinoObjectId);
     }
+
+    /// <summary>
+    /// Clears all preview objects from both shaded and wireframe servers.
+    /// Used during application shutdown to ensure clean disposal.
+    /// </summary>
+    public void ClearAll()
+    {
+        _shadedPreviewServer.ClearServer();
+        _wireframePreviewServer.ClearServer();
+    }
 }

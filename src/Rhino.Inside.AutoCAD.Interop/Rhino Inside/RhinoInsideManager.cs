@@ -1,5 +1,6 @@
-﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Core.State;
 using UnitConverterClass = Rhino.Inside.AutoCAD.Interop.UnitConverter;
 
 namespace Rhino.Inside.AutoCAD.Interop;
@@ -85,6 +86,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void AutocadDocumentSwitched(object sender, EventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         this.UpdateUnitSystem(sender, e);
 
         var document = this.AutoCadInstance.ActiveDocument;
@@ -101,6 +104,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void AutocadDocumentChange(object sender, IAutocadDocumentChangeEventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         _grasshopperChangeResponder.Respond(e.Change);
     }
 
@@ -110,6 +115,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void OnGrasshopperObjectRemoved(object sender, IGrasshopperObjectModifiedEventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         this.GrasshopperPreviewServer.RemoveObject(e.GrasshopperObject.InstanceGuid);
     }
 
@@ -133,6 +140,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void OnGrasshopperSelectionChanged(object? sender, IGrasshopperSelectionEventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         foreach (var ghDocumentObject in e.Objects)
         {
             this.UpdateGrasshopperPreview(ghDocumentObject);
@@ -146,6 +155,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void OnUpdateGrasshopperPreview(object sender, IGrasshopperObjectModifiedEventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         var ghDocumentObject = e.GrasshopperObject;
 
         this.UpdateGrasshopperPreview(ghDocumentObject);
@@ -158,6 +169,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void RhinoObjectRemoved(object sender, IRhinoObjectModifiedEventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         var rhinoObject = e.RhinoObject;
 
         this.RhinoPreviewServer.RemoveObject(rhinoObject.Id);
@@ -170,6 +183,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void RhinoObjectModifiedOrAppended(object sender, IRhinoObjectModifiedEventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         var rhinoObject = e.RhinoObject;
 
         this.RhinoPreviewServer.RemoveObject(rhinoObject.Id);
@@ -189,6 +204,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// </summary>
     private void DeselectAllRhinoPreview(object? sender, EventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         this.RhinoPreviewServer.DeselectAll();
 
         this.AutoCadInstance.ActiveDocument?.UpdateEditorScreen();
@@ -196,6 +213,8 @@ public class RhinoInsideManager : IRhinoInsideManager
 
     private void UpdateUnitSystem(object sender, EventArgs e)
     {
+        if (ApplicationState.IsShuttingDown) return;
+
         var autoCadUnits = new UnitScale(this.AutoCadInstance.ActiveDocument?.UnitSystem ?? _defaultUnitSystem);
         var rhinoUnits = new UnitScale(this.RhinoInstance.ActiveDoc?.ModelUnitSystem ?? _defaultUnitSystem);
 
@@ -210,6 +229,13 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// <inheritdoc />
     public void Shutdown()
     {
+        // Clear preview servers first to prevent access to disposed resources
+        try
+        {
+            (this.GrasshopperPreviewServer as GrasshopperObjectPreviewServer)?.ClearAll();
+            (this.RhinoPreviewServer as RhinoObjectPreviewServer)?.ClearAll();
+        }
+        catch { }
 
         this.GrasshopperInstance.PreviewExpired -= this.OnUpdateGrasshopperPreview;
         this.GrasshopperInstance.ObjectRemoved -= this.OnGrasshopperObjectRemoved;

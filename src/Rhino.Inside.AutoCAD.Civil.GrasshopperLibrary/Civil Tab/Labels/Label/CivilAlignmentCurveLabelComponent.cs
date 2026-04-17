@@ -63,6 +63,7 @@ public class CivilAlignmentCurveLabelComponent : RhinoInsideAutocad_ComponentBas
             StyleName = label.GetStyleName(transactionManager)
         });
 
+
         var textGoo = labelData.TextEntites.Select(GH_AutocadText.CreateFromTextEntity).ToList();
 
         DA.SetDataList(0, textGoo);

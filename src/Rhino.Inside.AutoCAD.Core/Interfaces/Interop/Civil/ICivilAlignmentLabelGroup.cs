@@ -6,6 +6,8 @@ namespace Rhino.Inside.AutoCAD.Core.Interfaces;
 /// <remarks>
 /// Label groups are auto-generated labels that appear at regular intervals
 /// along an alignment, such as station labels or geometry point labels.
+/// All alignment label group types (Station, Cant, DesignSpeed, GeometryPoint,
+/// StationEquation, Superelevation, VerticalGeometryPoint) share these same properties.
 /// </remarks>
 public interface ICivilAlignmentLabelGroup
 {
@@ -26,53 +28,29 @@ public interface ICivilAlignmentLabelGroup
     /// Gets the number of sub-entity labels in this group.
     /// </summary>
     int LabelCount { get; }
-}
 
-/// <summary>
-/// Interface for Civil 3D Alignment Cant label groups.
-/// </summary>
-public interface ICivilAlignmentCantLabelGroup : ICivilAlignmentLabelGroup
-{
-}
+    /// <summary>
+    /// Gets the start station of the label range.
+    /// </summary>
+    double RangeStart { get; }
 
-/// <summary>
-/// Interface for Civil 3D Alignment Design Speed label groups.
-/// </summary>
-public interface ICivilAlignmentDesignSpeedLabelGroup : ICivilAlignmentLabelGroup
-{
-}
+    /// <summary>
+    /// Gets the end station of the label range.
+    /// </summary>
+    double RangeEnd { get; }
 
-/// <summary>
-/// Interface for Civil 3D Alignment Geometry Point label groups.
-/// </summary>
-public interface ICivilAlignmentGeometryPointLabelGroup : ICivilAlignmentLabelGroup
-{
-}
+    /// <summary>
+    /// Gets a value indicating whether the start of the range is derived from the alignment feature.
+    /// </summary>
+    bool RangeStartFromFeature { get; }
 
-/// <summary>
-/// Interface for Civil 3D Alignment Station Equation label groups.
-/// </summary>
-public interface ICivilAlignmentStationEquationLabelGroup : ICivilAlignmentLabelGroup
-{
-}
+    /// <summary>
+    /// Gets a value indicating whether the end of the range is derived from the alignment feature.
+    /// </summary>
+    bool RangeEndFromFeature { get; }
 
-/// <summary>
-/// Interface for Civil 3D Alignment Station label groups.
-/// </summary>
-public interface ICivilAlignmentStationLabelGroup : ICivilAlignmentLabelGroup
-{
-}
-
-/// <summary>
-/// Interface for Civil 3D Alignment Superelevation label groups.
-/// </summary>
-public interface ICivilAlignmentSuperelevationLabelGroup : ICivilAlignmentLabelGroup
-{
-}
-
-/// <summary>
-/// Interface for Civil 3D Alignment Vertical Geometry Point label groups.
-/// </summary>
-public interface ICivilAlignmentVerticalGeometryPointLabelGroup : ICivilAlignmentLabelGroup
-{
+    /// <summary>
+    /// Gets a value indicating whether the label group is visible.
+    /// </summary>
+    bool IsVisible { get; }
 }

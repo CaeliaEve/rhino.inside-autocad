@@ -1,6 +1,7 @@
 using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -8,11 +9,11 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D Alignment label groups.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilAlignmentLabelGroupWrapperBase"/> containing
-/// properties from an Alignment label group. Label groups are metadata only
-/// and do not have geometry to preview.
+/// This Goo wraps an <see cref="CivilAlignmentLabelGroupWrapper"/> which provides
+/// properties from an Alignment label group. The underlying wrapper inherits from
+/// <see cref="AutocadDbObjectWrapper"/> providing access to the Civil 3D LabelGroup object.
 /// </remarks>
-public class GH_CivilAlignmentLabelGroup : GH_Goo<CivilAlignmentLabelGroupWrapperBase>
+public class GH_CivilAlignmentLabelGroup : GH_Goo<CivilAlignmentLabelGroupWrapper>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilAlignmentLabelGroup"/> class with no value.
@@ -25,8 +26,17 @@ public class GH_CivilAlignmentLabelGroup : GH_Goo<CivilAlignmentLabelGroupWrappe
     /// Initializes a new instance of the <see cref="GH_CivilAlignmentLabelGroup"/> class with the
     /// specified label group wrapper.
     /// </summary>
-    /// <param name="labelGroup">The Civil 3D alignment label group wrapper.</param>
-    public GH_CivilAlignmentLabelGroup(CivilAlignmentLabelGroupWrapperBase labelGroup) : base(labelGroup)
+    /// <param name="labelGroup">The Civil 3D alignment label group.</param>
+    public GH_CivilAlignmentLabelGroup(CivilAlignmentLabelGroupWrapper labelGroup) : base(labelGroup)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GH_CivilAlignmentLabelGroup"/> class with the
+    /// specified label group wrapper.
+    /// </summary>
+    /// <param name="labelGroup">The Civil 3D alignment label group.</param>
+    public GH_CivilAlignmentLabelGroup(ICivilAlignmentLabelGroup labelGroup) : base(labelGroup as CivilAlignmentLabelGroupWrapper)
     {
     }
 
@@ -35,27 +45,20 @@ public class GH_CivilAlignmentLabelGroup : GH_Goo<CivilAlignmentLabelGroupWrappe
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilAlignmentLabelGroup(GH_CivilAlignmentLabelGroup other) : base(other.Value?.DuplicateBase())
-    {
-    }
-
-    /// <summary>
-    /// Constructs a new <see cref="GH_CivilAlignmentLabelGroup"/> via the interface.
-    /// </summary>
-    public GH_CivilAlignmentLabelGroup(ICivilAlignmentLabelGroup labelGroup)
-        : base((labelGroup as CivilAlignmentLabelGroupWrapperBase)!)
+    public GH_CivilAlignmentLabelGroup(GH_CivilAlignmentLabelGroup other)
+        : base(other.Value?.ShallowClone() as CivilAlignmentLabelGroupWrapper)
     {
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value != null;
+    public override bool IsValid => this.Value != null;
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No label group data";
             return string.Empty;
         }
@@ -78,20 +81,20 @@ public class GH_CivilAlignmentLabelGroup : GH_Goo<CivilAlignmentLabelGroupWrappe
     {
         if (source is GH_CivilAlignmentLabelGroup goo)
         {
-            Value = goo.Value?.DuplicateBase();
-            return true;
+            this.Value = (goo.Value as IDbObject)?.ShallowClone() as CivilAlignmentLabelGroupWrapper;
+            return this.Value != null;
         }
 
-        if (source is CivilAlignmentLabelGroupWrapperBase wrapper)
+        if (source is CivilAlignmentLabelGroupWrapper wrapper)
         {
-            Value = wrapper.DuplicateBase();
+            this.Value = (CivilAlignmentLabelGroupWrapper)wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilAlignmentLabelGroup labelGroup)
         {
-            Value = (labelGroup as CivilAlignmentLabelGroupWrapperBase)?.DuplicateBase();
-            return Value != null;
+            this.Value = (labelGroup as IDbObject)?.ShallowClone() as CivilAlignmentLabelGroupWrapper;
+            return this.Value != null;
         }
 
         return false;
@@ -100,9 +103,9 @@ public class GH_CivilAlignmentLabelGroup : GH_Goo<CivilAlignmentLabelGroupWrappe
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilAlignmentLabelGroupWrapperBase)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilAlignmentLabelGroupWrapper)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -118,9 +121,9 @@ public class GH_CivilAlignmentLabelGroup : GH_Goo<CivilAlignmentLabelGroupWrappe
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d Alignment Label Group";
 
-        return Value.ToString();
+        return this.Value.ToString() ?? "Civil3d Alignment Label Group";
     }
 }

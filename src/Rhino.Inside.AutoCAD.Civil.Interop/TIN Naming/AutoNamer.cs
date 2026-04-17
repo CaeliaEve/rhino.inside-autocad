@@ -1,6 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.ApplicationServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
 using Surface = Autodesk.Civil.DatabaseServices.Surface;
 
@@ -63,24 +64,40 @@ public class AutoNamer
     /// <returns>A set of all existing surface names.</returns>
     private static HashSet<string> GetAllSurfaceNames(IAutocadDatabase autocadDatabaseWrapper)
     {
-        var database = autocadDatabaseWrapper.Unwrap();
-        var civilDoc = CivilApplication.ActiveDocument;
         var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Collect existing surface names (both TIN and Volume surfaces)
-        foreach (ObjectId surfaceId in civilDoc.GetSurfaceIds())
-        {
-            if (surfaceId.IsValid && !surfaceId.IsNull && !surfaceId.IsErased)
-            {
-                using var transaction = database.TransactionManager.StartTransaction();
-                var surface = transaction.GetObject(surfaceId, OpenMode.ForRead) as Surface;
-                if (surface != null)
-                {
-                    existingNames.Add(surface.Name);
-                }
+        // Early exit if application is shutting down
+        if (ApplicationState.IsShuttingDown)
+            return existingNames;
 
-                transaction.Commit();
+        var database = autocadDatabaseWrapper.Unwrap();
+        var civilDoc = CivilApplication.ActiveDocument;
+
+        // Null check for Civil document (can be null during shutdown)
+        if (civilDoc == null)
+            return existingNames;
+
+        try
+        {
+            // Collect existing surface names (both TIN and Volume surfaces)
+            foreach (ObjectId surfaceId in civilDoc.GetSurfaceIds())
+            {
+                if (surfaceId.IsValid && !surfaceId.IsNull && !surfaceId.IsErased)
+                {
+                    using var transaction = database.TransactionManager.StartTransaction();
+                    var surface = transaction.GetObject(surfaceId, OpenMode.ForRead) as Surface;
+                    if (surface != null)
+                    {
+                        existingNames.Add(surface.Name);
+                    }
+
+                    transaction.Commit();
+                }
             }
+        }
+        catch (System.Exception)
+        {
+            // Handle disposal during iteration - return whatever names we collected
         }
 
         return existingNames;
