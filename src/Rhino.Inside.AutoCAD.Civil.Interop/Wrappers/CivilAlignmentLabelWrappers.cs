@@ -19,9 +19,6 @@ public class CivilFeatureLabelWrapperBase<T> : AutocadWrapperDisposableBase<T>, 
     public Point3d Location { get; }
 
     /// <inheritdoc />
-    public double Rotation { get; }
-
-    /// <inheritdoc />
     public string LabelType { get; }
 
     /// <summary>
@@ -30,7 +27,6 @@ public class CivilFeatureLabelWrapperBase<T> : AutocadWrapperDisposableBase<T>, 
     public CivilFeatureLabelWrapperBase(T featureLabel) : base(featureLabel)
     {
         this.Location = featureLabel.LabelLocation.ToRhinoPoint3d();
-        this.Rotation = featureLabel.RotationAngle;
         this.LabelType = featureLabel.GetType().Name;
     }
 

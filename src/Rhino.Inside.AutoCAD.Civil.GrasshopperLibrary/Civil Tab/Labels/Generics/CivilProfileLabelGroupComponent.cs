@@ -13,30 +13,28 @@ using DBObject = Autodesk.AutoCAD.DatabaseServices.DBObject;
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
-/// A Grasshopper component that extracts individual values from a Civil 3D Alignment Label Group.
+/// A Grasshopper component that extracts individual values from a Civil 3D Profile Label Group.
 /// </summary>
 /// <remarks>
-/// This component works with all alignment label group types (Station, Cant, DesignSpeed,
-/// GeometryPoint, StationEquation, Superelevation, VerticalGeometryPoint) and exposes
-/// their common properties.
+/// This component works with profile label groups and exposes their common properties.
 /// </remarks>
-[ComponentVersion(introduced: "1.2.19")]
-public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBase
+[ComponentVersion(introduced: "1.0.19")]
+public class CivilProfileLabelGroupComponent : RhinoInsideAutocad_ComponentBase
 {
     private readonly GooTypeRegistry _gooConverterRegister = GooTypeRegistry.Instance!;
 
     /// <inheritdoc />
-    public override Guid ComponentGuid => new("A7B8C9D0-E1F2-3456-0123-67890ABCDEF1");
+    public override Guid ComponentGuid => new("C3D4E5F6-A7B8-9012-CDEF-345678901234");
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CivilAlignmentLabelGroupComponent"/> class.
+    /// Initializes a new instance of the <see cref="CivilProfileLabelGroupComponent"/> class.
     /// </summary>
-    public CivilAlignmentLabelGroupComponent()
-        : base("Civil3d Alignment Label Group", "CVL-AlignLblGrp",
-            "Extracts individual values from a Civil 3D Alignment Label Group",
+    public CivilProfileLabelGroupComponent()
+        : base("Civil3d Profile Label Group", "CVL-ProfLblGrp",
+            "Extracts individual values from a Civil 3D Profile Label Group",
             "Civil3d", "Labels")
     {
     }
@@ -44,15 +42,15 @@ public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBas
     /// <inheritdoc />
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        pManager.AddParameter(new Param_CivilAlignmentLabelGroup(GH_ParamAccess.item), "Label Group",
-            "LG", "An alignment label group from a Civil3d Alignment", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilProfileLabelGroup(GH_ParamAccess.item), "Label Group",
+            "LG", "A profile label group from a Civil3d Profile", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddTextParameter("Label Group Type", "Type",
-            "The type of this label group (e.g., AlignmentStationLabelGroup).", GH_ParamAccess.item);
+            "The type of this label group (e.g., ProfileLabelGroup).", GH_ParamAccess.item);
 
         pManager.AddTextParameter("Style Name", "Style",
             "The name of the label style applied to this group.", GH_ParamAccess.item);
@@ -67,10 +65,10 @@ public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBas
             "The end station of the label range.", GH_ParamAccess.item);
 
         pManager.AddBooleanParameter("Range Start From Feature", "RSFeat",
-            "Whether the start of the range is derived from the alignment feature.", GH_ParamAccess.item);
+            "Whether the start of the range is derived from the profile feature.", GH_ParamAccess.item);
 
         pManager.AddBooleanParameter("Range End From Feature", "REFeat",
-            "Whether the end of the range is derived from the alignment feature.", GH_ParamAccess.item);
+            "Whether the end of the range is derived from the profile feature.", GH_ParamAccess.item);
 
         pManager.AddBooleanParameter("Is Visible", "Vis",
             "The visibility state of the label group.", GH_ParamAccess.item);
@@ -109,11 +107,11 @@ public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBas
     /// Each sub-entity is made visible one at a time while others are hidden,
     /// then the group is exploded to capture only that label's geometry.
     /// </summary>
-    /// <param name="labelGroup">The alignment label group to explode.</param>
+    /// <param name="labelGroup">The profile label group to explode.</param>
     /// <param name="transactionManager">The transaction manager for database access.</param>
     /// <returns>A DataTree where each branch contains geometry for a single label.</returns>
     private GH_Structure<IGH_GeometricGoo> ExplodePerSubEntity(
-        AlignmentLabelGroup labelGroup,
+        ProfileLabelGroup labelGroup,
         IAutocadTransactionManager transactionManager)
     {
         var tree = new GH_Structure<IGH_GeometricGoo>();
@@ -207,7 +205,7 @@ public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBas
 
     /// <summary>
     /// Fallback method that explodes all geometry into a single branch.
-    /// Used when invisible style creation fails.
+    /// Used when visibility style manipulation fails.
     /// </summary>
     private GH_Structure<IGH_GeometricGoo> ExplodeFallback(
         LabelGroup labelGroup,
@@ -243,7 +241,7 @@ public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBas
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        GH_CivilAlignmentLabelGroup? labelGroupGoo = null;
+        GH_CivilProfileLabelGroup? labelGroupGoo = null;
 
         if (!DA.GetData(0, ref labelGroupGoo) || labelGroupGoo?.Value is null) return;
 
@@ -270,10 +268,10 @@ public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBas
         // Use visibility swapping approach to extract geometry per sub-entity
         var geometryTree = transactionManager.PerformTask(() =>
         {
-            var alignmentLabelGroup = (AlignmentLabelGroup)transactionManager.Unwrap()
+            var profileLabelGroup = (ProfileLabelGroup)transactionManager.Unwrap()
                 .GetObject(cadLabelGroup.Id, OpenMode.ForWrite);
 
-            return this.ExplodePerSubEntity(alignmentLabelGroup, transactionManager);
+            return this.ExplodePerSubEntity(profileLabelGroup, transactionManager);
         }, true);
 
         DA.SetDataTree(8, geometryTree);

@@ -176,9 +176,9 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
             Labels = this.GetAlignmentLabels(alignment, transactionManager)
         });
 
-        DA.SetDataList(3, alignmentData.Entities.Select(e => new GH_CivilAlignmentEntity(e)).ToList());
+        DA.SetDataList(3, alignmentData.Entities.Select(entity => new GH_CivilAlignmentEntity(entity)).ToList());
         DA.SetData(4, alignmentData.Curve);
-        DA.SetDataList(5, alignmentData.LabelGroups.Select(lg => new GH_CivilAlignmentLabelGroup(lg)).ToList());
-        DA.SetDataList(6, alignmentData.Labels.Select(l => new GH_CivilFeatureLabel()).ToList());
+        DA.SetDataList(5, alignmentData.LabelGroups.Select(group => new GH_CivilAlignmentLabelGroup(group)).ToList());
+        DA.SetDataList(6, alignmentData.Labels.Select(label => new GH_CivilFeatureLabel(label.Unwrap())).ToList());
     }
 }

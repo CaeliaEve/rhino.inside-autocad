@@ -27,4 +27,84 @@ public static class CivilInteropConverter
 
         return (AlignmentLabelGroup)wrapper.AutocadObject;
     }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilProfileLabelGroup"/> to its underlying Civil 3D <see cref="ProfileLabelGroup"/>.
+    /// </summary>
+    /// <param name="labelGroup">The profile label group wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="ProfileLabelGroup"/> instance.</returns>
+    public static ProfileLabelGroup Unwrap(this CivilProfileLabelGroupWrapper labelGroup)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)labelGroup;
+
+        return (ProfileLabelGroup)wrapper.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilFeatureLabel"/> to its underlying Civil 3D <see cref="FeatureLabel"/>.
+    /// </summary>
+    /// <param name="label">The feature label wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="FeatureLabel"/> instance.</returns>
+    public static FeatureLabel Unwrap(this ICivilFeatureLabel label)
+    {
+        return label switch
+        {
+            CivilAlignmentCurveLabelWrapper curveLabel => curveLabel.AutocadObject,
+            CivilAlignmentSpiralLabelWrapper spiralLabel => spiralLabel.AutocadObject,
+            CivilAlignmentTangentLabelWrapper tangentLabel => tangentLabel.AutocadObject,
+            CivilAlignmentPILabelWrapper piLabel => piLabel.AutocadObject,
+            CivilAlignmentIndexedPILabelWrapper indexedPiLabel => indexedPiLabel.AutocadObject,
+            _ => throw new ArgumentException($"Unsupported feature label type: {label.GetType().Name}", nameof(label))
+        };
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilAlignmentCurveLabel"/> to its underlying Civil 3D <see cref="AlignmentCurveLabel"/>.
+    /// </summary>
+    /// <param name="label">The curve label wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="AlignmentCurveLabel"/> instance.</returns>
+    public static AlignmentCurveLabel Unwrap(this CivilAlignmentCurveLabelWrapper label)
+    {
+        return label.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilAlignmentSpiralLabel"/> to its underlying Civil 3D <see cref="AlignmentSpiralLabel"/>.
+    /// </summary>
+    /// <param name="label">The spiral label wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="AlignmentSpiralLabel"/> instance.</returns>
+    public static AlignmentSpiralLabel Unwrap(this CivilAlignmentSpiralLabelWrapper label)
+    {
+        return label.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilAlignmentTangentLabel"/> to its underlying Civil 3D <see cref="AlignmentTangentLabel"/>.
+    /// </summary>
+    /// <param name="label">The tangent label wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="AlignmentTangentLabel"/> instance.</returns>
+    public static AlignmentTangentLabel Unwrap(this CivilAlignmentTangentLabelWrapper label)
+    {
+        return label.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilAlignmentPILabel"/> to its underlying Civil 3D <see cref="AlignmentPILabel"/>.
+    /// </summary>
+    /// <param name="label">The PI label wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="AlignmentPILabel"/> instance.</returns>
+    public static AlignmentPILabel Unwrap(this CivilAlignmentPILabelWrapper label)
+    {
+        return label.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilAlignmentIndexedPILabel"/> to its underlying Civil 3D <see cref="AlignmentIndexedPILabel"/>.
+    /// </summary>
+    /// <param name="label">The indexed PI label wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="AlignmentIndexedPILabel"/> instance.</returns>
+    public static AlignmentIndexedPILabel Unwrap(this CivilAlignmentIndexedPILabelWrapper label)
+    {
+        return label.AutocadObject;
+    }
 }

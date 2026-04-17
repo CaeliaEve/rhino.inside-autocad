@@ -17,11 +17,6 @@ public interface ICivilFeatureLabel
     Point3d Location { get; }
 
     /// <summary>
-    /// Gets the rotation angle of the label in radians.
-    /// </summary>
-    double Rotation { get; }
-
-    /// <summary>
     /// Gets the specific type of alignment label.
     /// </summary>
     string LabelType { get; }

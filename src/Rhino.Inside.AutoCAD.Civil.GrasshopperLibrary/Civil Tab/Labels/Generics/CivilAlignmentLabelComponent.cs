@@ -1,7 +1,11 @@
+using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
+using DBObject = Autodesk.AutoCAD.DatabaseServices.DBObject;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -12,6 +16,8 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 [ComponentVersion(introduced: "1.2.19")]
 public class CivilAlignmentLabelComponent : RhinoInsideAutocad_ComponentBase
 {
+    private readonly GooTypeRegistry _gooConverterRegister = GooTypeRegistry.Instance!;
+
     public override Guid ComponentGuid => new("A7B8C9D0-E1F2-3456-0123-67890ABCDEF2");
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
 
@@ -29,11 +35,36 @@ public class CivilAlignmentLabelComponent : RhinoInsideAutocad_ComponentBase
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddTextParameter("Text", "Txt", "The text content of the label.", GH_ParamAccess.item);
         pManager.AddPointParameter("Location", "Loc", "The location of the label.", GH_ParamAccess.item);
-        pManager.AddNumberParameter("Rotation", "Rot", "The rotation angle in radians.", GH_ParamAccess.item);
         pManager.AddTextParameter("Style Name", "Style", "The label style name.", GH_ParamAccess.item);
         pManager.AddTextParameter("Label Type", "Type", "The specific type of alignment label.", GH_ParamAccess.item);
+        pManager.AddGeometryParameter("Geometric Entities", "Entities",
+            "The geometric entities extracted from the label", GH_ParamAccess.list);
+    }
+
+    private List<IDbObject> RemoveBlocks(List<IDbObject> dbObjects,
+        IAutocadTransactionManager transactionManager)
+    {
+        var listEntities = new List<IDbObject>();
+
+        foreach (var dbObject in dbObjects)
+        {
+            if (dbObject.UnwrapObject() is BlockReference blockReference == false)
+            {
+                listEntities.Add(dbObject);
+                continue;
+            }
+
+            var referenceWrapper = new AutocadBlockReferenceWrapper(blockReference);
+
+            var explodedEntities = referenceWrapper.GetObjects(transactionManager);
+
+            var castDown = explodedEntities.Cast<IDbObject>().ToList();
+
+            listEntities.AddRange(this.RemoveBlocks(castDown, transactionManager));
+        }
+
+        return listEntities;
     }
 
     protected override void SolveInstance(IGH_DataAccess DA)
@@ -48,19 +79,42 @@ public class CivilAlignmentLabelComponent : RhinoInsideAutocad_ComponentBase
 
         var transactionManager = document.CreateTransactionManager();
 
-        var textEntities = transactionManager.PerformTask(() =>
+        // Extract geometry by exploding the label
+        var geometryGoo = transactionManager.PerformTask(() =>
         {
-            var wrapper = label.CreateLabelWrapper(transactionManager);
+            // Get the label entity for exploding using the Reference ObjectId
+            // (goo.Value is a clone without a valid ObjectId)
+            var labelEntity = transactionManager.Unwrap()
+                .GetObject(goo.Reference.ObjectId.Unwrap(), OpenMode.ForRead) as Entity;
 
-            return wrapper.ExtractTextEntities(transactionManager);
+            if (labelEntity == null)
+                return new List<IGH_GeometricGoo>();
+
+            var objectCollection = new DBObjectCollection();
+            labelEntity.Explode(objectCollection);
+
+            var listEntities = new List<IDbObject>();
+            foreach (DBObject dbObject in objectCollection)
+            {
+                listEntities.Add(new AutocadDbObjectWrapper(dbObject));
+            }
+
+            var blocklessEntities = this.RemoveBlocks(listEntities, transactionManager);
+
+            var gooObjects = new List<IGH_GeometricGoo>();
+            foreach (var dbObject in blocklessEntities)
+            {
+                if (dbObject is not IEntity entity) continue;
+                var entityGoo = _gooConverterRegister.CreateGeometryGoo(entity);
+                if (entityGoo != null) gooObjects.Add(entityGoo);
+            }
+
+            return gooObjects;
         });
 
-        var textGoo = textEntities.Select(GH_AutocadText.CreateFromTextEntity).ToList();
-
-        DA.SetData(0, textGoo);
-        DA.SetData(1, label.LabelLocation.ToRhinoPoint3d());
-        DA.SetData(2, label.RotationAngle);
-        DA.SetData(3, label.StyleName);
-        DA.SetData(4, label.LabelType);
+        DA.SetData(0, label.LabelLocation.ToRhinoPoint3d());
+        DA.SetData(1, label.StyleName);
+        DA.SetData(2, label.LabelType);
+        DA.SetDataList(3, geometryGoo);
     }
 }
