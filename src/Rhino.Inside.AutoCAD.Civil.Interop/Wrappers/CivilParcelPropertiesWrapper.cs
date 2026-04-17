@@ -61,18 +61,18 @@ public class CivilParcelPropertiesWrapper : ICivilParcelProperties
 
         // Derive properties from BaseCurve that aren't directly available on Parcel
         var baseCurve = parcel.BaseCurve;
-        this.Perimeter = GetPerimeterFromBaseCurve(baseCurve);
-        this.IsClosed = GetIsClosedFromBaseCurve(baseCurve);
-        this.SegmentCount = CountSegmentsFromBaseCurve(baseCurve);
+        this.Perimeter = this.GetPerimeterFromBaseCurve(baseCurve);
+        this.IsClosed = this.GetIsClosedFromBaseCurve(baseCurve);
+        this.SegmentCount = this.CountSegmentsFromBaseCurve(baseCurve);
 
         // SiteName requires accessing the Site object - get from parcel's site if available
-        this.SiteName = GetSiteNameFromParcel(parcel);
+        this.SiteName = this.GetSiteNameFromParcel(parcel);
     }
 
     /// <summary>
     /// Gets the perimeter from the base curve.
     /// </summary>
-    private static double GetPerimeterFromBaseCurve(Curve? baseCurve)
+    private double GetPerimeterFromBaseCurve(Curve? baseCurve)
     {
         try
         {
@@ -90,7 +90,7 @@ public class CivilParcelPropertiesWrapper : ICivilParcelProperties
     /// <summary>
     /// Determines if the parcel is closed from the base curve.
     /// </summary>
-    private static bool GetIsClosedFromBaseCurve(Curve? baseCurve)
+    private bool GetIsClosedFromBaseCurve(Curve? baseCurve)
     {
         try
         {
@@ -108,7 +108,7 @@ public class CivilParcelPropertiesWrapper : ICivilParcelProperties
     /// <summary>
     /// Gets the site name from the parcel.
     /// </summary>
-    private static string GetSiteNameFromParcel(Parcel parcel)
+    private string GetSiteNameFromParcel(Parcel parcel)
     {
         try
         {
@@ -131,7 +131,7 @@ public class CivilParcelPropertiesWrapper : ICivilParcelProperties
     /// <summary>
     /// Counts segments from the parcel's base curve.
     /// </summary>
-    private static int CountSegmentsFromBaseCurve(Curve? baseCurve)
+    private int CountSegmentsFromBaseCurve(Curve? baseCurve)
     {
         try
         {
@@ -159,7 +159,7 @@ public class CivilParcelPropertiesWrapper : ICivilParcelProperties
     /// Initializes a new instance of <see cref="CivilParcelPropertiesWrapper"/>
     /// with explicit values.
     /// </summary>
-    public CivilParcelPropertiesWrapper(
+    private CivilParcelPropertiesWrapper(
         string name,
         string description,
         double area,
