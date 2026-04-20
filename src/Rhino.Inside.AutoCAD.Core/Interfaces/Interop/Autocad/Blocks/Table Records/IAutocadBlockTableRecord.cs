@@ -38,8 +38,8 @@ public interface IAutocadBlockTableRecord : INamedDbObject
     /// <summary>
     /// Retrieves all entities contained within this block definition.
     /// </summary>
-    /// <param name="transactionManager">
-    /// The <see cref="ITransactionManager"/> used to open the entities for read access.
+    /// <param name="autocadTransactionManager">
+    /// The <see cref="IAutocadTransactionManager"/> used to open the entities for read access.
     /// </param>
     /// <returns>
     /// An <see cref="IEntitySet"/> containing wrapped entities from this block.
@@ -49,6 +49,6 @@ public interface IAutocadBlockTableRecord : INamedDbObject
     /// The returned entities are opened within the provided transaction context.
     /// </remarks>
     /// <seealso cref="ObjectIds"/>
-    IEntitySet GetObjects(ITransactionManager transactionManager);
+    IEntitySet GetObjects(IAutocadTransactionManager autocadTransactionManager);
 }
 

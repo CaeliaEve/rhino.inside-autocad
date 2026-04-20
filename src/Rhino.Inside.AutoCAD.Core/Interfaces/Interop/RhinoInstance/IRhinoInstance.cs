@@ -33,6 +33,12 @@ public interface IRhinoInstance
     event EventHandler<IRhinoObjectModifiedEventArgs>? ObjectRemoved;
 
     /// <summary>
+    /// Event raised when all Rhino objects are deselected. This is used to clear the AutoCAD
+    /// transient preview when all objects are deselected in Rhino.
+    /// </summary>
+    event EventHandler? DeselectAll;
+
+    /// <summary>
     /// The instance of the Rhino core extension.
     /// </summary>
     IRhinoCoreExtension RhinoCore { get; }

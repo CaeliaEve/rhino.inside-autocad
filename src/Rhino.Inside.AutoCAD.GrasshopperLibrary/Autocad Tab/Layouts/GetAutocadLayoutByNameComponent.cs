@@ -81,7 +81,7 @@ public class GetAutocadLayoutByNameComponent : RhinoInsideAutocad_ComponentBase,
         DA.GetData(2, ref repopulate);
 
         if (repopulate)
-            autocadDocument.LayoutRegister.Repopulate();
+            autocadDocument.LayoutRegister.Update();
 
         var layoutsRegister = autocadDocument.LayoutRegister;
 

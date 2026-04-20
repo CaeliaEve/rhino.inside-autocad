@@ -15,11 +15,13 @@
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		
+		<UseWindowsForms>true</UseWindowsForms>
 	</PropertyGroup>
 
 	<ItemGroup>
-	<PackageReference Include="AutoCAD.NET.Model" />
+	<PackageReference Include="AutoCAD.NET.Model" >
+		<ExcludeAssets>runtime</ExcludeAssets>
+	</PackageReference>
 	<PackageReference Include="NaturalSort.Extension" />
 		<PackageReference Include="MaterialDesignThemes" />
 		<PackageReference Include="RhinoCommon">
@@ -58,8 +60,14 @@
 
 	<ItemGroup>
 	  <Folder Include="Autocad\Scale\" />
-	  <Folder Include="Converters\Geometry\" />
 	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">
+		<DefineConstants>DEBUG;DEBUGNET8;TRACE</DefineConstants>
+		<Optimize>false</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
 
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

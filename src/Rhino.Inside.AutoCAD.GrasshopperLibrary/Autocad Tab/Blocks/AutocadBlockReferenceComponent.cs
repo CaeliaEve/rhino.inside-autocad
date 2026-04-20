@@ -76,19 +76,21 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
         var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
-        var gooProperties = document.Transaction((transactionManager) =>
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        var gooProperties = transactionManagerWrapper.PerformTask(() =>
         {
             var dynamicProperties =
-                blockReferenceWrapper.GetDynamicProperties(transactionManager);
+                blockReferenceWrapper.GetDynamicProperties(transactionManagerWrapper);
 
             return dynamicProperties.Select(property =>
             new GH_DynamicBlockReferenceProperty(property));
         });
 
-        var gooAttributes = document.Transaction((transactionManager) =>
+        var gooAttributes = transactionManagerWrapper.PerformTask(() =>
         {
             var attributesSet =
-                blockReferenceWrapper.GetAttributes(transactionManager);
+                blockReferenceWrapper.GetAttributes(transactionManagerWrapper);
 
             return attributesSet.Select(property =>
                 new GH_BlockAttributeReference(property));

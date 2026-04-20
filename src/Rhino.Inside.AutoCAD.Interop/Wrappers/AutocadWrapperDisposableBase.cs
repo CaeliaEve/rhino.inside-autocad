@@ -11,7 +11,7 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// such as <see cref="Autodesk.AutoCAD.DatabaseServices.DBObject"/> and its derivatives.
 /// When disposed, the underlying AutoCAD object is also disposed. Derived classes include
 /// <see cref="AutocadDbObjectWrapper"/>, <see cref="AutocadEntityWrapper"/>, and
-/// <see cref="TransactionManagerWrapper"/>.
+/// <see cref="AutocadTransactionManagerWrapper"/>.
 /// </remarks>
 /// <seealso cref="AutocadWrapperBase{T}"/>
 /// <seealso cref="AutocadDbObjectWrapper"/>

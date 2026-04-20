@@ -97,6 +97,4 @@ public class AutocadDocumentChange : IAutocadDocumentChange
 
     /// <inheritdoc />
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
 }
-

@@ -24,16 +24,18 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
     /// Populates this <see cref="ILineTypeRegister"/> with <see cref="IAutocadLinetypeTableRecord"/>s
     /// from the active <see cref="IAutocadDocument"/>.
     /// </summary>
-    public override void Repopulate()
+    public override void Update()
     {
         _objects.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var lineTypeTable = (LinetypeTable)transactionManager.GetObject(
-                _document.Database.LinetypeTableId.Unwrap(), OpenMode.ForRead);
+                _document.AutocadDatabase.LinetypeTableId.Unwrap(), OpenMode.ForRead);
 
             foreach (var lineTypeRecordId in lineTypeTable)
             {
@@ -53,9 +55,9 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
     /// </summary>
     private IAutocadLinetypeTableRecord CreateLineType(string name, double patternLength, int numberOfDashes, bool scaleToFit)
     {
-        using var documentLock = _document.Unwrap().LockDocument();
+        var transactionManagerWrapper = _document.CreateTransactionManager();
 
-        var lineTypeWrapper = _document.Transaction(transactionManagerWrapper =>
+        var lineTypeWrapper = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
@@ -71,7 +73,7 @@ public class LineTypeRegister : RegisterBase<IAutocadLinetypeTableRecord>, ILine
             this.SetSimpleDashPattern(linetypeTableRecord, patternLength, numberOfDashes);
 
             using var linetypeTable = (LinetypeTable)transactionManager.GetObject(
-                _document.Database.LinetypeTableId.Unwrap(), OpenMode.ForWrite);
+                _document.AutocadDatabase.LinetypeTableId.Unwrap(), OpenMode.ForWrite);
 
             linetypeTable.Add(linetypeTableRecord);
 

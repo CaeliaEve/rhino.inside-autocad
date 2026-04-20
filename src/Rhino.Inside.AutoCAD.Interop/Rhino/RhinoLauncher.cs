@@ -13,7 +13,7 @@ public class RhinoLauncher : IRhinoLauncher
 
     private const string _rhinoStartFailureMessage =
         MessageConstants.RhinoStartFailureMessage;
-    private const string _grasshopperCommandName = ApplicationConstants.GrasshopperCommandName;
+
     /// <summary>
     /// Creates a new <see cref="IRhinoLauncher"/> instance.
     /// </summary>

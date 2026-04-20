@@ -24,26 +24,26 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
     /// </summary>
     private IAutocadLayerTableRecord CreateLayer(IColor color, string name)
     {
-        using var documentLock = _document.Unwrap().LockDocument();
+        var transactionManagerWrapper = _document.CreateTransactionManager();
 
-        var layerWrapper = _document.Transaction(transactionManagerWrapper =>
+        var layerWrapper = transactionManagerWrapper.PerformTask(() =>
          {
              var transactionManager = transactionManagerWrapper.Unwrap();
 
-             var layerTableRecord = new LayerTableRecord
+             var newLayer = new LayerTableRecord
              {
                  Name = name,
                  Color = CadColor.FromRgb(color.Red, color.Green, color.Blue)
              };
 
              using var layerTable = (LayerTable)transactionManager.GetObject(
-                 _document.Database.LayerTableId.Unwrap(), OpenMode.ForWrite);
+                 _document.AutocadDatabase.LayerTableId.Unwrap(), OpenMode.ForWrite);
 
-             layerTable.Add(layerTableRecord);
+             layerTable.Add(newLayer);
 
-             transactionManager.AddNewlyCreatedDBObject(layerTableRecord, true);
+             transactionManager.AddNewlyCreatedDBObject(newLayer, true);
 
-             return new AutocadLayerTableRecordWrapper(layerTableRecord);
+             return new AutocadLayerTableRecordWrapper(newLayer);
          });
 
         _document.Regenerate();
@@ -55,16 +55,18 @@ public class LayerRegister : RegisterBase<IAutocadLayerTableRecord>, ILayerRegis
     /// Populates this <see cref="ILayerRegister"/> with <see cref="IAutocadLayerTableRecord"/>s
     /// from the active <see cref="IAutocadDocument"/>.
     /// </summary>
-    public override void Repopulate()
+    public override void Update()
     {
         _objects.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var layerTable = (LayerTable)transactionManager.GetObject(
-                _document.Database.LayerTableId.Unwrap(), OpenMode.ForRead);
+                _document.AutocadDatabase.LayerTableId.Unwrap(), OpenMode.ForRead);
 
             foreach (var layerId in layerTable)
             {

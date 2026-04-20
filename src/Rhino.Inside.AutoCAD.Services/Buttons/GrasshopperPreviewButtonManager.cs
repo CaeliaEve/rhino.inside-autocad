@@ -26,7 +26,6 @@ public class GrasshopperPreviewButtonManager : IGrasshopperPreviewButtonManager
         buttonReplacer.Replace(unselectedImagePath);
     }
 
-
     /// <inheritdoc/>
     public void SetPreviewMode(GrasshopperPreviewMode mode)
     {

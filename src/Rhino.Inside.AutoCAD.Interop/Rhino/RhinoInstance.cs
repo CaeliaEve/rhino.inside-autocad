@@ -3,6 +3,7 @@ using Rhino.Commands;
 using Rhino.DocObjects;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Services;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -10,6 +11,8 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public class RhinoInstance : IRhinoInstance
 {
     private readonly IInstallationDirectories _installationDirectories;
+    private const string _defaultTemplate = ApplicationConstants.DefaultTemplateFormat;
+    private const string _failedToLoadRhinoDoc = ApplicationConstants.FailedToLoadRhinoDoc;
 
     /// <inheritdoc />
     public event EventHandler? DocumentCreated;
@@ -24,6 +27,9 @@ public class RhinoInstance : IRhinoInstance
     public event EventHandler<IRhinoObjectModifiedEventArgs>? ObjectRemoved;
 
     /// <inheritdoc />
+    public event EventHandler? DeselectAll;
+
+    /// <inheritdoc />
     public IRhinoCoreExtension RhinoCore { get; }
 
     /// <inheritdoc />
@@ -32,14 +38,22 @@ public class RhinoInstance : IRhinoInstance
     /// <inheritdoc />
     public Version ApplicationVersion { get; }
 
+    /// <inheritdoc />
     public UnitSystem UnitSystem { get; private set; }
 
     /// <summary>
-    /// Constructs a new <see cref="IRhinoInstance"/> instance. Note that this does
-    /// not mean that Rhino is running yet. This only constructs the instance to manage
-    /// the Rhino Inside lifecycle and document. Use <see cref="IRhinoLauncher"/> to
-    /// create a running Rhino instance.
+    /// Constructs a new <see cref="RhinoInstance"/> for managing the Rhino Inside lifecycle.
     /// </summary>
+    /// <param name="installationDirectories">
+    /// The installation directories containing paths to resources such as templates.
+    /// </param>
+    /// <remarks>
+    /// This constructor only initializes the management instance; Rhino is not yet running.
+    /// Use <see cref="IRhinoLauncher"/> to start a running Rhino instance, then call
+    /// <see cref="ValidateRhinoDoc"/> to create or verify the active document.
+    /// </remarks>
+    /// <seealso cref="IRhinoLauncher"/>
+    /// <seealso cref="ValidateRhinoDoc"/>
     public RhinoInstance(IInstallationDirectories installationDirectories)
     {
         _installationDirectories = installationDirectories;
@@ -49,14 +63,34 @@ public class RhinoInstance : IRhinoInstance
     }
 
     /// <summary>
-    /// Initializes the Rhino Inside instance and returns true if it has successfully
-    /// launched otherwise false indicating a failure.
+    /// Creates and initializes a new <see cref="RhinoDoc"/> based on the specified mode.
     /// </summary>
+    /// <param name="logger">
+    /// The startup logger used to record errors if document creation fails.
+    /// </param>
+    /// <param name="mode">
+    /// The mode determining whether to create a headless or interactive document.
+    /// </param>
+    /// <returns>
+    /// The newly created <see cref="RhinoDoc"/> instance.
+    /// </returns>
+    /// <remarks>
+    /// This method performs the following initialization steps:
+    /// <list type="bullet">
+    ///   <item>Creates a headless or interactive document based on <paramref name="mode"/></item>
+    ///   <item>Disables auto-save to prevent unwanted file operations</item>
+    ///   <item>Raises the <see cref="DocumentCreated"/> event</item>
+    ///   <item>Subscribes to Rhino document events for object tracking</item>
+    /// </list>
+    /// </remarks>
+    /// <exception cref="Exception">
+    /// Thrown when document creation fails. The error is logged before re-throwing.
+    /// </exception>
+    /// <seealso cref="ValidateRhinoDoc"/>
     private RhinoDoc CreateRhinoDoc(IStartUpLogger logger,
         RhinoInsideMode mode)
     {
-        var template =
-            $"{_installationDirectories.Resources}Large Objects - Millimeters.3dm";
+        var template = string.Format(_defaultTemplate, _installationDirectories.Resources);
 
         try
         {
@@ -75,46 +109,92 @@ public class RhinoInstance : IRhinoInstance
             RhinoDoc.AddRhinoObject += this.OnAddRhinoObject;
             RhinoDoc.ModifyObjectAttributes += this.OnModifyRhinoObject;
             RhinoDoc.DeleteRhinoObject += this.OnRemoveRhinoObject;
+            RhinoDoc.SelectObjects += this.OnSelectedObject;
+            RhinoDoc.DeselectObjects += this.OnSelectedObject;
+            RhinoDoc.DeselectAllObjects += this.OnDeselectObjects;
 
             return rhinoDoc;
         }
         catch
         {
-            logger.AddError("Failed to initialize Rhino Doc.");
+            logger.AddError(_failedToLoadRhinoDoc);
 
             throw;
         }
     }
 
     /// <summary>
-    /// Event handler which fires when a Rhino object is removed.
+    /// Handles the <see cref="RhinoDoc.DeselectAllObjects"/> event by raising <see cref="DeselectAll"/>.
     /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event arguments containing deselection details.</param>
+    private void OnDeselectObjects(object? sender, RhinoDeselectAllObjectsEventArgs e)
+    {
+        this.DeselectAll?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Handles <see cref="RhinoDoc.SelectObjects"/> and <see cref="RhinoDoc.DeselectObjects"/> events
+    /// by raising <see cref="ObjectModifiedOrAppended"/> for each affected object.
+    /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event arguments containing the selected or deselected objects.</param>
+    /// <remarks>
+    /// Rhino does not raise a modify event when an object's selection state changes, so this method
+    /// bridges that gap by treating selection changes as modifications. This ensures preview geometry
+    /// is updated to reflect the current selection state.
+    /// </remarks>
+    private void OnSelectedObject(object? sender, RhinoObjectSelectionEventArgs e)
+    {
+        for (var index = 0; index < e.RhinoObjects.Length; index++)
+        {
+            var rhinoObject = e.RhinoObjects[index];
+
+            this.ObjectModifiedOrAppended?.Invoke(this,
+                new RhinoObjectModifiedEventArgs(rhinoObject));
+        }
+    }
+
+    /// <summary>
+    /// Handles the <see cref="RhinoDoc.DeleteRhinoObject"/> event by raising <see cref="ObjectRemoved"/>.
+    /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event arguments containing the removed object.</param>
     private void OnRemoveRhinoObject(object sender, RhinoObjectEventArgs e)
     {
         this.ObjectRemoved?.Invoke(this, new RhinoObjectModifiedEventArgs(e.TheObject));
     }
 
     /// <summary>
-    /// Event handler which fires when a Rhino object is modified.
+    /// Handles the <see cref="RhinoDoc.ModifyObjectAttributes"/> event by raising <see cref="ObjectModifiedOrAppended"/>.
     /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event arguments containing the modified object.</param>
     private void OnModifyRhinoObject(object sender, RhinoModifyObjectAttributesEventArgs e)
     {
         this.ObjectModifiedOrAppended?.Invoke(this, new RhinoObjectModifiedEventArgs(e.RhinoObject));
     }
 
     /// <summary>
-    /// Event handler which fires when a Rhino object is added.
+    /// Handles the <see cref="RhinoDoc.AddRhinoObject"/> event by raising <see cref="ObjectModifiedOrAppended"/>.
     /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event arguments containing the added object.</param>
     private void OnAddRhinoObject(object sender, RhinoObjectEventArgs e)
     {
         this.ObjectModifiedOrAppended?.Invoke(this, new RhinoObjectModifiedEventArgs(e.TheObject));
     }
 
     /// <summary>
-    /// An event handler which fires when the Rhino document properties are modified.
-    /// It checks to see if the unit system has changed and raises the <see cref="UnitsChanged"/>
-    /// event if it has.
+    /// Handles the <see cref="RhinoDoc.DocumentPropertiesChanged"/> event and raises <see cref="UnitsChanged"/>
+    /// when the model unit system has changed.
     /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event arguments containing the document.</param>
+    /// <remarks>
+    /// This method compares the current <see cref="UnitSystem"/> with the document's model unit system.
+    /// If they differ, it raises the <see cref="UnitsChanged"/> event and updates the cached value.
+    /// </remarks>
     private void OnDocumentPropertiesModified(object sender, DocumentEventArgs e)
     {
         var currentUnits = e.Document.ModelUnitSystem;
@@ -154,7 +234,6 @@ public class RhinoInstance : IRhinoInstance
     /// <inheritdoc />
     public void Shutdown()
     {
-
         RhinoDoc.DocumentPropertiesChanged -= this.OnDocumentPropertiesModified;
 
         RhinoDoc.AddRhinoObject -= this.OnAddRhinoObject;
@@ -163,6 +242,12 @@ public class RhinoInstance : IRhinoInstance
 
         RhinoDoc.DeleteRhinoObject -= this.OnRemoveRhinoObject;
 
-        this.ActiveDoc?.Dispose();
+        RhinoDoc.SelectObjects -= this.OnSelectedObject;
+
+        RhinoDoc.DeselectObjects -= this.OnSelectedObject;
+
+        RhinoDoc.DeselectAllObjects -= this.OnDeselectObjects;
+
+        this.RhinoCore.Shutdown();
     }
 }

@@ -10,11 +10,17 @@ public class AutocadDocumentId : IAutocadDocumentId
     private const short _applicationNameKey = XRecordKeys.ApplicationNameKey;
     private const short _documentIdKey = XRecordKeys.DocumentIdKey;
 
+    /// <summary>
+    /// The registered Id of this document.
+    /// </summary>
     public Guid Id { get; }
 
+    /// <summary>
+    /// Constructs a new <see cref="IAutocadDocumentId"/>
+    /// </summary>
     public AutocadDocumentId(IAutocadDocument document)
     {
-        this.RegisterApplication(document);
+        this.Register(document);
 
         if (this.TryGetExistingId(document, out var documentId) == false)
         {
@@ -30,26 +36,28 @@ public class AutocadDocumentId : IAutocadDocumentId
     /// </summary>
     private bool TryGetExistingId(IAutocadDocument document, out Guid id)
     {
-        id = document.Transaction(transactionManager =>
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        id = transactionManagerWrapper.PerformTask(() =>
         {
-            var blockModelSpace = transactionManager.GetModelSpace().Unwrap();
+            var blockModelSpace = transactionManagerWrapper.GetModelSpace().Unwrap();
 
             var xData = blockModelSpace.XData == null
                 ? new ResultBuffer()
                 : blockModelSpace.XData;
 
-            var idKey = (short)_documentIdKey;
+            var documentIdKey = (short)_documentIdKey;
 
-            var typedValues = xData.AsArray().Where(v => v.TypeCode == idKey);
+            var typedValues = xData.AsArray().Where(v => v.TypeCode == documentIdKey);
 
-            var documentId = Guid.Empty;
+            var documentGuid = Guid.Empty;
             foreach (var typedValue in typedValues)
             {
-                if (Guid.TryParse(typedValue.Value.ToString(), out documentId))
+                if (Guid.TryParse(typedValue.Value.ToString(), out documentGuid))
                     break;
             }
 
-            return documentId;
+            return documentGuid;
 
         });
 
@@ -61,9 +69,11 @@ public class AutocadDocumentId : IAutocadDocumentId
     /// </summary>
     private Guid CreateNewId(IAutocadDocument document)
     {
-        return document.Transaction(transactionManager =>
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        return transactionManagerWrapper.PerformTask(() =>
         {
-            var blockModelSpace = transactionManager.GetModelSpace().Unwrap();
+            var blockModelSpace = transactionManagerWrapper.GetModelSpace().Unwrap();
 
             var xData = blockModelSpace.XData == null
                 ? new ResultBuffer()
@@ -80,7 +90,7 @@ public class AutocadDocumentId : IAutocadDocumentId
 
             blockModelSpace.XData = xData;
 
-            transactionManager.SaveDatabase(document);
+            transactionManagerWrapper.SaveDatabase(document);
 
             return documentId;
 
@@ -94,13 +104,15 @@ public class AutocadDocumentId : IAutocadDocumentId
     /// <remarks>
     /// Required before writing XData to the database.
     /// </remarks>
-    private void RegisterApplication(IAutocadDocument document)
+    private void Register(IAutocadDocument document)
     {
-        document.Transaction(transactionManager =>
-        {
-            var transaction = transactionManager.Unwrap();
+        var transactionManagerWrapper = document.CreateTransactionManager();
 
-            var regAppTableId = transactionManager.RegAppTableId.Unwrap();
+        _ = transactionManagerWrapper.PerformTask(() =>
+        {
+            var transaction = transactionManagerWrapper.Unwrap();
+
+            var regAppTableId = transactionManagerWrapper.RegAppTableId.Unwrap();
 
             var regAppTable = (RegAppTable)transaction.GetObject(regAppTableId, OpenMode.ForRead);
 

@@ -13,6 +13,7 @@ namespace Rhino.Inside.AutoCAD.Applications;
 /// <inheritdoc cref="IRhinoInsideAutoCadApplication"/>
 public class RhinoInsideAutoCadExtension : IExtensionApplication
 {
+
     private const string _applicationLoadedSuccessMessage = ApplicationConstants.ApplicationLoadedSuccessMessage;
     private const string _applicationLoadErrorMessageFormat = ApplicationConstants.ApplicationLoadErrorMessageFormat;
     private const string _stackTraceMessageFormat = ApplicationConstants.StackTraceMessageFormat;
@@ -29,6 +30,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// </summary>
     public void Initialize()
     {
+
         var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
 
         var currentDate = System.DateTime.Now;
@@ -66,6 +68,8 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             _ = RhinoCoreExtension.Instance;
 
             Application = new RhinoInsideAutoCadApplication();
+
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit += this.OnApplicationBeginQuit;
 
             editor?.WriteMessage(_applicationLoadedSuccessMessage);
         }
@@ -109,17 +113,50 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     }
 
     /// <summary>
-    /// Terminate the <see cref="IRhinoInsideAutoCadApplication"/>
+    /// Safely terminates the <see cref="IRhinoInsideAutoCadApplication"/> by saving
+    /// any edited rhino or grasshopper files and catching any exceptions that may
+    /// occur during termination. This ensures  that the application can attempt to
+    /// terminate without crashing, even if  there are issues during the termination
+    /// process.
     /// </summary>
-    public void Terminate()
+    private void SafeTermination()
     {
         try
         {
             Application?.Terminate();
+
+            Application = null;
+
         }
-        catch (System.Exception e)
+        catch (System.Exception ex)
         {
 
         }
+    }
+
+    /// <summary>
+    /// Subscribes to the AutoCAD application quit event to ensure that the
+    /// <see cref="IRhinoInsideAutoCadApplication"/> is properly terminated.
+    /// </summary>
+    private void OnApplicationBeginQuit(object sender, Autodesk.AutoCAD.ApplicationServices.BeginQuitEventArgs e)
+    {
+        if (Application is not null)
+        {
+            e.IsVetoed = true;
+
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
+
+            this.SafeTermination();
+
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.Quit();
+        }
+    }
+
+    /// <summary>
+    /// Terminate the <see cref="IRhinoInsideAutoCadApplication"/>
+    /// </summary>
+    public void Terminate()
+    {
+        Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
     }
 }

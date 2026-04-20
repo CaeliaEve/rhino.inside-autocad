@@ -53,7 +53,7 @@ public interface IAutocadBlockReference : IEntity
     /// <summary>
     /// Retrieves the dynamic properties for this block reference.
     /// </summary>
-    /// <param name="transactionManager">
+    /// <param name="autocadTransactionManager">
     /// The transaction manager for database access.
     /// </param>
     /// <returns>
@@ -63,16 +63,16 @@ public interface IAutocadBlockReference : IEntity
     /// Opens the block reference for write internally to ensure properties are correctly populated.
     /// Required because AutoCAD does not fully populate dynamic properties in read-only mode.
     /// </remarks>
-    IDynamicPropertySet GetDynamicProperties(ITransactionManager transactionManager);
+    IDynamicPropertySet GetDynamicProperties(IAutocadTransactionManager autocadTransactionManager);
 
     /// <summary>
     /// Retrieves all entities contained within this block reference.
     /// </summary>
-    /// <param name="transactionManager">
+    /// <param name="autocadTransactionManager">
     /// The transaction manager for database access.
     /// </param>
     /// <returns>
     /// An <see cref="IEntitySet"/> containing the block's geometry.
     /// </returns>
-    IEntitySet GetObjects(ITransactionManager transactionManager);
+    IEntitySet GetObjects(IAutocadTransactionManager autocadTransactionManager);
 }

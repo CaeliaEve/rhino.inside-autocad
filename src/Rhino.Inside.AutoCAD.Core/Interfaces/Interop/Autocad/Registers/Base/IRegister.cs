@@ -8,7 +8,7 @@
 /// </typeparam>
 /// <remarks>
 /// Repositories cache AutoCAD symbol table records (layers, line types, layouts, blocks)
-/// and provide lookup by name or ObjectId. The cache can be refreshed via <see cref="Repopulate"/>
+/// and provide lookup by name or ObjectId. The cache can be refreshed via <see cref="Update"/>
 /// when the underlying document changes. Accessed through <see cref="IAutocadDocument"/> properties.
 /// </remarks>
 /// <seealso cref="ILayerRegister"/>
@@ -55,5 +55,5 @@ public interface IRegister<T> : IEnumerable<T>, IDisposable
     /// Call this method after external changes to the document (e.g., layer creation via
     /// AutoCAD commands) to ensure the register reflects the current symbol table contents.
     /// </remarks>
-    void Repopulate();
+    void Update();
 }

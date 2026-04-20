@@ -101,7 +101,9 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
         var normalReferences = new List<GH_AutocadBlockReference>();
         var dynamicReferences = new List<GH_AutocadBlockReference>();
 
-        _ = autocadDocument.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transaction = transactionManagerWrapper.Unwrap();
 

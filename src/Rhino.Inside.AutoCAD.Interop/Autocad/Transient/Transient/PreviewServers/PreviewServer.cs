@@ -1,4 +1,6 @@
-﻿using Autodesk.AutoCAD.Geometry;
+﻿using Autodesk.AutoCAD.Colors;
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.GraphicsInterface;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
@@ -9,6 +11,7 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public class PreviewServer : IPreviewServer
 {
     private readonly IGeometryPreviewSettings _previewSettings;
+    private readonly IGeometryPreviewSettings _selectedPreviewSettings;
     private readonly IPreviewGeometryConverter _previewGeometryConverter;
     private readonly int _subDrawingMode = 0;
     private readonly IntegerCollection _emptyInterCollection = [];
@@ -20,9 +23,11 @@ public class PreviewServer : IPreviewServer
     /// <summary>
     /// Constructs a new <see cref="IPreviewServer"/>
     /// </summary>
-    public PreviewServer(IGeometryPreviewSettings previewSettings, IPreviewGeometryConverter previewGeometryConverter)
+    public PreviewServer(IGeometryPreviewSettings previewSettings, IGeometryPreviewSettings selectedPreviewSettings,
+        IPreviewGeometryConverter previewGeometryConverter)
     {
         _previewSettings = previewSettings;
+        _selectedPreviewSettings = selectedPreviewSettings;
         _previewGeometryConverter = previewGeometryConverter;
         this.ObjectRegister = new ObjectRegister();
     }
@@ -84,11 +89,13 @@ public class PreviewServer : IPreviewServer
     }
 
     /// <inheritdoc/>
-    public void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet)
+    public void AddObject(Guid rhinoObjectId, IRhinoConvertibleSet rhinoConvertibleSet, bool selected)
     {
         if (rhinoConvertibleSet.Any)
         {
-            var entities = _previewGeometryConverter.Convert(rhinoConvertibleSet, _previewSettings);
+            var settings = selected ? _selectedPreviewSettings : _previewSettings;
+
+            var entities = _previewGeometryConverter.Convert(rhinoConvertibleSet, settings);
 
             this.ObjectRegister.RegisterObject(rhinoObjectId, entities);
 
@@ -103,6 +110,43 @@ public class PreviewServer : IPreviewServer
         {
             this.ObjectRegister.RemoveObject(rhinoObjectId);
             this.RemoveTransientEntities(entities);
+        }
+    }
+
+    /// <summary>
+    /// Applies the preview settings to the given entity.
+    /// </summary>
+    private void ApplySettings(IEntity entity, IGeometryPreviewSettings previewSettings)
+    {
+        var autocadEntity = entity.Unwrap();
+
+        var materialId = previewSettings.MaterialId.Unwrap();
+
+        autocadEntity.ColorIndex = previewSettings.ColorIndex;
+
+        autocadEntity.LineWeight = LineWeight.LineWeight050;
+
+        autocadEntity.Transparency = new Transparency(previewSettings.Transparency);
+
+        if (materialId.IsValid)
+        {
+            autocadEntity.MaterialId = materialId;
+        }
+    }
+
+    /// <inheritdoc />
+    public void DeselectAll()
+    {
+        foreach (var entities in this.ObjectRegister)
+        {
+            this.RemoveTransientEntities(entities);
+
+            foreach (var entity in entities)
+            {
+                this.ApplySettings(entity, _previewSettings);
+            }
+
+            this.AddTransientEntities(entities);
         }
     }
 }

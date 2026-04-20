@@ -26,10 +26,13 @@ public class GrasshopperPreviewData : IGrasshopperPreviewData
     /// <inheritdoc />
     public List<Leader> Leaders { get; }
 
+    /// <inheritdoc />
+    public bool IsSelected { get; }
+
     /// <summary>
     /// Constructs a new empty <see cref="IGrasshopperPreviewData"/> instance.
     /// </summary>
-    public GrasshopperPreviewData(IRhinoConvertibleFactory rhinoConvertibleFactory)
+    public GrasshopperPreviewData(IRhinoConvertibleFactory rhinoConvertibleFactory, bool isSelected)
     {
         _rhinoConvertibleFactory = rhinoConvertibleFactory;
         this.Wires = new List<Curve>();
@@ -38,6 +41,7 @@ public class GrasshopperPreviewData : IGrasshopperPreviewData
         this.Texts = new List<TextEntity>();
         this.Dimensions = new List<Dimension>();
         this.Leaders = new List<Leader>();
+        this.IsSelected = isSelected;
     }
 
     public IRhinoConvertibleSet GetShadedObjects()

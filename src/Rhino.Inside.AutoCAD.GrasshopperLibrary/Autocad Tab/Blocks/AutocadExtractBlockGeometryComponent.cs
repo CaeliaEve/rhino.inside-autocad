@@ -50,12 +50,14 @@ public class AutocadExtractBlockGeometryComponent : RhinoInsideAutocad_Component
     /// <summary>
     /// Loads the geometry from a Block Table Record or Block Reference.
     /// </summary>
-    private IEnumerable<IGH_GeometricGoo> LoadBlockObjects(Func<ITransactionManager, IEntitySet> getObjectsFunc)
+    private IEnumerable<IGH_GeometricGoo> LoadBlockObjects(Func<IAutocadTransactionManager, IEntitySet> getObjectsFunc)
     {
         var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
-        var objects = document.Transaction(getObjectsFunc.Invoke);
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        var objects = transactionManagerWrapper.PerformTask(() => getObjectsFunc.Invoke(transactionManagerWrapper));
 
         var blockObject = new List<IGH_GeometricGoo>();
 

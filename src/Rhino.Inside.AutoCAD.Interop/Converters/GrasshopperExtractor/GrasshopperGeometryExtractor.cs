@@ -2,6 +2,7 @@
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Point = Rhino.Geometry.Point;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -132,7 +133,7 @@ public class GrasshopperGeometryExtractor : IGrasshopperGeometryExtractor
     /// <inheritdoc />
     public IGrasshopperPreviewData ExtractPreviewGeometry(IGH_DocumentObject ghDocumentObject)
     {
-        var previewGeometryData = new GrasshopperPreviewData(_rhinoConvertibleFactory);
+        var previewGeometryData = new GrasshopperPreviewData(_rhinoConvertibleFactory, ghDocumentObject.Attributes.Selected);
 
         if (ghDocumentObject is not IGH_PreviewObject { Hidden: false })
             return previewGeometryData;

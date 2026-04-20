@@ -16,12 +16,18 @@ public interface IGrasshopperInstance
     /// <summary>
     /// Event fired when a Grasshopper object preview expires.
     /// </summary>
-    event EventHandler<IGrasshopperObjectModifiedEventArgs>? OnPreviewExpired;
+    event EventHandler<IGrasshopperObjectModifiedEventArgs>? PreviewExpired;
 
     /// <summary>
     /// Event raised when a Grasshopper object is removed.
     /// </summary>
-    event EventHandler<IGrasshopperObjectModifiedEventArgs>? OnObjectRemoved;
+    event EventHandler<IGrasshopperObjectModifiedEventArgs>? ObjectRemoved;
+
+    /// <summary>
+    /// The event fired when the selection of Grasshopper components changes. This is used to update
+    /// the preview geometry in AutoCAD to reflect the selection state of the Grasshopper components.
+    /// </summary>
+    event EventHandler<IGrasshopperSelectionEventArgs>? ComponentSelectionChanged;
 
     /// <summary>
     /// The current active Rhino document.

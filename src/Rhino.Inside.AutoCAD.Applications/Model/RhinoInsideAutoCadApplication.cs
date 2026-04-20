@@ -95,20 +95,10 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
     /// <inheritdoc />
     public void Terminate()
     {
-        try
-        {
-            this.RhinoInsideManager?.Shutdown();
+        this.RhinoInsideManager?.Shutdown();
 
-            this.Bootstrapper?.AssemblyResolver.Terminate();
+        this.Bootstrapper?.AssemblyResolver.Terminate();
 
-            RhinoCoreExtension.Instance.Shutdown();
-
-            LoggerService.Instance?.Shutdown();
-
-        }
-        catch (System.Exception e)
-        {
-            LoggerService.Instance?.LogError(e);
-        }
+        LoggerService.Instance?.Shutdown();
     }
 }

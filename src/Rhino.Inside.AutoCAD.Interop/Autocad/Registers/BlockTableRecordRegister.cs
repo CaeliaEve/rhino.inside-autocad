@@ -16,19 +16,21 @@ public class BlockTableRecordRegister : RegisterBase<IAutocadBlockTableRecord>, 
     /// Populates this <see cref="IBlockTableRecordRegister"/> with <see cref="IAutocadBlockTableRecord"/>s
     /// from the active <see cref="IAutocadDocument"/>.
     /// </summary>
-    public override void Repopulate()
+    public override void Update()
     {
         this.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
-            var database = _document.Database;
+            var database = _document.AutocadDatabase;
 
             var blockTableId = database.BlockTableId;
 
-            var transactionManager = InteropConverter.Unwrap((ITransactionManager)transactionManagerWrapper);
+            var transactionManager = transactionManagerWrapper.Unwrap();
 
-            var blockTable = (BlockTable)transactionManager.GetObject(InteropConverter.Unwrap((IObjectId)blockTableId), OpenMode.ForRead)!;
+            var blockTable = (BlockTable)transactionManager.GetObject(blockTableId.Unwrap(), OpenMode.ForRead)!;
 
             foreach (var objectId in blockTable)
             {

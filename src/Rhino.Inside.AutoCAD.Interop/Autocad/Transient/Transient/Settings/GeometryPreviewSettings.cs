@@ -34,12 +34,14 @@ public class GeometryPreviewSettings : IGeometryPreviewSettings
     /// <inheritdoc/>
     public void CreateMaterial(IAutocadDocument document)
     {
-        _ = document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var dbDictionary =
-                (DBDictionary)transactionManager.GetObject(document.Database.Unwrap().MaterialDictionaryId,
+                (DBDictionary)transactionManager.GetObject(document.AutocadDatabase.Unwrap().MaterialDictionaryId,
                     OpenMode.ForWrite);
 
             if (dbDictionary.Contains(this.MaterialName))

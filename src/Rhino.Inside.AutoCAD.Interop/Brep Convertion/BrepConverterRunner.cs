@@ -1,77 +1,93 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <inheritdoc cref="IBrepConverterRunner"/>
 public class BrepConverterRunner : IBrepConverterRunner
 {
+    private const string _rhinoInsideAutocadFolder = InteropConstants.RhinoInsideAutocadFolder;
+    private const string _convertersFolder = InteropConstants.ConvertersFolder;
+    private const string _rhinoFileName = InteropConstants.RhinoFileName;
+    private const string _importCommand = InteropConstants.ImportCommand;
+    private const string _brepConversionErrorMessage = InteropConstants.BrepConversionErrorMessage;
+
+    /// <summary>
+    /// Queue of pending <see cref="IBrepConverterRequest"/> items awaiting conversion.
+    /// </summary>
     private readonly Queue<IBrepConverterRequest> _requests = new Queue<IBrepConverterRequest>();
 
     /// <summary>
-    /// Converts a <see cref="RhinoBrep"/> to an array of AutoCAD <see cref="CadSolid3d"/>s.
-    /// Typically, this is just a single solid representing the Brep, but depending on
-    /// the import processing it could be multiple solids.
+    /// Converts a Rhino Brep geometry to one or more AutoCAD <see cref="Solid3d"/> objects.
     /// </summary>
+    /// <param name="brepRequest">
+    /// The conversion request containing the Brep geometry and callback delegate.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IBrepConverterResult"/> containing the converted <see cref="Solid3d"/> objects.
+    /// Returns an empty result if the conversion fails.
+    /// </returns>
     /// <remarks>
-    /// We need to use a AutoCAD document to import the Rhino brep temporarily. It is
-    /// deleted after the import so which document we use is not important.
+    /// This method writes the Brep to a temporary .3dm file and uses AutoCAD's IMPORT command
+    /// to bring it into the active document. The imported geometry is then cloned and returned.
+    /// Typically, produces a single solid, but complex Breps may result in multiple solids
+    /// depending on the import processing.
     /// </remarks>
+    /// <seealso cref="IBrepConverterRequest"/>
+    /// <seealso cref="IBrepConverterResult"/>
     private IBrepConverterResult ToAutoCadType(IBrepConverterRequest brepRequest)
     {
         var activeDocument = Application.DocumentManager.MdiActiveDocument;
 
         var editor = activeDocument.Editor;
 
-        var addedObjects = new List<Solid3d>();
+        var convertedSolids = new List<Solid3d>();
 
         try
         {
-            var tempFolder = Path.GetTempPath();
+            var tempDirectory = Path.GetTempPath();
 
-            var pathLocation = $@"{tempFolder}RhinoInsideAutocad\Converters\";
+            var converterDirectory = Path.Combine(tempDirectory, _rhinoInsideAutocadFolder, _convertersFolder);
 
-            Directory.CreateDirectory(pathLocation);
+            Directory.CreateDirectory(converterDirectory);
 
-            var rhinoFilePath = $@"{pathLocation}rhinoToAutoCad.3dm";
+            var rhinoFilePath = Path.Combine(converterDirectory, _rhinoFileName);
 
-            var result = Rhino.FileIO.File3dm.WriteOneObject(rhinoFilePath, brepRequest.BrepToConvert);
+            var writeSucceeded = Rhino.FileIO.File3dm.WriteOneObject(rhinoFilePath, brepRequest.BrepToConvert);
 
-            if (File.Exists(rhinoFilePath) == false || result == false)
+            if (!File.Exists(rhinoFilePath) || !writeSucceeded)
             {
-                return new BrepConverterResult(addedObjects);
+                return new BrepConverterResult(convertedSolids);
             }
 
-            editor.Command("._IMPORT", rhinoFilePath, "");
+            editor.Command(_importCommand, rhinoFilePath, "");
 
-            var selectLast = editor.SelectLast();
+            var selectionResult = editor.SelectLast();
 
-            var selectedObjects = selectLast?.Value;
+            var selectedObjects = selectionResult?.Value;
 
             var transaction = activeDocument.Database.TransactionManager.StartTransaction();
 
             for (var index = 0; index < selectedObjects!.Count; index++)
             {
-                var selection = selectedObjects![index];
-                var importedObject =
-                    transaction.GetObject(selection.ObjectId, OpenMode.ForWrite);
+                var selectedEntity = selectedObjects[index];
 
-                var clone = importedObject.Clone();
+                var importedObject = transaction.GetObject(selectedEntity.ObjectId, OpenMode.ForWrite);
 
-                if (clone is not Solid3d solid3d) continue;
+                var clonedObject = importedObject.Clone();
 
-                addedObjects.Add(solid3d);
+                if (clonedObject is not Solid3d solid) continue;
+
+                convertedSolids.Add(solid);
             }
-
             transaction.Commit();
         }
         catch (System.Exception ex)
         {
-            editor.WriteMessage($"\nError Converting brep: {ex.Message}");
+            editor.WriteMessage($"{_brepConversionErrorMessage}{ex.Message}");
         }
-
-        return new BrepConverterResult(addedObjects);
+        return new BrepConverterResult(convertedSolids);
     }
 
     /// <inheritdoc />

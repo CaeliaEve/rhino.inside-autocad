@@ -1,4 +1,5 @@
-﻿using Rhino.Inside.AutoCAD.Core.Interfaces;
+﻿using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using UnitConverterClass = Rhino.Inside.AutoCAD.Interop.UnitConverter;
 
 namespace Rhino.Inside.AutoCAD.Interop;
@@ -39,16 +40,19 @@ public class RhinoInsideManager : IRhinoInsideManager
 
         _rhinoConvertibleFactory = new RhinoConvertibleFactory();
 
+        var selectedPreviewSettings = new GeometryPreviewSettings(128,
+            "Rhino.Inside.AutoCAD.Preview.Selected.Material", 2);
+
         var rhinoPreviewSettings = new GeometryPreviewSettings(128,
             "Rhino.Inside.AutoCAD.Preview.Rhino.Material", 4);
 
-        this.RhinoPreviewServer = new RhinoObjectPreviewServer(rhinoPreviewSettings, previewGeometryConverter);
+        this.RhinoPreviewServer = new RhinoObjectPreviewServer(rhinoPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
 
         var grasshopperPreviewSettings = new GeometryPreviewSettings(128,
             "Rhino.Inside.AutoCAD.Preview.Grasshopper.Material", 1);
 
         this.GrasshopperPreviewServer = new GrasshopperObjectPreviewServer(
-            grasshopperPreviewSettings, previewGeometryConverter, _rhinoConvertibleFactory);
+            grasshopperPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
 
         this.AutoCadInstance = autoCadInstance;
         autoCadInstance.DocumentCreated += this.AutocadDocumentSwitched;
@@ -60,10 +64,13 @@ public class RhinoInsideManager : IRhinoInsideManager
         rhinoInstance.UnitsChanged += this.UpdateUnitSystem;
         rhinoInstance.ObjectModifiedOrAppended += this.RhinoObjectModifiedOrAppended;
         rhinoInstance.ObjectRemoved += this.RhinoObjectRemoved;
+        rhinoInstance.DeselectAll += this.DeselectAllRhinoPreview;
 
         this.GrasshopperInstance = grasshopperInstance;
-        grasshopperInstance.OnPreviewExpired += this.UpdateGrasshopperPreview;
-        grasshopperInstance.OnObjectRemoved += this.OnGrasshopperObjectRemoved;
+        grasshopperInstance.PreviewExpired += this.OnUpdateGrasshopperPreview;
+        grasshopperInstance.ObjectRemoved += this.OnGrasshopperObjectRemoved;
+        grasshopperInstance.ComponentSelectionChanged +=
+            this.OnGrasshopperSelectionChanged;
 
         UnitConverterClass.Initialize(_defaultUnitSystem, _defaultUnitSystem);
 
@@ -84,9 +91,9 @@ public class RhinoInsideManager : IRhinoInsideManager
 
         if (document == null) return;
 
-        this.RhinoPreviewServer.Settings.CreateMaterial(document);
+        this.RhinoPreviewServer.UnSelectedSettings.CreateMaterial(document);
 
-        this.GrasshopperPreviewServer.Settings.CreateMaterial(document);
+        this.GrasshopperPreviewServer.UnSelectedSettings.CreateMaterial(document);
     }
 
     /// <summary>
@@ -107,22 +114,43 @@ public class RhinoInsideManager : IRhinoInsideManager
     }
 
     /// <summary>
-    /// Updates the AutoCAD transient preview when a Grasshopper object's preview expires.
+    /// Updates the preview of a Grasshopper object in the <see cref="GrasshopperPreviewServer"/>
+    /// when its preview expires or its selection state changes.
     /// </summary>
-    private void UpdateGrasshopperPreview(object sender, IGrasshopperObjectModifiedEventArgs e)
+    private void UpdateGrasshopperPreview(IGH_DocumentObject ghDocumentObject)
     {
-        var ghDocumentObject = e.GrasshopperObject;
-
         var instanceGuid = ghDocumentObject.InstanceGuid;
 
-        this.GrasshopperPreviewServer.RemoveObject(e.GrasshopperObject.InstanceGuid);
+        this.GrasshopperPreviewServer.RemoveObject(ghDocumentObject.InstanceGuid);
 
         var previewGeometryData = _grasshopperGeometryExtractor.ExtractPreviewGeometry(ghDocumentObject);
 
         this.GrasshopperPreviewServer.AddObject(instanceGuid, previewGeometryData);
+    }
+
+    /// <summary>
+    /// Updates the AutoCAD transient preview when a Grasshopper object's selection state changes.
+    /// </summary>
+    private void OnGrasshopperSelectionChanged(object? sender, IGrasshopperSelectionEventArgs e)
+    {
+        foreach (var ghDocumentObject in e.Objects)
+        {
+            this.UpdateGrasshopperPreview(ghDocumentObject);
+        }
 
         this.AutoCadInstance.ActiveDocument?.UpdateEditorScreen();
+    }
 
+    /// <summary>
+    /// Updates the AutoCAD transient preview when a Grasshopper object's preview expires.
+    /// </summary>
+    private void OnUpdateGrasshopperPreview(object sender, IGrasshopperObjectModifiedEventArgs e)
+    {
+        var ghDocumentObject = e.GrasshopperObject;
+
+        this.UpdateGrasshopperPreview(ghDocumentObject);
+
+        this.AutoCadInstance.ActiveDocument?.UpdateEditorScreen();
     }
 
     /// <summary>
@@ -150,8 +178,18 @@ public class RhinoInsideManager : IRhinoInsideManager
         {
             var newSet = new RhinoConvertibleSet { rhinoConvertible };
 
-            this.RhinoPreviewServer.AddObject(rhinoObject.Id, newSet);
+            this.RhinoPreviewServer.AddObject(rhinoObject.Id, newSet, rhinoObject.IsSelected(false) > 0);
         }
+
+        this.AutoCadInstance.ActiveDocument?.UpdateEditorScreen();
+    }
+
+    /// <summary>
+    /// Deselects all objects in the Rhino preview server when all objects are deselected in Rhino.
+    /// </summary>
+    private void DeselectAllRhinoPreview(object? sender, EventArgs e)
+    {
+        this.RhinoPreviewServer.DeselectAll();
 
         this.AutoCadInstance.ActiveDocument?.UpdateEditorScreen();
     }
@@ -172,19 +210,24 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// <inheritdoc />
     public void Shutdown()
     {
-        this.AutoCadInstance.DocumentCreated -= this.AutocadDocumentSwitched;
-        this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
-        this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
-        this.AutoCadInstance.Shutdown();
 
-        this.GrasshopperInstance.OnPreviewExpired -= this.UpdateGrasshopperPreview;
-        this.GrasshopperInstance.OnObjectRemoved -= this.OnGrasshopperObjectRemoved;
+        this.GrasshopperInstance.PreviewExpired -= this.OnUpdateGrasshopperPreview;
+        this.GrasshopperInstance.ObjectRemoved -= this.OnGrasshopperObjectRemoved;
+        this.GrasshopperInstance.ComponentSelectionChanged -=
+            this.OnGrasshopperSelectionChanged;
         this.GrasshopperInstance.Shutdown();
 
         this.RhinoInstance.DocumentCreated -= this.UpdateUnitSystem;
         this.RhinoInstance.UnitsChanged -= this.UpdateUnitSystem;
         this.RhinoInstance.ObjectModifiedOrAppended -= this.RhinoObjectModifiedOrAppended;
         this.RhinoInstance.ObjectRemoved -= this.RhinoObjectRemoved;
+        this.RhinoInstance.DeselectAll -= this.DeselectAllRhinoPreview;
         this.RhinoInstance.Shutdown();
+
+        this.AutoCadInstance.DocumentCreated -= this.AutocadDocumentSwitched;
+        this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
+        this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
+        this.AutoCadInstance.Shutdown();
+
     }
 }

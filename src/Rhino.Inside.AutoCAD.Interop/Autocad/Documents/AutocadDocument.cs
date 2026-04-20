@@ -7,6 +7,8 @@ using CadBlockTableRecord = Autodesk.AutoCAD.DatabaseServices.BlockTableRecord;
 using CadLayer = Autodesk.AutoCAD.DatabaseServices.LayerTableRecord;
 using CadLayout = Autodesk.AutoCAD.DatabaseServices.Layout;
 using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
+using Document = Autodesk.AutoCAD.ApplicationServices.Document;
+using Handle = Autodesk.AutoCAD.DatabaseServices.Handle;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -45,7 +47,7 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     public IAutocadDocumentId DocumentId { get; }
 
     /// <inheritdoc/>
-    public IDatabase Database { get; }
+    public IAutocadDatabase AutocadDatabase { get; }
 
     /// <inheritdoc/>
     public IAutocadDocumentFileMetadata FileMetadata { get; }
@@ -79,7 +81,7 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
 
         var databaseWrapper = new AutocadDatabaseWrapper(database);
 
-        this.Database = databaseWrapper;
+        this.AutocadDatabase = databaseWrapper;
 
         this.FileMetadata = new AutocadDocumentFileMetadata(document);
 
@@ -153,17 +155,17 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     private void CheckRepositories()
     {
         if (_documentChange.DoesEffectType(typeof(CadLayer)))
-            this.LayerRegister.Repopulate();
+            this.LayerRegister.Update();
 
         if (_documentChange.DoesEffectType(typeof(CadLayout)))
-            this.LayoutRegister.Repopulate();
+            this.LayoutRegister.Update();
 
         if (_documentChange.DoesEffectType(typeof(CadLineType)))
-            this.LineTypeRegister.Repopulate();
+            this.LineTypeRegister.Update();
 
         if (_documentChange.DoesEffectType(typeof(CadBlockTableRecord)))
         {
-            this.BlockTableRecordRegister.Repopulate();
+            this.BlockTableRecordRegister.Update();
             this.Regenerate();
         }
     }
@@ -214,27 +216,9 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     }
 
     /// <inheritdoc/>
-    public T Transaction<T>(Func<ITransactionManager, T> function, bool abort = false)
+    public IAutocadTransactionManager CreateTransactionManager()
     {
-        using var documentLock = _document.LockDocument();
-
-        var database = _document.Database;
-
-        using var transactionManagerWrapper = new TransactionManagerWrapper(database);
-
-        using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
-
-        var result = function.Invoke(transactionManagerWrapper);
-
-        if (abort)
-        {
-            transaction.Abort();
-        }
-        else
-        {
-            transaction.Commit();
-        }
-        return result;
+        return new AutocadTransactionManagerWrapper(_document);
     }
 
     /// <inheritdoc/>
@@ -272,7 +256,9 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     {
         if (objectId.IsValid == false) return null;
 
-        return this.Transaction((transactionManagerWrapper) =>
+        var transactionManagerWrapper = this.CreateTransactionManager();
+
+        return transactionManagerWrapper.PerformTask(() =>
         {
             var cadObjectId = objectId.Unwrap();
 
@@ -287,7 +273,7 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     /// <inheritdoc/>
     public IDbObject? GetObjectByHandle(long handle)
     {
-        return this.Database.Unwrap().TryGetObjectId(new Handle(handle), out var id) == false
+        return this.AutocadDatabase.Unwrap().TryGetObjectId(new Handle(handle), out var id) == false
             ? null
             : this.GetObjectById(new AutocadObjectIdWrapper(id));
     }
@@ -297,15 +283,13 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     {
         _document.CommandEnded -= this.OnCommandEnded;
         _document.CommandCancelled -= this.OnCommandEnded;
+
         var database = _document.Database;
         database.ObjectAppended -= this.OnObjectAppended;
         database.ObjectModified -= this.OnObjectModified;
         database.ObjectErased -= this.OnObjectErased;
 
-        this.Database.Dispose();
+        this.AutocadDatabase?.Dispose();
         this.LayerRegister?.Dispose();
-
-        if (_document.IsDisposed)
-            return;
     }
 }

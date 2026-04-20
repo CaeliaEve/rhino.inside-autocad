@@ -56,16 +56,16 @@ public class SetAutocadDynamicPropertiesComponent : RhinoInsideAutocad_Component
     /// </summary>
 
     private void UpdatePropertyValue(
-        ITransactionManager transactionManagerWrapper, object value,
+        IAutocadTransactionManager autocadTransactionWrapper, object value,
         DynamicBlockReferencePropertyWrapper property)
     {
-        using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
+        using var transaction = autocadTransactionWrapper.Unwrap().StartTransaction();
 
         var valueObject = value is IGH_Goo valueGoo
             ? valueGoo.GetType().GetProperty("Value").GetValue(valueGoo, null)
             : value;
 
-        _ = property.SetValue(valueObject, transactionManagerWrapper);
+        _ = property.SetValue(valueObject, autocadTransactionWrapper);
 
         transaction.Commit();
     }
@@ -84,12 +84,14 @@ public class SetAutocadDynamicPropertiesComponent : RhinoInsideAutocad_Component
         var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
-        _ = document.Transaction((transactionManager) =>
-        {
+        var transactionManagerWrapper = document.CreateTransactionManager();
 
-            this.UpdatePropertyValue(transactionManager, value, property);
-            return true;
-        });
+        _ = transactionManagerWrapper.PerformTask(() =>
+         {
+
+             this.UpdatePropertyValue(transactionManagerWrapper, value, property);
+             return true;
+         });
 
         var goo = new GH_DynamicBlockReferenceProperty(property);
 

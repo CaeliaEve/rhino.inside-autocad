@@ -32,7 +32,9 @@ public class PreviewGeometryConverter : IPreviewGeometryConverter
     {
         if (this.TryGetActiveDocument(out var activeDocument) == false) return new List<IEntity>();
 
-        return activeDocument.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = activeDocument.CreateTransactionManager();
+
+        return transactionManagerWrapper.PerformTask(() =>
         {
             var entities = new List<IEntity>();
             foreach (var rhinoGeometry in rhinoGeometries)

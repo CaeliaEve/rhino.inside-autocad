@@ -14,16 +14,18 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
     }
 
     ///<inheritdoc />
-    public override void Repopulate()
+    public override void Update()
     {
         _objects.Clear();
 
-        _ = _document.Transaction(transactionManagerWrapper =>
+        var transactionManagerWrapper = _document.CreateTransactionManager();
+
+        _ = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
             using var layouts = (DBDictionary)transactionManager
-                .GetObject(_document.Database.LayoutDictionaryId.Unwrap(), OpenMode.ForRead);
+                .GetObject(_document.AutocadDatabase.LayoutDictionaryId.Unwrap(), OpenMode.ForRead);
 
             foreach (var entity in layouts)
             {
@@ -43,9 +45,9 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
     /// </summary>
     private IAutocadLayout CreateLayout(string name)
     {
-        using var documentLock = _document.Unwrap().LockDocument();
+        var transactionManagerWrapper = _document.CreateTransactionManager();
 
-        var layoutWrapper = _document.Transaction(transactionManagerWrapper =>
+        var layoutWrapper = transactionManagerWrapper.PerformTask(() =>
         {
             var transactionManager = transactionManagerWrapper.Unwrap();
 
@@ -55,7 +57,7 @@ public class LayoutRegister : RegisterBase<IAutocadLayout>, ILayoutRegister
             };
 
             using var layoutDictionary = (DBDictionary)transactionManager.GetObject(
-                _document.Database.LayoutDictionaryId.Unwrap(), OpenMode.ForWrite);
+                _document.AutocadDatabase.LayoutDictionaryId.Unwrap(), OpenMode.ForWrite);
 
             layoutDictionary[name] = layout;
 

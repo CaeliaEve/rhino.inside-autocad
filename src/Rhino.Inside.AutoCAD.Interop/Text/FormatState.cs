@@ -5,7 +5,6 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// <inheritdoc cref="IFormatState"/>
 public class FormatState : IFormatState
 {
-
     /// <inheritdoc />
     public string FontName { get; set; }
 
