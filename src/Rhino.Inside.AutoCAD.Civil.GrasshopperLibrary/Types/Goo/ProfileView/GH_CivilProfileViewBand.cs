@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D ProfileView bands.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilProfileViewBandWrapper"/> containing
+/// This Goo wraps a <see cref="CivilProfileViewBand"/> containing
 /// band information from a ProfileView.
 /// </remarks>
-public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBandWrapper>
+public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBand>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilProfileViewBand"/> class with no value.
@@ -25,7 +25,7 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBandWrapper>
     /// specified ProfileView band wrapper.
     /// </summary>
     /// <param name="profileViewBand">The Civil 3D ProfileView band wrapper.</param>
-    public GH_CivilProfileViewBand(CivilProfileViewBandWrapper profileViewBand) : base(profileViewBand)
+    public GH_CivilProfileViewBand(CivilProfileViewBand profileViewBand) : base(profileViewBand)
     {
     }
 
@@ -42,7 +42,7 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBandWrapper>
     /// Constructs a new <see cref="GH_CivilProfileViewBand"/> via the interface.
     /// </summary>
     public GH_CivilProfileViewBand(ICivilProfileViewBand profileViewBand)
-        : base((profileViewBand as CivilProfileViewBandWrapper)!)
+        : base((profileViewBand as CivilProfileViewBand)!)
     {
     }
 
@@ -81,7 +81,7 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBandWrapper>
             return true;
         }
 
-        if (source is CivilProfileViewBandWrapper wrapper)
+        if (source is CivilProfileViewBand wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
@@ -89,7 +89,7 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBandWrapper>
 
         if (source is ICivilProfileViewBand band)
         {
-            Value = (band as CivilProfileViewBandWrapper)?.Duplicate();
+            Value = (band as CivilProfileViewBand)?.Duplicate();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBandWrapper>
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilProfileViewBandWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilProfileViewBand)))
         {
             target = (Q)(object)Value!;
             return true;

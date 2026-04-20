@@ -8,24 +8,13 @@ namespace Rhino.Inside.AutoCAD.Core.Interfaces;
 /// <remarks>
 /// Surface contours in Civil 3D represent lines of equal elevation on a TIN surface.
 /// This interface provides access to the contour's geometry, type, and elevation information.
-/// <para>
-/// Contour types are represented as integers:
-/// <list type="bullet">
-/// <item><description>0 = All contours</description></item>
-/// <item><description>1 = Major contours</description></item>
-/// <item><description>2 = Minor contours</description></item>
-/// </list>
-/// </para>
 /// </remarks>
 public interface ICivilSurfaceContour
 {
     /// <summary>
-    /// Gets the contour type as an integer.
+    /// Gets the contour type (Major or Minor).
     /// </summary>
-    /// <value>
-    /// 0 = All, 1 = Major, 2 = Minor
-    /// </value>
-    int ContourType { get; }
+    ContourType ContourType { get; }
 
     /// <summary>
     /// Gets the contour geometry as a Rhino curve.

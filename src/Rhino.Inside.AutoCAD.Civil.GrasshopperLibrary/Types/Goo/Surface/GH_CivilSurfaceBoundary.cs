@@ -10,10 +10,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D surface boundaries.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilSurfaceBoundaryWrapper"/> and provides
+/// This Goo wraps a <see cref="CivilSurfaceBoundary"/> and provides
 /// preview support for displaying the boundary polyline in viewports.
 /// </remarks>
-public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapper>, IGH_PreviewData
+public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IGH_PreviewData
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilSurfaceBoundary"/> class with no value.
@@ -27,7 +27,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapp
     /// specified boundary wrapper.
     /// </summary>
     /// <param name="boundary">The Civil 3D surface boundary wrapper.</param>
-    public GH_CivilSurfaceBoundary(CivilSurfaceBoundaryWrapper boundary) : base(boundary)
+    public GH_CivilSurfaceBoundary(CivilSurfaceBoundary boundary) : base(boundary)
     {
     }
 
@@ -44,7 +44,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapp
     /// Constructs a new <see cref="GH_CivilSurfaceBoundary"/> via the interface.
     /// </summary>
     public GH_CivilSurfaceBoundary(ICivilSurfaceBoundary boundary)
-        : base((boundary as CivilSurfaceBoundaryWrapper)!)
+        : base((boundary as CivilSurfaceBoundary)!)
     {
     }
 
@@ -114,7 +114,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapp
         var transformedPolyline = new Polyline(Value.Polyline);
         transformedPolyline.Transform(xform);
 
-        var transformed = new CivilSurfaceBoundaryWrapper(
+        var transformed = new CivilSurfaceBoundary(
             Value.BoundaryType,
             transformedPolyline,
             Value.Name);
@@ -134,7 +134,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapp
             morphedPolyline.Add(xmorph.MorphPoint(point));
         }
 
-        var morphed = new CivilSurfaceBoundaryWrapper(
+        var morphed = new CivilSurfaceBoundary(
             Value.BoundaryType,
             morphedPolyline,
             Value.Name);
@@ -151,7 +151,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapp
             return true;
         }
 
-        if (source is CivilSurfaceBoundaryWrapper wrapper)
+        if (source is CivilSurfaceBoundary wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
@@ -159,7 +159,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapp
 
         if (source is ICivilSurfaceBoundary boundary)
         {
-            Value = (boundary as CivilSurfaceBoundaryWrapper)?.Duplicate();
+            Value = (boundary as CivilSurfaceBoundary)?.Duplicate();
             return Value != null;
         }
 
@@ -169,7 +169,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundaryWrapp
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceBoundaryWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceBoundary)))
         {
             target = (Q)(object)Value!;
             return true;

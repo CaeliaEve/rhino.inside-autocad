@@ -13,7 +13,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// This Goo wraps a <see cref="CivilParcelSegmentWrapper"/> and provides
 /// preview support for displaying the segment curve in viewports.
 /// </remarks>
-public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>, IGH_PreviewData
+public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegment>, IGH_PreviewData
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilParcelSegment"/> class with no value.
@@ -27,7 +27,7 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// specified segment wrapper.
     /// </summary>
     /// <param name="segment">The Civil 3D parcel segment wrapper.</param>
-    public GH_CivilParcelSegment(CivilParcelSegmentWrapper segment) : base(segment)
+    public GH_CivilParcelSegment(CivilParcelSegment segment) : base(segment)
     {
     }
 
@@ -36,7 +36,7 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilParcelSegment(GH_CivilParcelSegment other) : base(other.Value?.Duplicate())
+    public GH_CivilParcelSegment(GH_CivilParcelSegment other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -44,21 +44,21 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// Constructs a new <see cref="GH_CivilParcelSegment"/> via the interface.
     /// </summary>
     public GH_CivilParcelSegment(ICivilParcelSegment segment)
-        : base((segment as CivilParcelSegmentWrapper)!)
+        : base((segment as CivilParcelSegment)!)
     {
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value?.Curve != null && Value.Curve.IsValid;
+    public override bool IsValid => this.Value?.Curve != null && this.Value.Curve.IsValid;
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No parcel segment data";
-            if (Value.Curve == null || !Value.Curve.IsValid)
+            if (this.Value.Curve == null || !this.Value.Curve.IsValid)
                 return "Invalid segment geometry";
             return string.Empty;
         }
@@ -75,15 +75,15 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     {
         get
         {
-            if (Value?.Curve == null)
+            if (this.Value?.Curve == null)
                 return BoundingBox.Empty;
 
-            return Value.Curve.GetBoundingBox(true);
+            return this.Value.Curve.GetBoundingBox(true);
         }
     }
 
     /// <inheritdoc />
-    public BoundingBox ClippingBox => Boundingbox;
+    public BoundingBox ClippingBox => this.Boundingbox;
 
     /// <inheritdoc />
     public override IGH_Goo Duplicate()
@@ -100,7 +100,7 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// <inheritdoc />
     public override BoundingBox GetBoundingBox(Transform xform)
     {
-        var box = Boundingbox;
+        var box = this.Boundingbox;
         box.Transform(xform);
         return box;
     }
@@ -108,19 +108,14 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// <inheritdoc />
     public override IGH_GeometricGoo Transform(Transform xform)
     {
-        if (Value?.Curve == null)
+        if (this.Value?.Curve == null)
             return this;
 
-        var transformedCurve = Value.Curve.DuplicateCurve();
+        var transformedCurve = this.Value.Curve.DuplicateCurve();
         transformedCurve.Transform(xform);
 
-        var transformed = new CivilParcelSegmentWrapper(
-            Value.SegmentType,
-            Value.Length,
-            Value.Direction,
-            Value.Radius,
-            Value.Index,
-            transformedCurve);
+        var transformed = new CivilParcelSegment(transformedCurve,
+            this.Value.Index);
 
         return new GH_CivilParcelSegment(transformed);
     }
@@ -128,19 +123,14 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// <inheritdoc />
     public override IGH_GeometricGoo Morph(SpaceMorph xmorph)
     {
-        if (Value?.Curve == null)
+        if (this.Value?.Curve == null)
             return this;
 
-        var morphedCurve = Value.Curve.DuplicateCurve();
+        var morphedCurve = this.Value.Curve.DuplicateCurve();
         xmorph.Morph(morphedCurve);
 
-        var morphed = new CivilParcelSegmentWrapper(
-            Value.SegmentType,
-            Value.Length,
-            Value.Direction,
-            Value.Radius,
-            Value.Index,
-            morphedCurve);
+        var morphed = new CivilParcelSegment(morphedCurve,
+            this.Value.Index);
 
         return new GH_CivilParcelSegment(morphed);
     }
@@ -150,20 +140,20 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     {
         if (source is GH_CivilParcelSegment goo)
         {
-            Value = goo.Value?.Duplicate();
+            this.Value = goo.Value?.ShallowClone();
             return true;
         }
 
-        if (source is CivilParcelSegmentWrapper wrapper)
+        if (source is CivilParcelSegment wrapper)
         {
-            Value = wrapper.Duplicate();
+            this.Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilParcelSegment segment)
         {
-            Value = (segment as CivilParcelSegmentWrapper)?.Duplicate();
-            return Value != null;
+            this.Value = (segment as CivilParcelSegment)?.ShallowClone();
+            return this.Value != null;
         }
 
         return false;
@@ -172,9 +162,9 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilParcelSegmentWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilParcelSegment)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -185,16 +175,16 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
         }
 
         // Cast to GH_Curve
-        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && this.Value?.Curve != null)
         {
-            target = (Q)(object)new GH_Curve(Value.Curve.DuplicateCurve());
+            target = (Q)(object)new GH_Curve(this.Value.Curve.DuplicateCurve());
             return true;
         }
 
         // Cast to Curve
-        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && this.Value?.Curve != null)
         {
-            target = (Q)(object)Value.Curve.DuplicateCurve();
+            target = (Q)(object)this.Value.Curve.DuplicateCurve();
             return true;
         }
 
@@ -204,10 +194,10 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// <inheritdoc />
     public void DrawViewportWires(GH_PreviewWireArgs args)
     {
-        if (Value?.Curve == null)
+        if (this.Value?.Curve == null)
             return;
 
-        args.Pipeline.DrawCurve(Value.Curve, args.Color, args.Thickness);
+        args.Pipeline.DrawCurve(this.Value.Curve, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />
@@ -219,9 +209,9 @@ public class GH_CivilParcelSegment : GH_GeometricGoo<CivilParcelSegmentWrapper>,
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d Parcel Segment";
 
-        return Value.ToString();
+        return this.Value.ToString();
     }
 }

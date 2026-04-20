@@ -4,7 +4,9 @@ using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CadPoint3d = Autodesk.AutoCAD.Geometry.Point3d;
+using CivilSurfaceBoundaryType = Autodesk.Civil.SurfaceBoundaryType;
 using RhinoPolyline = Rhino.Geometry.Polyline;
+using SurfaceBoundaryType = Rhino.Inside.AutoCAD.Core.SurfaceBoundaryType;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -18,9 +20,9 @@ public static class CivilSurfaceBoundaryExtensions
     /// </summary>
     /// <param name="surface">The TIN surface to extract boundaries from.</param>
     /// <returns>A list of boundary wrappers containing the extracted boundary data.</returns>
-    public static IReadOnlyList<CivilSurfaceBoundaryWrapper> GetBoundaries(this TinSurface surfaceRaw, IAutocadTransactionManager transaction)
+    public static IReadOnlyList<CivilSurfaceBoundary> GetBoundaries(this TinSurface surfaceRaw, IAutocadTransactionManager transaction)
     {
-        var boundaries = new List<CivilSurfaceBoundaryWrapper>();
+        var boundaries = new List<CivilSurfaceBoundary>();
 
         var surface = transaction.Unwrap()
             .GetObject(surfaceRaw.Id, OpenMode.ForWrite) as TinSurface;
@@ -29,7 +31,7 @@ public static class CivilSurfaceBoundaryExtensions
         var outerBorder = ExtractOuterBorder(surface, transaction);
         if (outerBorder != null)
         {
-            boundaries.Add(new CivilSurfaceBoundaryWrapper(0, outerBorder, "Outer Border"));
+            boundaries.Add(new CivilSurfaceBoundary(SurfaceBoundaryType.Outer, outerBorder, "Outer Border"));
         }
 
         // Process defined boundaries from BoundariesDefinition
@@ -41,7 +43,7 @@ public static class CivilSurfaceBoundaryExtensions
             var boundaryOp = boundariesDefinition[i];
 
             // Get boundary type and name from the operation
-            var boundaryTypeInt = ConvertBoundaryType(boundaryOp.BoundaryType);
+            var boundaryType = ConvertBoundaryType(boundaryOp.BoundaryType);
             var opName = boundaryOp.Name ?? $"BoundaryOp_{i}";
 
             // SurfaceOperationAddBoundary is a collection of SurfaceBoundary objects
@@ -54,7 +56,7 @@ public static class CivilSurfaceBoundaryExtensions
                 if (polyline != null && polyline.Count >= 3)
                 {
                     var name = boundaryOp.Count > 1 ? $"{opName}_{j}" : opName;
-                    boundaries.Add(new CivilSurfaceBoundaryWrapper(boundaryTypeInt, polyline, name));
+                    boundaries.Add(new CivilSurfaceBoundary(boundaryType, polyline, name));
                 }
             }
         }
@@ -161,17 +163,17 @@ public static class CivilSurfaceBoundaryExtensions
     }
 
     /// <summary>
-    /// Converts the Civil 3D SurfaceBoundaryType enum to an integer.
+    /// Converts the Civil 3D SurfaceBoundaryType enum to our SurfaceBoundaryType enum.
     /// </summary>
-    private static int ConvertBoundaryType(SurfaceBoundaryType boundaryType)
+    private static SurfaceBoundaryType ConvertBoundaryType(CivilSurfaceBoundaryType boundaryType)
     {
         return boundaryType switch
         {
-            SurfaceBoundaryType.Outer => 0,
-            SurfaceBoundaryType.DataClip => 1,
-            SurfaceBoundaryType.Hide => 2,
-            SurfaceBoundaryType.Show => 3,
-            _ => -1
+            CivilSurfaceBoundaryType.Outer => SurfaceBoundaryType.Outer,
+            CivilSurfaceBoundaryType.DataClip => SurfaceBoundaryType.DataClip,
+            CivilSurfaceBoundaryType.Hide => SurfaceBoundaryType.Hide,
+            CivilSurfaceBoundaryType.Show => SurfaceBoundaryType.Show,
+            _ => SurfaceBoundaryType.Outer
         };
     }
 }

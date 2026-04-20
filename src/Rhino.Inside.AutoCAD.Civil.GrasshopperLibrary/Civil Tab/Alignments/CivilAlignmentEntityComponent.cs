@@ -68,6 +68,6 @@ public class CivilAlignmentEntityComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(2, entity.EndStation);
         DA.SetData(3, entity.Length);
         DA.SetData(4, entity.EntityIndex);
-        DA.SetData(5, entity.Curve);
+        DA.SetData(5, entity.ToRhinoCurve());
     }
 }

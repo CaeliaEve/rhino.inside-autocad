@@ -36,7 +36,7 @@ public class GH_CivilCorridorSurface : GH_GeometricGoo<CivilCorridorSurfaceWrapp
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilCorridorSurface(GH_CivilCorridorSurface other) : base(other.Value?.Duplicate())
+    public GH_CivilCorridorSurface(GH_CivilCorridorSurface other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -108,7 +108,7 @@ public class GH_CivilCorridorSurface : GH_GeometricGoo<CivilCorridorSurfaceWrapp
         if (Value == null)
             return this;
 
-        var duplicated = Value.Duplicate();
+        var duplicated = Value.ShallowClone();
         duplicated.Mesh?.Transform(xform);
         return new GH_CivilCorridorSurface(duplicated);
     }
@@ -119,7 +119,7 @@ public class GH_CivilCorridorSurface : GH_GeometricGoo<CivilCorridorSurfaceWrapp
         if (Value == null)
             return this;
 
-        var duplicated = Value.Duplicate();
+        var duplicated = Value.ShallowClone();
         xmorph.Morph(duplicated.Mesh);
         return new GH_CivilCorridorSurface(duplicated);
     }
@@ -129,19 +129,19 @@ public class GH_CivilCorridorSurface : GH_GeometricGoo<CivilCorridorSurfaceWrapp
     {
         if (source is GH_CivilCorridorSurface goo)
         {
-            Value = goo.Value?.Duplicate();
+            Value = goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilCorridorSurfaceWrapper wrapper)
         {
-            Value = wrapper.Duplicate();
+            Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilCorridorSurface surface)
         {
-            Value = (surface as CivilCorridorSurfaceWrapper)?.Duplicate();
+            Value = (surface as CivilCorridorSurfaceWrapper)?.ShallowClone();
             return Value != null;
         }
 

@@ -166,7 +166,7 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(alignment.StyleId)));
 
-        DA.SetData(2, new GH_CivilAlignmentProperties(new CivilAlignmentPropertiesWrapper(alignment)));
+        DA.SetData(2, new GH_CivilAlignmentProperties(new CivilAlignmentProperties(alignment)));
 
         var alignmentData = transactionManager.PerformTask(() => new
         {

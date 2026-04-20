@@ -78,7 +78,7 @@ public class CivilProfilePropertiesComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(3, props.EndStation);
         DA.SetData(4, props.MinElevation);
         DA.SetData(5, props.MaxElevation);
-        DA.SetData(6, props.ProfileTypeName);
+        DA.SetData(6, props.ProfileType.ToString());
         DA.SetData(7, props.EntityCount);
         DA.SetData(8, props.ParentAlignmentName);
     }

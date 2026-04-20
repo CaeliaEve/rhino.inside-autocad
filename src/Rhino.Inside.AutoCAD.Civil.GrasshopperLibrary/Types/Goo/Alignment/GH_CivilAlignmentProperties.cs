@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D Alignment properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilAlignmentPropertiesWrapper"/> containing
+/// This Goo wraps a <see cref="CivilAlignmentProperties"/> containing
 /// properties from an Alignment.
 /// </remarks>
-public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentPropertiesWrapper>
+public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentProperties>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilAlignmentProperties"/> class with no value.
@@ -25,7 +25,7 @@ public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentPropertiesWrappe
     /// specified alignment properties wrapper.
     /// </summary>
     /// <param name="alignmentProperties">The Civil 3D alignment properties wrapper.</param>
-    public GH_CivilAlignmentProperties(CivilAlignmentPropertiesWrapper alignmentProperties) : base(alignmentProperties)
+    public GH_CivilAlignmentProperties(CivilAlignmentProperties alignmentProperties) : base(alignmentProperties)
     {
     }
 
@@ -34,7 +34,7 @@ public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentPropertiesWrappe
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilAlignmentProperties(GH_CivilAlignmentProperties other) : base(other.Value?.Duplicate())
+    public GH_CivilAlignmentProperties(GH_CivilAlignmentProperties other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -42,19 +42,19 @@ public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentPropertiesWrappe
     /// Constructs a new <see cref="GH_CivilAlignmentProperties"/> via the interface.
     /// </summary>
     public GH_CivilAlignmentProperties(ICivilAlignmentProperties alignmentProperties)
-        : base((alignmentProperties as CivilAlignmentPropertiesWrapper)!)
+        : base((alignmentProperties as CivilAlignmentProperties)!)
     {
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value != null;
+    public override bool IsValid => this.Value != null;
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No alignment properties data";
             return string.Empty;
         }
@@ -77,20 +77,20 @@ public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentPropertiesWrappe
     {
         if (source is GH_CivilAlignmentProperties goo)
         {
-            Value = goo.Value?.Duplicate();
+            this.Value = goo.Value?.ShallowClone();
             return true;
         }
 
-        if (source is CivilAlignmentPropertiesWrapper wrapper)
+        if (source is CivilAlignmentProperties wrapper)
         {
-            Value = wrapper.Duplicate();
+            this.Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilAlignmentProperties props)
         {
-            Value = (props as CivilAlignmentPropertiesWrapper)?.Duplicate();
-            return Value != null;
+            this.Value = (props as CivilAlignmentProperties)?.ShallowClone();
+            return this.Value != null;
         }
 
         return false;
@@ -99,9 +99,9 @@ public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentPropertiesWrappe
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilAlignmentPropertiesWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilAlignmentProperties)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -117,9 +117,9 @@ public class GH_CivilAlignmentProperties : GH_Goo<CivilAlignmentPropertiesWrappe
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d Alignment Properties";
 
-        return Value.ToString();
+        return this.Value.ToString();
     }
 }

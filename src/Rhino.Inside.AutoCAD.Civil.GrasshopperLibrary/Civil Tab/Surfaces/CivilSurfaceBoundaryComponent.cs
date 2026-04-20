@@ -36,8 +36,8 @@ public class CivilSurfaceBoundaryComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddIntegerParameter("Type", "T",
-            "Boundary type (0=Outer, 1=DataClip, 2=Hide, 3=Show)", GH_ParamAccess.item);
+        pManager.AddTextParameter("Type", "T",
+            "Boundary type (Outer, DataClip, Hide, or Show)", GH_ParamAccess.item);
 
         pManager.AddCurveParameter("Polyline", "P",
             "The boundary polyline geometry", GH_ParamAccess.item);
@@ -59,8 +59,8 @@ public class CivilSurfaceBoundaryComponent : RhinoInsideAutocad_ComponentBase
 
         var boundary = boundaryGoo.Value;
 
-        // Output boundary type
-        DA.SetData(0, boundary.BoundaryType);
+        // Output boundary type as string
+        DA.SetData(0, boundary.BoundaryType.ToString());
 
         // Output polyline as curve
         if (boundary.Polyline != null && boundary.Polyline.Count >= 2)

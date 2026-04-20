@@ -41,9 +41,6 @@ public class CivilParcelSegmentComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddNumberParameter("Length", "Len",
             "The length of this segment.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Direction", "Dir",
-            "The direction (bearing) of this segment in radians.", GH_ParamAccess.item);
-
         pManager.AddNumberParameter("Radius", "R",
             "The radius of this segment (0 for lines).", GH_ParamAccess.item);
 
@@ -63,10 +60,13 @@ public class CivilParcelSegmentComponent : RhinoInsideAutocad_ComponentBase
 
         var segment = segmentGoo.Value;
 
-        DA.SetData(0, segment.SegmentType);
-        DA.SetData(1, segment.Length);
-        DA.SetData(2, segment.Direction);
-        DA.SetData(3, segment.Radius);
+        var radius = -1.0;
+        if (segment.Curve.TryGetArc(out var arc))
+            radius = arc.Radius;
+
+        DA.SetData(0, segment.Curve.GetType().Name);
+        DA.SetData(1, segment.Curve.GetLength());
+        DA.SetData(3, radius);
         DA.SetData(4, segment.Index);
         DA.SetData(5, segment.Curve);
     }

@@ -1,7 +1,5 @@
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilParcel = Autodesk.Civil.DatabaseServices.Parcel;
@@ -60,7 +58,7 @@ public class GH_CivilParcel : GH_AutocadGeometricGoo<CivilParcel, RhinoGeometryA
     /// <inheritdoc />
     protected override RhinoGeometryAdapter<RhinoCurve>? Convert(CivilParcel wrapperType)
     {
-        var curve = wrapperType.ToRhinoBoundary();
+        var curve = wrapperType.BaseCurve.ToRhinoCurve();
         return curve != null ? new RhinoGeometryAdapter<RhinoCurve>(curve) : null;
     }
 

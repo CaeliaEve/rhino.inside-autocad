@@ -34,7 +34,7 @@ public class GH_CivilSite : GH_Goo<CivilSiteWrapper>
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilSite(GH_CivilSite other) : base(other.Value?.Duplicate())
+    public GH_CivilSite(GH_CivilSite other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -77,19 +77,19 @@ public class GH_CivilSite : GH_Goo<CivilSiteWrapper>
     {
         if (source is GH_CivilSite goo)
         {
-            Value = goo.Value?.Duplicate();
+            Value = goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilSiteWrapper wrapper)
         {
-            Value = wrapper.Duplicate();
+            Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilSite site)
         {
-            Value = (site as CivilSiteWrapper)?.Duplicate();
+            Value = (site as CivilSiteWrapper)?.ShallowClone();
             return Value != null;
         }
 

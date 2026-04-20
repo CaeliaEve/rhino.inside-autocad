@@ -3,6 +3,7 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -10,10 +11,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D profile parabola (vertical curve) entities.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilProfileParabolaWrapper"/> and provides
+/// This Goo wraps a <see cref="CivilProfileSymmetricalParabolaWrapper"/> and provides
 /// preview support for displaying the parabola in viewports.
 /// </remarks>
-public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapper>, IGH_PreviewData
+public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileSymmetricalParabolaWrapper>, IGH_PreviewData
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilProfileParabola"/> class with no value.
@@ -26,8 +27,8 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     /// Initializes a new instance of the <see cref="GH_CivilProfileParabola"/> class with the
     /// specified parabola wrapper.
     /// </summary>
-    /// <param name="parabola">The Civil 3D profile parabola wrapper.</param>
-    public GH_CivilProfileParabola(CivilProfileParabolaWrapper parabola) : base(parabola)
+    /// <param name="symmetricalParabola">The Civil 3D profile parabola wrapper.</param>
+    public GH_CivilProfileParabola(CivilProfileSymmetricalParabolaWrapper symmetricalParabola) : base(symmetricalParabola)
     {
     }
 
@@ -36,30 +37,41 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilProfileParabola(GH_CivilProfileParabola other) : base(other.Value?.Duplicate())
+    public GH_CivilProfileParabola(GH_CivilProfileParabola other) : base(other.Value?.ShallowClone())
     {
     }
 
     /// <summary>
     /// Constructs a new <see cref="GH_CivilProfileParabola"/> via the interface.
     /// </summary>
-    public GH_CivilProfileParabola(ICivilProfileParabola parabola)
-        : base((parabola as CivilProfileParabolaWrapper)!)
+    public GH_CivilProfileParabola(ICivilProfileSymmetricalParabola symmetricalParabola)
+        : base((symmetricalParabola as CivilProfileSymmetricalParabolaWrapper)!)
     {
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value?.Curve != null && Value.Curve.IsValid;
+    public override bool IsValid
+    {
+        get
+        {
+            var rhinoCurve = this.Value?.ToRhinoCurve();
+            return rhinoCurve is { IsValid: true };
+        }
+    }
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No profile parabola data";
-            if (Value.Curve == null || !Value.Curve.IsValid)
+
+            var rhinoCurve = this.Value?.ToRhinoCurve();
+
+            if (rhinoCurve is not { IsValid: true })
                 return "Invalid parabola geometry";
+
             return string.Empty;
         }
     }
@@ -75,15 +87,16 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     {
         get
         {
-            if (Value?.Curve == null)
+            var rhinoCurve = this.Value?.ToRhinoCurve();
+            if (rhinoCurve == null)
                 return BoundingBox.Empty;
 
-            return Value.Curve.GetBoundingBox(true);
+            return rhinoCurve.GetBoundingBox(true);
         }
     }
 
     /// <inheritdoc />
-    public BoundingBox ClippingBox => Boundingbox;
+    public BoundingBox ClippingBox => this.Boundingbox;
 
     /// <inheritdoc />
     public override IGH_Goo Duplicate()
@@ -100,7 +113,7 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     /// <inheritdoc />
     public override BoundingBox GetBoundingBox(Transform xform)
     {
-        var box = Boundingbox;
+        var box = this.Boundingbox;
         box.Transform(xform);
         return box;
     }
@@ -108,60 +121,17 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     /// <inheritdoc />
     public override IGH_GeometricGoo Transform(Transform xform)
     {
-        if (Value?.Curve == null)
-            return this;
-
-        var transformedCurve = Value.Curve.DuplicateCurve();
-        transformedCurve.Transform(xform);
-
-        Point3d? transformedHighLow = null;
-        if (Value.HighLowPoint.HasValue)
-        {
-            var pt = Value.HighLowPoint.Value;
-            pt.Transform(xform);
-            transformedHighLow = pt;
-        }
-
-        var transformed = new CivilProfileParabolaWrapper(
-            Value.StartStation,
-            Value.EndStation,
-            Value.StartElevation,
-            Value.EndElevation,
-            Value.Length,
-            Value.EntityIndex,
-            Value.KValue,
-            Value.PVIStation,
-            Value.PVIElevation,
-            transformedHighLow,
-            transformedCurve);
-
-        return new GH_CivilProfileParabola(transformed);
+        // These are read-only wrappers around Civil 3D profile entities,
+        // so we won't apply transformations to the underlying geometry.
+        return this;
     }
 
     /// <inheritdoc />
     public override IGH_GeometricGoo Morph(SpaceMorph xmorph)
     {
-        if (Value?.Curve == null)
-            return this;
-
-        var morphedCurve = Value.Curve.DuplicateCurve();
-        xmorph.Morph(morphedCurve);
-
-        // Cannot properly morph high/low point, keep original values
-        var morphed = new CivilProfileParabolaWrapper(
-            Value.StartStation,
-            Value.EndStation,
-            Value.StartElevation,
-            Value.EndElevation,
-            Value.Length,
-            Value.EntityIndex,
-            Value.KValue,
-            Value.PVIStation,
-            Value.PVIElevation,
-            Value.HighLowPoint,
-            morphedCurve);
-
-        return new GH_CivilProfileParabola(morphed);
+        // These are read-only wrappers around Civil 3D profile entities,
+        // so we won't apply transformations to the underlying geometry.
+        return this;
     }
 
     /// <inheritdoc />
@@ -169,20 +139,20 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     {
         if (source is GH_CivilProfileParabola goo)
         {
-            Value = goo.Value?.Duplicate();
+            this.Value = goo.Value?.ShallowClone();
             return true;
         }
 
-        if (source is CivilProfileParabolaWrapper wrapper)
+        if (source is CivilProfileSymmetricalParabolaWrapper wrapper)
         {
-            Value = wrapper.Duplicate();
+            this.Value = wrapper.ShallowClone();
             return true;
         }
 
-        if (source is ICivilProfileParabola parabola)
+        if (source is ICivilProfileSymmetricalParabola parabola)
         {
-            Value = (parabola as CivilProfileParabolaWrapper)?.Duplicate();
-            return Value != null;
+            this.Value = (parabola as CivilProfileSymmetricalParabolaWrapper)?.ShallowClone();
+            return this.Value != null;
         }
 
         return false;
@@ -191,9 +161,9 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilProfileParabolaWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilProfileSymmetricalParabolaWrapper)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -203,17 +173,19 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
             return true;
         }
 
+        var rhinoCurve = this.Value?.ToRhinoCurve();
+
         // Cast to GH_Curve
-        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && rhinoCurve != null)
         {
-            target = (Q)(object)new GH_Curve(Value.Curve.DuplicateCurve());
+            target = (Q)(object)new GH_Curve(rhinoCurve.DuplicateCurve());
             return true;
         }
 
         // Cast to Curve
-        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && rhinoCurve != null)
         {
-            target = (Q)(object)Value.Curve.DuplicateCurve();
+            target = (Q)(object)rhinoCurve.DuplicateCurve();
             return true;
         }
 
@@ -223,10 +195,12 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     /// <inheritdoc />
     public void DrawViewportWires(GH_PreviewWireArgs args)
     {
-        if (Value?.Curve == null)
+        var rhinoCurve = this.Value?.ToRhinoCurve();
+
+        if (rhinoCurve == null)
             return;
 
-        args.Pipeline.DrawCurve(Value.Curve, args.Color, args.Thickness);
+        args.Pipeline.DrawCurve(rhinoCurve, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />
@@ -238,9 +212,9 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileParabolaWrapp
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d Profile Parabola";
 
-        return Value.ToString();
+        return this.Value.ToString();
     }
 }

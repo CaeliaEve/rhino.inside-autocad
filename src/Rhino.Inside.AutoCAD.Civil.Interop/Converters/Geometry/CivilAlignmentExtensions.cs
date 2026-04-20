@@ -34,15 +34,15 @@ public static class CivilAlignmentExtensions
             return null;
 
         if (entities.Count == 1)
-            return entities[0].Curve;
+            return entities[0].ToRhinoCurve();
 
         // Join multiple entities into a PolyCurve
         var polyCurve = new RhinoPolyCurve();
         foreach (var entity in entities)
         {
-            if (entity.Curve != null)
+            if (entity.ToRhinoCurve() != null)
             {
-                polyCurve.Append(entity.Curve);
+                polyCurve.Append(entity.ToRhinoCurve());
             }
         }
 
@@ -87,51 +87,14 @@ public static class CivilAlignmentExtensions
         for (var i = 0; i < entityCollection.Count; i++)
         {
             var entity = entityCollection[i];
-            var curve = ConvertEntityToCurve(entity);
 
-            if (curve != null)
-            {
-                // Extract station info from concrete entity types
-                var (startStation, endStation, length) = GetEntityStationInfo(entity, curve);
+            var wrapper = new CivilAlignmentEntityWrapper(entity, i);
 
-                var wrapper = new CivilAlignmentEntityWrapper(
-                    entity.EntityType.ToString(),
-                    startStation,
-                    endStation,
-                    length,
-                    i,
-                    curve);
-
-                entities.Add(wrapper);
-            }
+            entities.Add(wrapper);
         }
 
         return entities;
     }
-
-    /// <summary>
-    /// Gets station information from an alignment entity.
-    /// </summary>
-    private static (double StartStation, double EndStation, double Length) GetEntityStationInfo(
-        AlignmentEntity entity,
-        RhinoCurve curve)
-    {
-        // Each concrete type has its own station properties
-        // Note: Civil 3D API reuses classes like AlignmentSCS for multiple entity types
-        return entity switch
-        {
-            AlignmentLine line => (line.StartStation, line.EndStation, line.Length),
-            AlignmentArc arc => (arc.StartStation, arc.EndStation, arc.Length),
-            AlignmentSpiral spiral => (spiral.StartStation, spiral.EndStation, spiral.Length),
-            AlignmentSCS scs => (scs.StartStation, scs.EndStation, scs.Length),
-            AlignmentSTS sts => (sts.StartStation, sts.EndStation, sts.Length),
-            AlignmentSSCSS sscss => (sscss.StartStation, sscss.EndStation, sscss.Length),
-            AlignmentCRC crc => (crc.StartStation, crc.EndStation, crc.Length),
-            // Fallback: use curve length for unknown types
-            _ => (0.0, curve.GetLength(), curve.GetLength())
-        };
-    }
-
 
     /// <summary>
     /// Converts an individual alignment entity to a Rhino curve.
@@ -140,17 +103,36 @@ public static class CivilAlignmentExtensions
     /// Civil 3D API reuses classes like AlignmentSCS for multiple entity types
     /// (e.g., SpiralCurve, CurveSpiral, SpiralSpiral between lines all use AlignmentSCS).
     /// </remarks>
-    private static RhinoCurve? ConvertEntityToCurve(AlignmentEntity entity)
+    public static RhinoCurve? ToRhinoCurve(this AlignmentEntity entity)
     {
         return entity switch
         {
-            AlignmentLine line => ConvertLineToCurve(line),
-            AlignmentArc arc => ConvertArcToCurve(arc),
-            AlignmentSpiral spiral => ConvertSpiralToCurve(spiral),
-            AlignmentSCS scs => ConvertCompositeToCurve(scs),
-            AlignmentSTS sts => ConvertCompositeToCurve(sts),
-            AlignmentSSCSS sscss => ConvertCompositeToCurve(sscss),
-            AlignmentCRC crc => ConvertCompositeToCurve(crc),
+            AlignmentLine line => ToRhinoLineCurve(line),
+            AlignmentArc arc => ToRhinoArcCurve(arc),
+            AlignmentSpiral spiral => ToRhinoSpiralCurve(spiral),
+            AlignmentSCS scs => ToRhinoPolyCurve(scs),
+            AlignmentSTS sts => ToRhinoPolyCurve(sts),
+            AlignmentSSCSS sscss => ToRhinoPolyCurve(sscss),
+            AlignmentCRC crc => ToRhinoPolyCurve(crc),
+            // Unknown entity types are not supported
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Converts an individual alignment entity to a Rhino curve.
+    /// </summary>
+    /// <remarks>
+    /// Civil 3D API reuses classes like AlignmentSCS for multiple entity types
+    /// (e.g., SpiralCurve, CurveSpiral, SpiralSpiral between lines all use AlignmentSCS).
+    /// </remarks>
+    public static RhinoCurve? ToRhinoCurve(this AlignmentSubEntity entity)
+    {
+        return entity switch
+        {
+            AlignmentSubEntityLine line => ToRhinoLineCurve(line),
+            AlignmentSubEntityArc arc => ToRhinoArcCurve(arc),
+            AlignmentSubEntitySpiral spiral => ToRhinoSpiralCurve(spiral),
             // Unknown entity types are not supported
             _ => null
         };
@@ -159,7 +141,7 @@ public static class CivilAlignmentExtensions
     /// <summary>
     /// Converts an AlignmentLine to a Rhino LineCurve.
     /// </summary>
-    private static RhinoLineCurve ConvertLineToCurve(AlignmentLine line)
+    public static RhinoLineCurve ToRhinoLineCurve(this AlignmentLine line)
     {
         var startPoint = line.StartPoint.ToRhinoPoint3d();
         var endPoint = line.EndPoint.ToRhinoPoint3d();
@@ -169,7 +151,7 @@ public static class CivilAlignmentExtensions
     /// <summary>
     /// Converts an AlignmentArc to a Rhino ArcCurve.
     /// </summary>
-    private static RhinoArcCurve ConvertArcToCurve(AlignmentArc arc)
+    public static RhinoArcCurve ToRhinoArcCurve(this AlignmentArc arc)
     {
         var startPoint = arc.StartPoint.ToRhinoPoint3d();
         var endPoint = arc.EndPoint.ToRhinoPoint3d();
@@ -204,7 +186,7 @@ public static class CivilAlignmentExtensions
     /// <summary>
     /// Converts an AlignmentSpiral to a Rhino NurbsCurve by sampling points.
     /// </summary>
-    private static RhinoCurve? ConvertSpiralToCurve(AlignmentSpiral spiral)
+    public static RhinoCurve? ToRhinoSpiralCurve(this AlignmentSpiral spiral)
     {
         // Sample points along the spiral
         var points = new List<RhinoPoint3d>();
@@ -256,7 +238,7 @@ public static class CivilAlignmentExtensions
     /// but sub-entity access requires iterating through collections. This method uses
     /// the composite's overall start and end points for a simplified representation.
     /// </remarks>
-    private static RhinoCurve? ConvertCompositeToCurve(AlignmentEntity compositeEntity)
+    public static RhinoCurve? ToRhinoPolyCurve(this AlignmentEntity compositeEntity)
     {
         try
         {
@@ -285,4 +267,96 @@ public static class CivilAlignmentExtensions
         var end = endPoint.ToRhinoPoint3d();
         return new RhinoLineCurve(new RhinoLine(start, end));
     }
+
+    /// <summary>
+    /// Converts an AlignmentSpiral to a Rhino NurbsCurve by sampling points.
+    /// </summary>
+    public static RhinoCurve? ToRhinoSpiralCurve(this AlignmentSubEntitySpiral spiral)
+    {
+        // Sample points along the spiral
+        var points = new List<RhinoPoint3d>();
+        var numSamples = Math.Max(10, (int)(spiral.Length / 5.0)); // At least 10 points, or one every 5 units
+
+        for (var i = 0; i <= numSamples; i++)
+        {
+            try
+            {
+                // Use the spiral's actual geometry if available
+                if (i == 0)
+                {
+                    points.Add(spiral.StartPoint.ToRhinoPoint3d());
+                }
+                else if (i == numSamples)
+                {
+                    points.Add(spiral.EndPoint.ToRhinoPoint3d());
+                }
+                else
+                {
+                    // For intermediate points, we need to interpolate
+                    // The spiral has RadiusIn and RadiusOut properties
+                    var t = (double)i / numSamples;
+                    var x = spiral.StartPoint.X + (spiral.EndPoint.X - spiral.StartPoint.X) * t;
+                    var y = spiral.StartPoint.Y + (spiral.EndPoint.Y - spiral.StartPoint.Y) * t;
+                    var interpolatedPoint = new CadPoint2d(x, y);
+                    points.Add(interpolatedPoint.ToRhinoPoint3d());
+                }
+            }
+            catch
+            {
+                // Skip points that can't be calculated
+            }
+        }
+
+        if (points.Count < 2)
+            return null;
+
+        // Create an interpolated curve through the points
+        return RhinoNurbsCurve.Create(false, 3, points);
+    }
+
+    /// <summary>
+    /// Converts an AlignmentArc to a Rhino ArcCurve.
+    /// </summary>
+    public static RhinoArcCurve ToRhinoArcCurve(this AlignmentSubEntityArc arc)
+    {
+        var startPoint = arc.StartPoint.ToRhinoPoint3d();
+        var endPoint = arc.EndPoint.ToRhinoPoint3d();
+        var centerPoint = arc.CenterPoint.ToRhinoPoint3d();
+        var radius = UnitConverter.ToRhinoLength(arc.Radius);
+
+        var circle = new Rhino.Geometry.Circle(centerPoint, radius);
+
+        if (!circle.IsValid)
+        {
+            throw new InvalidOperationException(
+                "Failed to create a valid circle from the AlignmentArc points.");
+        }
+
+        _ = circle.ClosestParameter(startPoint, out var start);
+        _ = circle.ClosestParameter(endPoint, out var end);
+
+        var interval = new Interval(start, end);
+
+        var rhinoArc = new RhinoArc(circle, interval);
+
+        if (!rhinoArc.IsValid)
+        {
+            throw new InvalidOperationException(
+                "Failed to create a valid Rhino arc from the AlignmentArc.");
+        }
+
+        return new RhinoArcCurve(rhinoArc);
+
+    }
+
+    /// <summary>
+    /// Converts an AlignmentLine to a Rhino LineCurve.
+    /// </summary>
+    public static RhinoLineCurve ToRhinoLineCurve(this AlignmentSubEntityLine line)
+    {
+        var startPoint = line.StartPoint.ToRhinoPoint3d();
+        var endPoint = line.EndPoint.ToRhinoPoint3d();
+        return new RhinoLineCurve(new RhinoLine(startPoint, endPoint));
+    }
 }
+

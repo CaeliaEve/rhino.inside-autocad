@@ -59,13 +59,7 @@ public class CivilSurfaceContourComponent : RhinoInsideAutocad_ComponentBase
         var contour = contourGoo.Value;
 
         // Output contour type as string
-        var typeString = contour.ContourType switch
-        {
-            1 => "Major",
-            2 => "Minor",
-            _ => "Unknown"
-        };
-        DA.SetData(0, typeString);
+        DA.SetData(0, contour.ContourType.ToString());
 
         // Output curve
         if (contour.Curve != null && contour.Curve.IsValid)

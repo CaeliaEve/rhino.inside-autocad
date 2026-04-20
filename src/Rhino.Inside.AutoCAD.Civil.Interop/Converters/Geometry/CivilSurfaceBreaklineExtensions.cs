@@ -1,10 +1,11 @@
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.Civil;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CadPoint3d = Autodesk.AutoCAD.Geometry.Point3d;
+using CivilSurfaceBreaklineType = Autodesk.Civil.SurfaceBreaklineType;
 using RhinoCurve = Rhino.Geometry.Curve;
+using SurfaceBreaklineType = Rhino.Inside.AutoCAD.Core.SurfaceBreaklineType;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -19,11 +20,11 @@ public static class CivilSurfaceBreaklineExtensions
     /// <param name="surfaceRaw">The TIN surface to extract breaklines from.</param>
     /// <param name="transaction">The current AutoCAD transaction.</param>
     /// <returns>A list of breakline wrappers containing the extracted breakline data.</returns>
-    public static IReadOnlyList<CivilSurfaceBreaklineWrapper> GetBreaklines(
+    public static IReadOnlyList<CivilSurfaceBreakline> GetBreaklines(
         this TinSurface surfaceRaw,
         IAutocadTransactionManager transaction)
     {
-        var breaklines = new List<CivilSurfaceBreaklineWrapper>();
+        var breaklines = new List<CivilSurfaceBreakline>();
 
         var surface = transaction.Unwrap()
             .GetObject(surfaceRaw.Id, OpenMode.ForRead) as TinSurface;
@@ -39,7 +40,7 @@ public static class CivilSurfaceBreaklineExtensions
             var breaklineOp = breaklinesDefinition[i];
 
             // Get breakline type and name from the operation
-            var breaklineTypeInt = ConvertBreaklineType(breaklineOp.BreaklineType);
+            var breaklineType = ConvertBreaklineType(breaklineOp.BreaklineType);
             var opName = breaklineOp.Description ?? $"Breakline_{i}";
 
             // SurfaceOperationAddBreakline contains breakline data
@@ -52,7 +53,7 @@ public static class CivilSurfaceBreaklineExtensions
                 if (curve != null)
                 {
                     var name = breaklineOp.Count > 1 ? $"{opName}_{j}" : opName;
-                    breaklines.Add(new CivilSurfaceBreaklineWrapper(breaklineTypeInt, curve, name));
+                    breaklines.Add(new CivilSurfaceBreakline(breaklineType, curve, name));
                 }
             }
         }
@@ -88,16 +89,16 @@ public static class CivilSurfaceBreaklineExtensions
     }
 
     /// <summary>
-    /// Converts the Civil 3D SurfaceBreaklineType enum to an integer.
+    /// Converts the Civil 3D SurfaceBreaklineType enum to our SurfaceBreaklineType enum.
     /// </summary>
-    private static int ConvertBreaklineType(SurfaceBreaklineType breaklineType)
+    private static SurfaceBreaklineType ConvertBreaklineType(CivilSurfaceBreaklineType breaklineType)
     {
         return breaklineType switch
         {
-            SurfaceBreaklineType.Standard => 0,
-            SurfaceBreaklineType.Wall => 1,
-            SurfaceBreaklineType.NonDestructive => 2,
-            _ => -1
+            CivilSurfaceBreaklineType.Standard => SurfaceBreaklineType.Standard,
+            CivilSurfaceBreaklineType.Wall => SurfaceBreaklineType.Wall,
+            CivilSurfaceBreaklineType.NonDestructive => SurfaceBreaklineType.NonDestructive,
+            _ => SurfaceBreaklineType.Standard
         };
     }
 }

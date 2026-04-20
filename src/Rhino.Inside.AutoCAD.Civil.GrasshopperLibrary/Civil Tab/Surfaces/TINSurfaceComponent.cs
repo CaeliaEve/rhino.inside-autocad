@@ -95,7 +95,7 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(1, styleId);
 
         // TIN Properties
-        var tinPropsWrapper = new CivilTinPropertiesWrapper(tinSurface);
+        var tinPropsWrapper = CivilTinSurfaceProperties.CreateFromTinSurface(tinSurface);
         DA.SetData(2, new GH_CivilTinProperties(tinPropsWrapper));
 
         // Surface data

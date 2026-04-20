@@ -1,6 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil;
 using Autodesk.Civil.DatabaseServices;
+using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CadCurve = Autodesk.AutoCAD.DatabaseServices.Curve;
@@ -19,11 +20,11 @@ public static class CivilSurfaceContourExtensions
     /// <param name="surfaceRaw">The TIN surface to extract contours from.</param>
     /// <param name="transaction">The current AutoCAD transaction.</param>
     /// <returns>A list of contour wrappers containing both major (Type=1) and minor (Type=2) contours.</returns>
-    public static IReadOnlyList<CivilSurfaceContourWrapper> GetContours(
+    public static IReadOnlyList<CivilSurfaceContour> GetContours(
         this TinSurface surfaceRaw,
         IAutocadTransactionManager transaction)
     {
-        var contours = new List<CivilSurfaceContourWrapper>();
+        var contours = new List<CivilSurfaceContour>();
 
         var transactionManager = transaction.Unwrap();
         var surface = transactionManager.GetObject(surfaceRaw.Id, OpenMode.ForWrite) as TinSurface;
@@ -31,11 +32,11 @@ public static class CivilSurfaceContourExtensions
         if (surface == null)
             return contours;
 
-        // Extract major contours (Type=1)
-        ExtractContoursOfType(surface, transaction, contours, 1);
+        // Extract major contours
+        ExtractContoursOfType(surface, transaction, contours, ContourType.Major);
 
-        // Extract minor contours (Type=2)
-        ExtractContoursOfType(surface, transaction, contours, 2);
+        // Extract minor contours
+        ExtractContoursOfType(surface, transaction, contours, ContourType.Minor);
 
         return contours;
     }
@@ -45,16 +46,16 @@ public static class CivilSurfaceContourExtensions
     /// </summary>
     private static void ExtractContoursOfType(
         TinSurface surface,
-      IAutocadTransactionManager transaction,
-        List<CivilSurfaceContourWrapper> contours,
-        int contourType)
+        IAutocadTransactionManager transaction,
+        List<CivilSurfaceContour> contours,
+        ContourType contourType)
     {
         try
         {
             var contourIds = contourType switch
             {
-                1 => surface.ExtractMajorContours(SurfaceExtractionSettingsType.Model),
-                2 => surface.ExtractMinorContours(SurfaceExtractionSettingsType.Model),
+                ContourType.Major => surface.ExtractMajorContours(SurfaceExtractionSettingsType.Model),
+                ContourType.Minor => surface.ExtractMinorContours(SurfaceExtractionSettingsType.Model),
                 _ => null
             };
 
@@ -84,7 +85,7 @@ public static class CivilSurfaceContourExtensions
 
                 if (rhinoCurve != null)
                 {
-                    contours.Add(new CivilSurfaceContourWrapper(contourType, rhinoCurve, elevation));
+                    contours.Add(new CivilSurfaceContour(contourType, rhinoCurve, elevation));
                 }
 
                 // Erase the temporary extracted entity

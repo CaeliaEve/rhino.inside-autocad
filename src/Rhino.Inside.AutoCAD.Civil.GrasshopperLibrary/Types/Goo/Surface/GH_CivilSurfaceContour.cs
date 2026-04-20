@@ -10,10 +10,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D surface contours.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilSurfaceContourWrapper"/> and provides
+/// This Goo wraps a <see cref="CivilSurfaceContour"/> and provides
 /// preview support for displaying the contour curve in viewports.
 /// </remarks>
-public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper>, IGH_PreviewData
+public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_PreviewData
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilSurfaceContour"/> class with no value.
@@ -27,7 +27,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper
     /// specified contour wrapper.
     /// </summary>
     /// <param name="contour">The Civil 3D surface contour wrapper.</param>
-    public GH_CivilSurfaceContour(CivilSurfaceContourWrapper contour) : base(contour)
+    public GH_CivilSurfaceContour(CivilSurfaceContour contour) : base(contour)
     {
     }
 
@@ -44,7 +44,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper
     /// Constructs a new <see cref="GH_CivilSurfaceContour"/> via the interface.
     /// </summary>
     public GH_CivilSurfaceContour(ICivilSurfaceContour contour)
-        : base((contour as CivilSurfaceContourWrapper)!)
+        : base((contour as CivilSurfaceContour)!)
     {
     }
 
@@ -114,7 +114,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper
         var transformedCurve = Value.Curve.DuplicateCurve();
         transformedCurve.Transform(xform);
 
-        var transformed = new CivilSurfaceContourWrapper(
+        var transformed = new CivilSurfaceContour(
             Value.ContourType,
             transformedCurve,
             Value.Elevation);
@@ -131,7 +131,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper
         var morphedCurve = Value.Curve.DuplicateCurve();
         xmorph.Morph(morphedCurve);
 
-        var morphed = new CivilSurfaceContourWrapper(
+        var morphed = new CivilSurfaceContour(
             Value.ContourType,
             morphedCurve,
             Value.Elevation);
@@ -148,7 +148,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper
             return true;
         }
 
-        if (source is CivilSurfaceContourWrapper wrapper)
+        if (source is CivilSurfaceContour wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
@@ -156,7 +156,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper
 
         if (source is ICivilSurfaceContour contour)
         {
-            Value = (contour as CivilSurfaceContourWrapper)?.Duplicate();
+            Value = (contour as CivilSurfaceContour)?.Duplicate();
             return Value != null;
         }
 
@@ -166,7 +166,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContourWrapper
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceContourWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceContour)))
         {
             target = (Q)(object)Value!;
             return true;

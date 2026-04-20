@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D Corridor properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilCorridorPropertiesWrapper"/> containing
+/// This Goo wraps a <see cref="CivilCorridorProperties"/> containing
 /// properties from a Corridor.
 /// </remarks>
-public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorPropertiesWrapper>
+public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorProperties>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilCorridorProperties"/> class with no value.
@@ -25,7 +25,7 @@ public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorPropertiesWrapper>
     /// specified corridor properties wrapper.
     /// </summary>
     /// <param name="corridorProperties">The Civil 3D corridor properties wrapper.</param>
-    public GH_CivilCorridorProperties(CivilCorridorPropertiesWrapper corridorProperties) : base(corridorProperties)
+    public GH_CivilCorridorProperties(CivilCorridorProperties corridorProperties) : base(corridorProperties)
     {
     }
 
@@ -42,7 +42,7 @@ public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorPropertiesWrapper>
     /// Constructs a new <see cref="GH_CivilCorridorProperties"/> via the interface.
     /// </summary>
     public GH_CivilCorridorProperties(ICivilCorridorProperties corridorProperties)
-        : base((corridorProperties as CivilCorridorPropertiesWrapper)!)
+        : base((corridorProperties as CivilCorridorProperties)!)
     {
     }
 
@@ -81,7 +81,7 @@ public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorPropertiesWrapper>
             return true;
         }
 
-        if (source is CivilCorridorPropertiesWrapper wrapper)
+        if (source is CivilCorridorProperties wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
@@ -89,7 +89,7 @@ public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorPropertiesWrapper>
 
         if (source is ICivilCorridorProperties props)
         {
-            Value = (props as CivilCorridorPropertiesWrapper)?.Duplicate();
+            Value = (props as CivilCorridorProperties)?.Duplicate();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorPropertiesWrapper>
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilCorridorPropertiesWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilCorridorProperties)))
         {
             target = (Q)(object)Value!;
             return true;

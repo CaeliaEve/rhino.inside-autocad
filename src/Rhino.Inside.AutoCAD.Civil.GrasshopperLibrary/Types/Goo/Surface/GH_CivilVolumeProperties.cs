@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D volume properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilVolumePropertiesWrapper"/> containing
+/// This Goo wraps a <see cref="CivilTinVolumeSurfaceProperties"/> containing
 /// volume statistics from a TIN Volume Surface.
 /// </remarks>
-public class GH_CivilVolumeProperties : GH_Goo<CivilVolumePropertiesWrapper>
+public class GH_CivilVolumeProperties : GH_Goo<CivilTinVolumeSurfaceProperties>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilVolumeProperties"/> class with no value.
@@ -24,8 +24,8 @@ public class GH_CivilVolumeProperties : GH_Goo<CivilVolumePropertiesWrapper>
     /// Initializes a new instance of the <see cref="GH_CivilVolumeProperties"/> class with the
     /// specified volume properties wrapper.
     /// </summary>
-    /// <param name="volumeProperties">The Civil 3D volume properties wrapper.</param>
-    public GH_CivilVolumeProperties(CivilVolumePropertiesWrapper volumeProperties) : base(volumeProperties)
+    /// <param name="tinVolumeSurfaceProperties">The Civil 3D volume properties wrapper.</param>
+    public GH_CivilVolumeProperties(CivilTinVolumeSurfaceProperties tinVolumeSurfaceProperties) : base(tinVolumeSurfaceProperties)
     {
     }
 
@@ -41,8 +41,8 @@ public class GH_CivilVolumeProperties : GH_Goo<CivilVolumePropertiesWrapper>
     /// <summary>
     /// Constructs a new <see cref="GH_CivilVolumeProperties"/> via the interface.
     /// </summary>
-    public GH_CivilVolumeProperties(ICivilVolumeProperties volumeProperties)
-        : base((volumeProperties as CivilVolumePropertiesWrapper)!)
+    public GH_CivilVolumeProperties(ICivilTinVolumeSurfaceProperties volumeProperties)
+        : base((volumeProperties as CivilTinVolumeSurfaceProperties)!)
     {
     }
 
@@ -81,15 +81,15 @@ public class GH_CivilVolumeProperties : GH_Goo<CivilVolumePropertiesWrapper>
             return true;
         }
 
-        if (source is CivilVolumePropertiesWrapper wrapper)
+        if (source is CivilTinVolumeSurfaceProperties wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
         }
 
-        if (source is ICivilVolumeProperties props)
+        if (source is ICivilTinVolumeSurfaceProperties props)
         {
-            Value = (props as CivilVolumePropertiesWrapper)?.Duplicate();
+            Value = (props as CivilTinVolumeSurfaceProperties)?.Duplicate();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilVolumeProperties : GH_Goo<CivilVolumePropertiesWrapper>
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilVolumePropertiesWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilTinVolumeSurfaceProperties)))
         {
             target = (Q)(object)Value!;
             return true;

@@ -1,5 +1,6 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -76,6 +77,6 @@ public class CivilProfileEntityComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(4, entity.EndElevation);
         DA.SetData(5, entity.Length);
         DA.SetData(6, entity.EntityIndex);
-        DA.SetData(7, entity.Curve);
+        DA.SetData(7, entity.ToRhinoCurve());
     }
 }

@@ -34,7 +34,7 @@ public class GH_CivilCorridorBaseline : GH_Goo<CivilCorridorBaselineWrapper>
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilCorridorBaseline(GH_CivilCorridorBaseline other) : base(other.Value?.Duplicate())
+    public GH_CivilCorridorBaseline(GH_CivilCorridorBaseline other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -77,19 +77,19 @@ public class GH_CivilCorridorBaseline : GH_Goo<CivilCorridorBaselineWrapper>
     {
         if (source is GH_CivilCorridorBaseline goo)
         {
-            Value = goo.Value?.Duplicate();
+            Value = goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilCorridorBaselineWrapper wrapper)
         {
-            Value = wrapper.Duplicate();
+            Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilCorridorBaseline baseline)
         {
-            Value = (baseline as CivilCorridorBaselineWrapper)?.Duplicate();
+            Value = (baseline as CivilCorridorBaselineWrapper)?.ShallowClone();
             return Value != null;
         }
 

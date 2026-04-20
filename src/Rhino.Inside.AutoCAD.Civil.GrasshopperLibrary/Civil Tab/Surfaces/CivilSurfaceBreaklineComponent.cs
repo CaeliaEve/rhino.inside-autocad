@@ -35,8 +35,8 @@ public class CivilSurfaceBreaklineComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddIntegerParameter("Type", "T",
-            "Breakline type (0=Standard, 1=Wall, 2=Proximity, 3=NonDestructive)", GH_ParamAccess.item);
+        pManager.AddTextParameter("Type", "T",
+            "Breakline type (Standard, Wall, or NonDestructive)", GH_ParamAccess.item);
 
         pManager.AddCurveParameter("Curve", "C",
             "The breakline curve geometry", GH_ParamAccess.item);
@@ -58,8 +58,8 @@ public class CivilSurfaceBreaklineComponent : RhinoInsideAutocad_ComponentBase
 
         var breakline = breaklineGoo.Value;
 
-        // Output breakline type as integer
-        DA.SetData(0, breakline.BreaklineType);
+        // Output breakline type as string
+        DA.SetData(0, breakline.BreaklineType.ToString());
 
         // Output curve
         if (breakline.Curve != null && breakline.Curve.IsValid)

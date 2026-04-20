@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D TIN surface properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilTinPropertiesWrapper"/> containing
+/// This Goo wraps a <see cref="CivilTinSurfaceProperties"/> containing
 /// general statistics from a TIN Surface.
 /// </remarks>
-public class GH_CivilTinProperties : GH_Goo<CivilTinPropertiesWrapper>
+public class GH_CivilTinProperties : GH_Goo<CivilTinSurfaceProperties>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilTinProperties"/> class with no value.
@@ -24,8 +24,8 @@ public class GH_CivilTinProperties : GH_Goo<CivilTinPropertiesWrapper>
     /// Initializes a new instance of the <see cref="GH_CivilTinProperties"/> class with the
     /// specified TIN properties wrapper.
     /// </summary>
-    /// <param name="tinProperties">The Civil 3D TIN properties wrapper.</param>
-    public GH_CivilTinProperties(CivilTinPropertiesWrapper tinProperties) : base(tinProperties)
+    /// <param name="tinSurfaceProperties">The Civil 3D TIN properties wrapper.</param>
+    public GH_CivilTinProperties(CivilTinSurfaceProperties tinSurfaceProperties) : base(tinSurfaceProperties)
     {
     }
 
@@ -41,8 +41,8 @@ public class GH_CivilTinProperties : GH_Goo<CivilTinPropertiesWrapper>
     /// <summary>
     /// Constructs a new <see cref="GH_CivilTinProperties"/> via the interface.
     /// </summary>
-    public GH_CivilTinProperties(ICivilTinProperties tinProperties)
-        : base((tinProperties as CivilTinPropertiesWrapper)!)
+    public GH_CivilTinProperties(ICivilTinSurfaceProperties tinSurfaceProperties)
+        : base((tinSurfaceProperties as CivilTinSurfaceProperties)!)
     {
     }
 
@@ -81,15 +81,15 @@ public class GH_CivilTinProperties : GH_Goo<CivilTinPropertiesWrapper>
             return true;
         }
 
-        if (source is CivilTinPropertiesWrapper wrapper)
+        if (source is CivilTinSurfaceProperties wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
         }
 
-        if (source is ICivilTinProperties props)
+        if (source is ICivilTinSurfaceProperties props)
         {
-            Value = (props as CivilTinPropertiesWrapper)?.Duplicate();
+            Value = (props as CivilTinSurfaceProperties)?.Duplicate();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilTinProperties : GH_Goo<CivilTinPropertiesWrapper>
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilTinPropertiesWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilTinSurfaceProperties)))
         {
             target = (Q)(object)Value!;
             return true;

@@ -3,6 +3,7 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -36,7 +37,7 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilProfileCircularArc(GH_CivilProfileCircularArc other) : base(other.Value?.Duplicate())
+    public GH_CivilProfileCircularArc(GH_CivilProfileCircularArc other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -49,7 +50,14 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     }
 
     /// <inheritdoc />
-    public override bool IsValid => this.Value?.Curve != null && this.Value.Curve.IsValid;
+    public override bool IsValid
+    {
+        get
+        {
+            var rhinoCurve = this.Value?.ToRhinoCurve();
+            return rhinoCurve is { IsValid: true };
+        }
+    }
 
     /// <inheritdoc />
     public override string IsValidWhyNot
@@ -58,8 +66,12 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
         {
             if (this.Value == null)
                 return "No profile circular arc data";
-            if (this.Value.Curve == null || !this.Value.Curve.IsValid)
+
+            var rhinoCurve = this.Value?.ToRhinoCurve();
+
+            if (rhinoCurve is not { IsValid: true })
                 return "Invalid arc geometry";
+
             return string.Empty;
         }
     }
@@ -75,10 +87,11 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     {
         get
         {
-            if (this.Value?.Curve == null)
+            var rhinoCurve = this.Value?.ToRhinoCurve();
+            if (rhinoCurve == null)
                 return BoundingBox.Empty;
 
-            return this.Value.Curve.GetBoundingBox(true);
+            return rhinoCurve.GetBoundingBox(true);
         }
     }
 
@@ -108,52 +121,17 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     /// <inheritdoc />
     public override IGH_GeometricGoo Transform(Transform xform)
     {
-        if (this.Value?.Curve == null)
-            return this;
-
-        var transformedCurve = this.Value.Curve.DuplicateCurve();
-        transformedCurve.Transform(xform);
-
-        var transformedArc = this.Value.Arc;
-        transformedArc.Transform(xform);
-
-        var transformedCenter = this.Value.CenterPoint;
-        transformedCenter.Transform(xform);
-
-        var transformed = new CivilProfileCircularArcWrapper(
-            this.Value.StartStation,
-            this.Value.EndStation,
-            this.Value.StartElevation,
-            this.Value.EndElevation,
-            this.Value.Length,
-            this.Value.EntityIndex,
-            transformedArc,
-            transformedCurve);
-
-        return new GH_CivilProfileCircularArc(transformed);
+        // These are read-only wrappers around Civil 3D profile entities,
+        // so we won't apply transformations to the underlying geometry.
+        return this;
     }
 
     /// <inheritdoc />
     public override IGH_GeometricGoo Morph(SpaceMorph xmorph)
     {
-        if (this.Value?.Curve == null)
-            return this;
-
-        var morphedCurve = this.Value.Curve.DuplicateCurve();
-        xmorph.Morph(morphedCurve);
-
-        // Cannot properly morph arc, keep original values
-        var morphed = new CivilProfileCircularArcWrapper(
-            this.Value.StartStation,
-            this.Value.EndStation,
-            this.Value.StartElevation,
-            this.Value.EndElevation,
-            this.Value.Length,
-            this.Value.EntityIndex,
-            this.Value.Arc,
-            morphedCurve);
-
-        return new GH_CivilProfileCircularArc(morphed);
+        // These are read-only wrappers around Civil 3D profile entities,
+        // so we won't apply transformations to the underlying geometry.
+        return this;
     }
 
     /// <inheritdoc />
@@ -161,19 +139,19 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     {
         if (source is GH_CivilProfileCircularArc goo)
         {
-            this.Value = goo.Value?.Duplicate();
+            this.Value = goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilProfileCircularArcWrapper wrapper)
         {
-            this.Value = wrapper.Duplicate();
+            this.Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilProfileCircularArc arc)
         {
-            this.Value = (arc as CivilProfileCircularArcWrapper)?.Duplicate();
+            this.Value = (arc as CivilProfileCircularArcWrapper)?.ShallowClone();
             return this.Value != null;
         }
 
@@ -195,24 +173,19 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
             return true;
         }
 
-        // Cast to GH_Arc
-        if (typeof(Q).IsAssignableFrom(typeof(GH_Arc)) && this.Value != null)
-        {
-            target = (Q)(object)new GH_Arc(this.Value.Arc);
-            return true;
-        }
+        var rhinoCurve = this.Value?.ToRhinoCurve();
 
         // Cast to GH_Curve
-        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && this.Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && rhinoCurve != null)
         {
-            target = (Q)(object)new GH_Curve(this.Value.Curve.DuplicateCurve());
+            target = (Q)(object)new GH_Curve(rhinoCurve.DuplicateCurve());
             return true;
         }
 
         // Cast to Curve
-        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && this.Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && rhinoCurve != null)
         {
-            target = (Q)(object)this.Value.Curve.DuplicateCurve();
+            target = (Q)(object)rhinoCurve.DuplicateCurve();
             return true;
         }
 
@@ -222,10 +195,12 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     /// <inheritdoc />
     public void DrawViewportWires(GH_PreviewWireArgs args)
     {
-        if (this.Value?.Curve == null)
+        var rhinoCurve = this.Value?.ToRhinoCurve();
+
+        if (rhinoCurve == null)
             return;
 
-        args.Pipeline.DrawCurve(this.Value.Curve, args.Color, args.Thickness);
+        args.Pipeline.DrawCurve(rhinoCurve, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />

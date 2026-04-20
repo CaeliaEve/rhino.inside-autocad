@@ -40,8 +40,8 @@ public static class CivilProfileViewExtensions
 
         // Scale information - using default values
         // TODO: Determine correct API to extract scale from ProfileView
-        double horizontalScale = 1.0;
-        double verticalScale = 1.0;
+        var horizontalScale = 1.0;
+        var verticalScale = 1.0;
 
         // Calculate the display width and height
         var stationRange = profileView.StationEnd - profileView.StationStart;
@@ -164,11 +164,11 @@ public static class CivilProfileViewExtensions
     /// <param name="profileView">The Civil 3D ProfileView.</param>
     /// <param name="transactionManager">The transaction manager for database operations.</param>
     /// <returns>A list of band wrappers.</returns>
-    public static List<CivilProfileViewBandWrapper> GetBands(
+    public static List<CivilProfileViewBand> GetBands(
         this ProfileView profileView,
         IAutocadTransactionManager transactionManager)
     {
-        var bands = new List<CivilProfileViewBandWrapper>();
+        var bands = new List<CivilProfileViewBand>();
 
         try
         {
@@ -197,7 +197,7 @@ public static class CivilProfileViewExtensions
         ProfileViewBandSet bandSet,
         string location,
         IAutocadTransactionManager transactionManager,
-        List<CivilProfileViewBandWrapper> bands)
+        List<CivilProfileViewBand> bands)
     {
         try
         {
@@ -216,7 +216,7 @@ public static class CivilProfileViewExtensions
                     var bandInfo = bandItemCollection[i];
                     var styleName = GetStyleName(bandInfo.BandStyleId, transactionManager);
 
-                    bands.Add(new CivilProfileViewBandWrapper(
+                    bands.Add(new CivilProfileViewBand(
                         $"Band {i + 1}",
                         bandInfo.BandType.ToString(),
                         styleName,
@@ -264,13 +264,10 @@ public static class CivilProfileViewExtensions
     /// <param name="profileView">The Civil 3D ProfileView.</param>
     /// <param name="transactionManager">The transaction manager for database operations.</param>
     /// <returns>A properties wrapper containing extracted data.</returns>
-    public static CivilProfileViewPropertiesWrapper GetProperties(
+    public static CivilProfileViewProperties GetProperties(
         this ProfileView profileView,
         IAutocadTransactionManager transactionManager)
     {
-        var alignmentName = profileView.GetAlignmentName(transactionManager);
-        var profileCount = profileView.GetDisplayedProfileIds(transactionManager).Count;
-
-        return new CivilProfileViewPropertiesWrapper(profileView, alignmentName, profileCount);
+        return CivilProfileViewProperties.CreateFromProfileView(profileView, transactionManager);
     }
 }

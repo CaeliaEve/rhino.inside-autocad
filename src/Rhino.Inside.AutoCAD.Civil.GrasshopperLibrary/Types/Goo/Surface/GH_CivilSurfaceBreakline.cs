@@ -10,10 +10,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D surface breaklines.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilSurfaceBreaklineWrapper"/> and provides
+/// This Goo wraps a <see cref="CivilSurfaceBreakline"/> and provides
 /// preview support for displaying the breakline curve in viewports.
 /// </remarks>
-public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWrapper>, IGH_PreviewData
+public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreakline>, IGH_PreviewData
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilSurfaceBreakline"/> class with no value.
@@ -27,7 +27,7 @@ public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWra
     /// specified breakline wrapper.
     /// </summary>
     /// <param name="breakline">The Civil 3D surface breakline wrapper.</param>
-    public GH_CivilSurfaceBreakline(CivilSurfaceBreaklineWrapper breakline) : base(breakline)
+    public GH_CivilSurfaceBreakline(CivilSurfaceBreakline breakline) : base(breakline)
     {
     }
 
@@ -44,7 +44,7 @@ public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWra
     /// Constructs a new <see cref="GH_CivilSurfaceBreakline"/> via the interface.
     /// </summary>
     public GH_CivilSurfaceBreakline(ICivilSurfaceBreakline breakline)
-        : base((breakline as CivilSurfaceBreaklineWrapper)!)
+        : base((breakline as CivilSurfaceBreakline)!)
     {
     }
 
@@ -114,7 +114,7 @@ public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWra
         var transformedCurve = Value.Curve.DuplicateCurve();
         transformedCurve.Transform(xform);
 
-        var transformed = new CivilSurfaceBreaklineWrapper(
+        var transformed = new CivilSurfaceBreakline(
             Value.BreaklineType,
             transformedCurve,
             Value.Name);
@@ -131,7 +131,7 @@ public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWra
         var morphedCurve = Value.Curve.DuplicateCurve();
         xmorph.Morph(morphedCurve);
 
-        var morphed = new CivilSurfaceBreaklineWrapper(
+        var morphed = new CivilSurfaceBreakline(
             Value.BreaklineType,
             morphedCurve,
             Value.Name);
@@ -148,7 +148,7 @@ public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWra
             return true;
         }
 
-        if (source is CivilSurfaceBreaklineWrapper wrapper)
+        if (source is CivilSurfaceBreakline wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
@@ -156,7 +156,7 @@ public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWra
 
         if (source is ICivilSurfaceBreakline breakline)
         {
-            Value = (breakline as CivilSurfaceBreaklineWrapper)?.Duplicate();
+            Value = (breakline as CivilSurfaceBreakline)?.Duplicate();
             return Value != null;
         }
 
@@ -166,7 +166,7 @@ public class GH_CivilSurfaceBreakline : GH_GeometricGoo<CivilSurfaceBreaklineWra
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceBreaklineWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceBreakline)))
         {
             target = (Q)(object)Value!;
             return true;

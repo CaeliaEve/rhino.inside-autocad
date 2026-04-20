@@ -1,5 +1,9 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Civil.Interop;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -30,6 +34,15 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
     {
         pManager.AddParameter(new Param_CivilAlignmentProperties(GH_ParamAccess.item), "Properties",
             "Props", "Alignment properties from a Civil3d Alignment", GH_ParamAccess.item);
+
+        pManager.AddTextParameter("Name", "N",
+            "The name of the alignment. When set this will update the name of the alignment.", GH_ParamAccess.item);
+        pManager[1].Optional = true;
+
+        pManager.AddTextParameter("Description", "Desc",
+            "The description of the alignment. When set this will update the description of the alignment", GH_ParamAccess.item);
+        pManager[2].Optional = true;
+
     }
 
     /// <inheritdoc />
@@ -56,8 +69,32 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
         pManager.AddIntegerParameter("Entity Count", "Count",
             "The number of entities in the alignment.", GH_ParamAccess.item);
 
-        pManager.AddTextParameter("Site Name", "Site",
-            "The name of the site containing this alignment.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Site",
+            "Site", "The site containing this alignment as a NamedId.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this alignment as a NamedId.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Design Check Set",
+            "DCS", "The design check set applied to this alignment as a NamedId.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilReferenceStation(GH_ParamAccess.item), "Reference Station",
+            "RefSta", "The reference station information.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilDesignSpeeds(GH_ParamAccess.item), "Design Speeds",
+            "DesSpd", "The design speed information.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilCANTInfo(GH_ParamAccess.item), "CANT Info",
+            "CANT", "The CANT (superelevation) information.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilConnectedAlignmentInfo(GH_ParamAccess.item), "Connected Alignment Info",
+            "ConnInfo", "The connected alignment information.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilOffsetAlignmentInfo(GH_ParamAccess.item), "Offset Alignment Info",
+            "OfsInfo", "The offset alignment information.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilRailAlignmentInfo(GH_ParamAccess.item), "Rail Alignment Info",
+            "RailInfo", "The rail alignment information.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -67,15 +104,47 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
 
         if (!DA.GetData(0, ref propsGoo) || propsGoo?.Value is null) return;
 
-        var props = propsGoo.Value;
+        ICivilAlignmentProperties alignmentProperties = propsGoo.Value;
 
-        DA.SetData(0, props.Name);
-        DA.SetData(1, props.Description);
-        DA.SetData(2, props.StartStation);
-        DA.SetData(3, props.EndStation);
-        DA.SetData(4, props.Length);
-        DA.SetData(5, props.AlignmentTypeName);
-        DA.SetData(6, props.EntityCount);
-        DA.SetData(7, props.SiteName);
+        var newName = alignmentProperties.Name;
+        var newDescription = alignmentProperties.Description;
+
+        var updateFlag = false;
+
+        if (DA.GetData(1, ref newName) && newName != alignmentProperties.Name) updateFlag = true;
+        if (DA.GetData(2, ref newDescription) && newDescription != alignmentProperties.Description) updateFlag = true;
+
+        if (updateFlag)
+        {
+            var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
+                .AutoCadInstance.ActiveDocument;
+
+            var transactionManager = document.CreateTransactionManager();
+
+            alignmentProperties = transactionManager.PerformTask(() =>
+                alignmentProperties.Update(transactionManager, newName, newDescription));
+        }
+
+        // Basic properties
+        DA.SetData(0, alignmentProperties.Name);
+        DA.SetData(1, alignmentProperties.Description);
+        DA.SetData(2, alignmentProperties.StartStation);
+        DA.SetData(3, alignmentProperties.EndStation);
+        DA.SetData(4, alignmentProperties.Length);
+        DA.SetData(5, alignmentProperties.AlignmentType.ToString());
+        DA.SetData(6, alignmentProperties.EntityCount);
+
+        // NamedId properties
+        DA.SetData(7, new GH_NamedId(alignmentProperties.Site as NamedId));
+        DA.SetData(8, new GH_NamedId(alignmentProperties.Style as NamedId));
+        DA.SetData(9, new GH_NamedId(alignmentProperties.DesignCheckSet as NamedId));
+
+        // Extended property types
+        DA.SetData(10, new GH_CivilReferenceStation(alignmentProperties.ReferenceStation as CivilReferenceStation));
+        DA.SetData(11, new GH_CivilDesignSpeeds(alignmentProperties.DesignSpeeds as CivilDesignSpeeds));
+        DA.SetData(12, new GH_CivilCANTInfo(alignmentProperties.CANTInfo as CivilCANTInfo));
+        DA.SetData(13, new GH_CivilConnectedAlignmentInfo(alignmentProperties.ConnectedAlignmentInfo as CivilConnectedAlignmentInfo));
+        DA.SetData(14, new GH_CivilOffsetAlignmentInfo(alignmentProperties.OffsetAlignmentInfo as CivilOffsetAlignmentInfo));
+        DA.SetData(15, new GH_CivilRailAlignmentInfo(alignmentProperties.RailAlignmentInfo as CivilRailAlignmentInfo));
     }
 }

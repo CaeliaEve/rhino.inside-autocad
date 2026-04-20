@@ -87,17 +87,12 @@ public class CivilParcelComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(parcel.StyleId)));
 
-        DA.SetData(2, new GH_CivilParcelProperties(new CivilParcelPropertiesWrapper(parcel)));
+        DA.SetData(2, new GH_CivilParcelProperties(CivilParcelProperties.CreateFromParcel(parcel)));
 
-        var parcelData = transactionManager.PerformTask(() => new
-        {
-            Segments = parcel.GetParcelSegments(),
-            Boundary = parcel.ToRhinoBoundary(),
-            Centroid = parcel.GetCentroid()
-        });
+        var parcelWrapper = new CivilParcelWrapper(parcel);
 
-        DA.SetDataList(3, parcelData.Segments.Select(seg => new GH_CivilParcelSegment((CivilParcelSegmentWrapper)seg)).ToList());
-        DA.SetData(4, parcelData.Boundary);
-        DA.SetData(5, parcelData.Centroid);
+        DA.SetDataList(3, parcelWrapper.Segments.Select(seg => new GH_CivilParcelSegment(seg)).ToList());
+        DA.SetData(4, parcelWrapper.BoundaryCurve);
+        DA.SetData(5, parcelWrapper.Centroid);
     }
 }

@@ -9,26 +9,13 @@ namespace Rhino.Inside.AutoCAD.Core.Interfaces;
 /// Surface boundaries in Civil 3D define the outer limits, data clips, hide boundaries,
 /// and show boundaries of a TIN surface. This interface provides access to the boundary's
 /// geometry and type information.
-/// <para>
-/// Boundary types are represented as integers:
-/// <list type="bullet">
-/// <item><description>0 = Outer boundary</description></item>
-/// <item><description>1 = DataClip boundary</description></item>
-/// <item><description>2 = Hide boundary</description></item>
-/// <item><description>3 = Show boundary</description></item>
-/// </list>
-/// </para>
 /// </remarks>
 public interface ICivilSurfaceBoundary
 {
     /// <summary>
-    /// Gets the boundary type as an integer.
-    /// Maps to the Civil 3D SurfaceBoundaryType enumeration.
+    /// Gets the boundary type (Outer, DataClip, Hide, or Show).
     /// </summary>
-    /// <value>
-    /// 0 = Outer, 1 = DataClip, 2 = Hide, 3 = Show
-    /// </value>
-    int BoundaryType { get; }
+    SurfaceBoundaryType BoundaryType { get; }
 
     /// <summary>
     /// Gets the boundary geometry as a Rhino polyline.

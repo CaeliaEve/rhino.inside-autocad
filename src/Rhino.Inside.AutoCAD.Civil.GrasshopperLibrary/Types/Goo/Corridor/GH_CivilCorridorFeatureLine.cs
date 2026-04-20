@@ -36,7 +36,7 @@ public class GH_CivilCorridorFeatureLine : GH_GeometricGoo<CivilCorridorFeatureL
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilCorridorFeatureLine(GH_CivilCorridorFeatureLine other) : base(other.Value?.Duplicate())
+    public GH_CivilCorridorFeatureLine(GH_CivilCorridorFeatureLine other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -108,7 +108,7 @@ public class GH_CivilCorridorFeatureLine : GH_GeometricGoo<CivilCorridorFeatureL
         if (Value == null)
             return this;
 
-        var duplicated = Value.Duplicate();
+        var duplicated = Value.ShallowClone();
         duplicated.Curve?.Transform(xform);
         return new GH_CivilCorridorFeatureLine(duplicated);
     }
@@ -119,7 +119,7 @@ public class GH_CivilCorridorFeatureLine : GH_GeometricGoo<CivilCorridorFeatureL
         if (Value == null)
             return this;
 
-        var duplicated = Value.Duplicate();
+        var duplicated = Value.ShallowClone();
         xmorph.Morph(duplicated.Curve);
         return new GH_CivilCorridorFeatureLine(duplicated);
     }
@@ -129,19 +129,19 @@ public class GH_CivilCorridorFeatureLine : GH_GeometricGoo<CivilCorridorFeatureL
     {
         if (source is GH_CivilCorridorFeatureLine goo)
         {
-            Value = goo.Value?.Duplicate();
+            Value = goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilCorridorFeatureLineWrapper wrapper)
         {
-            Value = wrapper.Duplicate();
+            Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilCorridorFeatureLine featureLine)
         {
-            Value = (featureLine as CivilCorridorFeatureLineWrapper)?.Duplicate();
+            Value = (featureLine as CivilCorridorFeatureLineWrapper)?.ShallowClone();
             return Value != null;
         }
 

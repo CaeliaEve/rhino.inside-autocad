@@ -97,7 +97,7 @@ public class GetSitesComponent : RhinoInsideAutocad_ComponentBase, IReferenceCom
 
                         if (site != null)
                         {
-                            var wrapper = new CivilSiteWrapper(site, transactionManager);
+                            var wrapper = new CivilSiteWrapper(site);
                             siteList.Add(new GH_CivilSite(wrapper));
                         }
                     }

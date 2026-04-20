@@ -155,7 +155,7 @@ public class CivilProfileComponent : RhinoInsideAutocad_ComponentBase
         var parentAlignmentName = transactionManager.PerformTask(() =>
             profile.GetParentAlignmentName(transactionManager));
 
-        DA.SetData(2, new GH_CivilProfileProperties(new CivilProfilePropertiesWrapper(profile, parentAlignmentName)));
+        DA.SetData(2, new GH_CivilProfileProperties(CivilProfileProperties.CreateFromProfile(profile, parentAlignmentName)));
 
         var profileData = transactionManager.PerformTask(() => new
         {

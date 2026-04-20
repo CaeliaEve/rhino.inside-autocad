@@ -87,7 +87,7 @@ public class CivilCorridorComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(corridor.StyleId)));
 
-        DA.SetData(2, new GH_CivilCorridorProperties(new CivilCorridorPropertiesWrapper(corridor)));
+        DA.SetData(2, new GH_CivilCorridorProperties(CivilCorridorProperties.CreateFromCorridor(corridor)));
 
         var corridorData = transactionManager.PerformTask(() => new
         {

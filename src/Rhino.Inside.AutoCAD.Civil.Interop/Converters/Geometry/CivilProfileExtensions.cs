@@ -33,15 +33,16 @@ public static class CivilProfileExtensions
             return null;
 
         if (entities.Count == 1)
-            return entities[0].Curve;
+            return entities[0].ToRhinoCurve();
 
         // Join multiple entities into a PolyCurve
         var polyCurve = new RhinoPolyCurve();
         foreach (var entity in entities)
         {
-            if (entity.Curve != null)
+            var rhinoCurve = entity.ToRhinoCurve();
+            if (rhinoCurve != null)
             {
-                polyCurve.Append(entity.Curve);
+                polyCurve.Append(rhinoCurve);
             }
         }
 
@@ -82,63 +83,75 @@ public static class CivilProfileExtensions
     {
         return entity switch
         {
-            ProfileTangent tangent => ConvertTangent(tangent, index),
-            ProfileCircular arc => ConvertCircularArc(arc, index),
-            ProfileParabolaSymmetric parabola => ConvertParabola(parabola, index),
-            ProfileParabolaAsymmetric asymParabola => ConvertAsymmetricParabola(asymParabola, index),
-            _ => ConvertGenericEntity(entity, index)
+            ProfileTangent tangent => new CivilProfileTangentWrapper(tangent, index),
+            ProfileCircular arc => new CivilProfileCircularArcWrapper(arc, index),
+            ProfileParabolaSymmetric parabola => new CivilProfileSymmetricalParabolaWrapper(parabola, index),
+            ProfileParabolaAsymmetric asymParabola => new CivilProfileAsymmetricalParabolaWrapper(asymParabola, index),
+            _ => new CivilProfileEntityWrapper(entity, index)
         };
     }
 
     /// <summary>
-    /// Converts a ProfileTangent to a wrapper.
+    /// Gets the parent alignment name for a profile.
     /// </summary>
-    private static CivilProfileTangentWrapper ConvertTangent(ProfileTangent tangent, int index)
+    /// <param name="profile">The profile to get the parent alignment name for.</param>
+    /// <param name="transactionManager">The transaction manager for database operations.</param>
+    /// <returns>The name of the parent alignment, or empty string if not found.</returns>
+    public static string GetParentAlignmentName(
+        this Profile profile,
+        IAutocadTransactionManager transactionManager)
+    {
+        try
+        {
+            var alignmentId = profile.AlignmentId;
+            if (alignmentId.IsNull || alignmentId.IsErased)
+                return string.Empty;
+
+            var alignment = transactionManager.Unwrap()
+                .GetObject(alignmentId, OpenMode.ForRead) as Alignment;
+
+            return alignment?.Name ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    public static RhinoCurve ToRhinoCurve(this CivilProfileEntityWrapper wrapper)
     {
         var startPoint = new RhinoPoint3d(
-                UnitConverter.ToRhinoLength(tangent.StartStation),
-                UnitConverter.ToRhinoLength(tangent.StartElevation),
-                0);
-        var endPoint = new RhinoPoint3d(
-            UnitConverter.ToRhinoLength(tangent.EndStation),
-            UnitConverter.ToRhinoLength(tangent.EndElevation),
+            UnitConverter.ToRhinoLength(wrapper.StartStation),
+            UnitConverter.ToRhinoLength(wrapper.StartElevation),
             0);
-        var line = new RhinoLine(startPoint, endPoint);
-        var curve = new RhinoLineCurve(line);
-
-        return new CivilProfileTangentWrapper(
-            UnitConverter.ToRhinoLength(tangent.StartStation),
-            UnitConverter.ToRhinoLength(tangent.EndStation),
-            UnitConverter.ToRhinoLength(tangent.StartElevation),
-            UnitConverter.ToRhinoLength(tangent.EndElevation),
-            UnitConverter.ToRhinoLength(tangent.Length),
-            index,
-            tangent.Grade * 100.0, // Convert to percentage (dimensionless, no unit conversion needed)
-            line,
-            curve);
+        var endPoint = new RhinoPoint3d(
+            UnitConverter.ToRhinoLength(wrapper.EndStation),
+            UnitConverter.ToRhinoLength(wrapper.EndElevation),
+            0);
+        return new RhinoLineCurve(new RhinoLine(startPoint, endPoint));
     }
 
     /// <summary>
     /// Converts a ProfileCircular to a wrapper.
     /// </summary>
-    private static CivilProfileCircularArcWrapper ConvertCircularArc(ProfileCircular arc, int index)
+    public static RhinoCurve ToRhinoCurve(this CivilProfileCircularArcWrapper wrapper)
     {
         var startPoint = new RhinoPoint3d(
-            UnitConverter.ToRhinoLength(arc.StartStation),
-            UnitConverter.ToRhinoLength(arc.StartElevation),
+            UnitConverter.ToRhinoLength(wrapper.StartStation),
+            UnitConverter.ToRhinoLength(wrapper.StartElevation),
             0);
         var endPoint = new RhinoPoint3d(
-            UnitConverter.ToRhinoLength(arc.EndStation),
-            UnitConverter.ToRhinoLength(arc.EndElevation),
+            UnitConverter.ToRhinoLength(wrapper.EndStation),
+            UnitConverter.ToRhinoLength(wrapper.EndElevation),
             0);
-        var radius = UnitConverter.ToRhinoLength(arc.Radius);
+        var radius = UnitConverter.ToRhinoLength(wrapper.Radius);
 
-        var isCrest = arc.GradeIn > arc.GradeOut;
+        var isCrest = wrapper.IsCrest;
 
-        var centerStation = arc.HighLowPointStation;
+        var centerStation = wrapper.HighLowPointStation;
         var centerElevation = isCrest
-            ? arc.HighLowPointElevation - arc.Radius
-            : arc.HighLowPointElevation + arc.Radius;
+            ? wrapper.HighLowPointElevation - wrapper.Radius
+            : wrapper.HighLowPointElevation + wrapper.Radius;
 
         var centerPoint = new RhinoPoint3d(
             UnitConverter.ToRhinoLength(centerStation),
@@ -168,152 +181,25 @@ public static class CivilProfileExtensions
 
         var rhinoArcCurve = new RhinoArcCurve(rhinoArc);
 
-        return new CivilProfileCircularArcWrapper(
-            UnitConverter.ToRhinoLength(arc.StartStation),
-            UnitConverter.ToRhinoLength(arc.EndStation),
-            UnitConverter.ToRhinoLength(arc.StartElevation),
-            UnitConverter.ToRhinoLength(arc.EndElevation),
-            UnitConverter.ToRhinoLength(arc.Length),
-            index,
-            rhinoArc,
-            rhinoArcCurve);
+        return rhinoArcCurve;
     }
 
     /// <summary>
     /// Converts a ProfileParabolaSymmetric to a wrapper.
     /// </summary>
-    private static CivilProfileParabolaWrapper ConvertParabola(ProfileParabolaSymmetric parabola, int index)
-    {
-        var curve = CreateParabolaCurve(parabola);
-
-        RhinoPoint3d? highLowPoint = null;
-        try
-        {
-            if (parabola.HighLowPointStation >= parabola.StartStation &&
-                parabola.HighLowPointStation <= parabola.EndStation)
-            {
-                highLowPoint = new RhinoPoint3d(
-                    UnitConverter.ToRhinoLength(parabola.HighLowPointStation),
-                    UnitConverter.ToRhinoLength(parabola.HighLowPointElevation),
-                    0);
-            }
-        }
-        catch
-        {
-            // High/low point may not exist within curve
-        }
-
-        return new CivilProfileParabolaWrapper(
-            UnitConverter.ToRhinoLength(parabola.StartStation),
-            UnitConverter.ToRhinoLength(parabola.EndStation),
-            UnitConverter.ToRhinoLength(parabola.StartElevation),
-            UnitConverter.ToRhinoLength(parabola.EndElevation),
-            UnitConverter.ToRhinoLength(parabola.Length),
-            index,
-            parabola.K, // K value is dimensionless (rate of change)
-            UnitConverter.ToRhinoLength(parabola.PVIStation),
-            UnitConverter.ToRhinoLength(parabola.PVIElevation),
-            highLowPoint,
-            curve);
-    }
-
-    /// <summary>
-    /// Converts a ProfileParabolaAsymmetric to a wrapper.
-    /// </summary>
-    private static CivilProfileParabolaWrapper ConvertAsymmetricParabola(ProfileParabolaAsymmetric parabola, int index)
-    {
-        var curve = CreateAsymmetricParabolaCurve(parabola);
-
-        RhinoPoint3d? highLowPoint = null;
-        try
-        {
-            if (parabola.HighLowPointStation >= parabola.StartStation &&
-                parabola.HighLowPointStation <= parabola.EndStation)
-            {
-                highLowPoint = new RhinoPoint3d(
-                    UnitConverter.ToRhinoLength(parabola.HighLowPointStation),
-                    UnitConverter.ToRhinoLength(parabola.HighLowPointElevation),
-                    0);
-            }
-        }
-        catch
-        {
-            // High/low point may not exist within curve
-        }
-
-        // For asymmetric parabolas, calculate effective K from length and grade change
-        // K = L / |A| where A = grade change in percent
-        var gradeChange = Math.Abs(parabola.GradeOut - parabola.GradeIn) * 100.0;
-        var effectiveK = gradeChange > 0.0001 ? parabola.Length / gradeChange : 0.0;
-
-        return new CivilProfileParabolaWrapper(
-            UnitConverter.ToRhinoLength(parabola.StartStation),
-            UnitConverter.ToRhinoLength(parabola.EndStation),
-            UnitConverter.ToRhinoLength(parabola.StartElevation),
-            UnitConverter.ToRhinoLength(parabola.EndElevation),
-            UnitConverter.ToRhinoLength(parabola.Length),
-            index,
-            effectiveK, // Calculated K value
-            UnitConverter.ToRhinoLength(parabola.PVIStation),
-            UnitConverter.ToRhinoLength(parabola.PVIElevation),
-            highLowPoint,
-            curve);
-    }
-
-    /// <summary>
-    /// Converts a generic profile entity to a wrapper.
-    /// </summary>
-    private static CivilProfileEntityWrapper? ConvertGenericEntity(ProfileEntity entity, int index)
-    {
-        try
-        {
-            var startPoint = new RhinoPoint3d(
-                UnitConverter.ToRhinoLength(entity.StartStation),
-                UnitConverter.ToRhinoLength(entity.StartElevation),
-                0);
-            var endPoint = new RhinoPoint3d(
-                UnitConverter.ToRhinoLength(entity.EndStation),
-                UnitConverter.ToRhinoLength(entity.EndElevation),
-                0);
-            var curve = new RhinoLineCurve(new RhinoLine(startPoint, endPoint));
-
-            return new CivilProfileEntityWrapper(
-                entity.EntityType.ToString(),
-                UnitConverter.ToRhinoLength(entity.StartStation),
-                UnitConverter.ToRhinoLength(entity.EndStation),
-                UnitConverter.ToRhinoLength(entity.StartElevation),
-                UnitConverter.ToRhinoLength(entity.EndElevation),
-                UnitConverter.ToRhinoLength(entity.Length),
-                index,
-                curve);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Creates a curve representation for a symmetric parabola.
-    /// </summary>
-    private static RhinoCurve CreateParabolaCurve(ProfileParabolaSymmetric parabola)
+    public static RhinoCurve ToRhinoCurve(this CivilProfileSymmetricalParabolaWrapper symmetricalParabola)
     {
         var points = new List<RhinoPoint3d>();
-        var numSamples = Math.Max(20, (int)(parabola.Length / 2.0));
+        var numSamples = Math.Max(20, (int)(symmetricalParabola.Length / 2.0));
 
         // Sample points along the parabola
         for (var i = 0; i <= numSamples; i++)
         {
             var t = (double)i / numSamples;
-            var station = parabola.StartStation + (parabola.EndStation - parabola.StartStation) * t;
+            var station = symmetricalParabola.StartStation + (symmetricalParabola.EndStation - symmetricalParabola.StartStation) * t;
 
             // Calculate elevation using parabola equation
-            var elevation = CalculateParabolaElevation(
-                station,
-                parabola.PVIStation,
-                parabola.PVIElevation,
-                parabola.GradeIn,
-                parabola.K);
+            var elevation = symmetricalParabola.CalculateElevation(station);
 
             points.Add(new RhinoPoint3d(
                 UnitConverter.ToRhinoLength(station),
@@ -325,40 +211,36 @@ public static class CivilProfileExtensions
     }
 
     /// <summary>
-    /// Creates a curve representation for an asymmetric parabola.
+    /// Converts a ProfileParabolaSymmetric to a wrapper.
     /// </summary>
-    private static RhinoCurve CreateAsymmetricParabolaCurve(ProfileParabolaAsymmetric parabola)
+    public static RhinoCurve ToRhinoCurve(this CivilProfileAsymmetricalParabolaWrapper asymmetricalParabola)
     {
         var points = new List<RhinoPoint3d>();
-        var numSamples = Math.Max(20, (int)(parabola.Length / 2.0));
+        var numSamples = Math.Max(20, (int)(asymmetricalParabola.Length / 2.0));
 
         // For asymmetric parabolas, calculate K values for each half
         // K = L / |A| where A = grade change in percent
-        var gradeChangePercent = Math.Abs(parabola.GradeOut - parabola.GradeIn) * 100.0;
+        var gradeChangePercent = Math.Abs(asymmetricalParabola.GradeOut - asymmetricalParabola.GradeIn) * 100.0;
 
         // Get the asymmetric lengths for each half
-        var length1 = parabola.AsymmetricLength1;
-        var length2 = parabola.AsymmetricLength2;
+        var length1 = asymmetricalParabola.AsymmetricLength1;
+        var length2 = asymmetricalParabola.AsymmetricLength2;
 
         // Calculate K for each half based on their respective lengths
-        var k1 = gradeChangePercent > 0.0001 ? length1 / (gradeChangePercent * length1 / parabola.Length) : parabola.Length;
-        var k2 = gradeChangePercent > 0.0001 ? length2 / (gradeChangePercent * length2 / parabola.Length) : parabola.Length;
+        var k1 = gradeChangePercent > 0.0001 ? length1 / (gradeChangePercent * length1 / asymmetricalParabola.Length) : asymmetricalParabola.Length;
+        var k2 = gradeChangePercent > 0.0001 ? length2 / (gradeChangePercent * length2 / asymmetricalParabola.Length) : asymmetricalParabola.Length;
 
         // Sample points along the parabola
         for (var i = 0; i <= numSamples; i++)
         {
             var t = (double)i / numSamples;
-            var station = parabola.StartStation + (parabola.EndStation - parabola.StartStation) * t;
+            var station = asymmetricalParabola.StartStation + (asymmetricalParabola.EndStation - asymmetricalParabola.StartStation) * t;
 
             // Use appropriate K value based on position relative to PVI
-            var k = station < parabola.PVIStation ? k1 : k2;
+            var k = station < asymmetricalParabola.PVIStation ? k1 : k2;
 
-            var elevation = CalculateParabolaElevation(
-                station,
-                parabola.PVIStation,
-                parabola.PVIElevation,
-                parabola.GradeIn,
-                k);
+            // Calculate elevation using parabola equation
+            var elevation = asymmetricalParabola.CalculateElevation(station, k);
 
             points.Add(new RhinoPoint3d(
                 UnitConverter.ToRhinoLength(station),
@@ -370,56 +252,21 @@ public static class CivilProfileExtensions
     }
 
     /// <summary>
-    /// Calculates the elevation at a given station along a parabolic vertical curve.
+    /// Converts a ProfileTangent to a wrapper.
     /// </summary>
-    private static double CalculateParabolaElevation(
-        double station,
-        double pviStation,
-        double pviElevation,
-        double gradeIn,
-        double k)
+    public static RhinoCurve ToRhinoCurve(this CivilProfileTangentWrapper tangent)
     {
-        // Distance from PVI
-        var x = station - pviStation;
+        var startPoint = new RhinoPoint3d(
+            UnitConverter.ToRhinoLength(tangent.StartStation),
+            UnitConverter.ToRhinoLength(tangent.StartElevation),
+            0);
+        var endPoint = new RhinoPoint3d(
+            UnitConverter.ToRhinoLength(tangent.EndStation),
+            UnitConverter.ToRhinoLength(tangent.EndElevation),
+            0);
+        var line = new RhinoLine(startPoint, endPoint);
 
-        // Tangent elevation at this station
-        var tangentElevation = pviElevation + gradeIn * x;
+        return new RhinoLineCurve(line);
 
-        // Parabolic correction
-        // y = gradeIn * x + (gradeOut - gradeIn) * x^2 / (2 * L)
-        // where L = K * |gradeOut - gradeIn|
-        // Simplified: correction = x^2 / (2 * K * 100)
-        var correction = x * x / (2.0 * k * 100.0);
-
-        // For sag curves, add correction; for crest curves, subtract
-        // The sign depends on the relationship between gradeIn and gradeOut
-        return tangentElevation - correction;
-    }
-
-    /// <summary>
-    /// Gets the parent alignment name for a profile.
-    /// </summary>
-    /// <param name="profile">The profile to get the parent alignment name for.</param>
-    /// <param name="transactionManager">The transaction manager for database operations.</param>
-    /// <returns>The name of the parent alignment, or empty string if not found.</returns>
-    public static string GetParentAlignmentName(
-        this Profile profile,
-        IAutocadTransactionManager transactionManager)
-    {
-        try
-        {
-            var alignmentId = profile.AlignmentId;
-            if (alignmentId.IsNull || alignmentId.IsErased)
-                return string.Empty;
-
-            var alignment = transactionManager.Unwrap()
-                .GetObject(alignmentId, OpenMode.ForRead) as Alignment;
-
-            return alignment?.Name ?? string.Empty;
-        }
-        catch
-        {
-            return string.Empty;
-        }
     }
 }

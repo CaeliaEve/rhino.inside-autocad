@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D Subassembly properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilSubassemblyPropertiesWrapper"/> containing
+/// This Goo wraps a <see cref="CivilSubassemblyProperties"/> containing
 /// properties from a Subassembly.
 /// </remarks>
-public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyPropertiesWrapper>
+public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyProperties>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilSubassemblyProperties"/> class with no value.
@@ -25,7 +25,7 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyPropertiesWr
     /// specified subassembly properties wrapper.
     /// </summary>
     /// <param name="subassemblyProperties">The Civil 3D subassembly properties wrapper.</param>
-    public GH_CivilSubassemblyProperties(CivilSubassemblyPropertiesWrapper subassemblyProperties) : base(subassemblyProperties)
+    public GH_CivilSubassemblyProperties(CivilSubassemblyProperties subassemblyProperties) : base(subassemblyProperties)
     {
     }
 
@@ -34,7 +34,7 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyPropertiesWr
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilSubassemblyProperties(GH_CivilSubassemblyProperties other) : base(other.Value?.Duplicate())
+    public GH_CivilSubassemblyProperties(GH_CivilSubassemblyProperties other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -42,7 +42,7 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyPropertiesWr
     /// Constructs a new <see cref="GH_CivilSubassemblyProperties"/> via the interface.
     /// </summary>
     public GH_CivilSubassemblyProperties(ICivilSubassemblyProperties subassemblyProperties)
-        : base((subassemblyProperties as CivilSubassemblyPropertiesWrapper)!)
+        : base((subassemblyProperties as CivilSubassemblyProperties)!)
     {
     }
 
@@ -77,19 +77,19 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyPropertiesWr
     {
         if (source is GH_CivilSubassemblyProperties goo)
         {
-            Value = goo.Value?.Duplicate();
+            Value = goo.Value?.ShallowClone();
             return true;
         }
 
-        if (source is CivilSubassemblyPropertiesWrapper wrapper)
+        if (source is CivilSubassemblyProperties wrapper)
         {
-            Value = wrapper.Duplicate();
+            Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilSubassemblyProperties props)
         {
-            Value = (props as CivilSubassemblyPropertiesWrapper)?.Duplicate();
+            Value = (props as CivilSubassemblyProperties)?.ShallowClone();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyPropertiesWr
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilSubassemblyPropertiesWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilSubassemblyProperties)))
         {
             target = (Q)(object)Value!;
             return true;

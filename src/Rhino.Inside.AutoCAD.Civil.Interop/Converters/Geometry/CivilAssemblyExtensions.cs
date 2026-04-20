@@ -17,11 +17,11 @@ public static class CivilAssemblyExtensions
     /// <param name="assembly">The Civil 3D Assembly to extract subassemblies from.</param>
     /// <param name="transactionManager">The transaction manager for database operations.</param>
     /// <returns>A list of subassembly property wrappers.</returns>
-    public static List<CivilSubassemblyPropertiesWrapper> GetSubassemblies(
+    public static List<CivilSubassemblyProperties> GetSubassemblies(
         this Assembly assembly,
         IAutocadTransactionManager transactionManager)
     {
-        var subassemblies = new List<CivilSubassemblyPropertiesWrapper>();
+        var subassemblies = new List<CivilSubassemblyProperties>();
 
         var transaction = transactionManager.Unwrap();
         try
@@ -31,7 +31,7 @@ public static class CivilAssemblyExtensions
                 foreach (ObjectId subassemblyId in group.GetSubassemblyIds())
                 {
                     var subassembly = transaction.GetObject(subassemblyId, Autodesk.AutoCAD.DatabaseServices.OpenMode.ForRead) as Subassembly;
-                    var wrapper = new CivilSubassemblyPropertiesWrapper(subassembly);
+                    var wrapper = CivilSubassemblyProperties.CreateFromSubassembly(subassembly);
                     subassemblies.Add(wrapper);
                 }
             }

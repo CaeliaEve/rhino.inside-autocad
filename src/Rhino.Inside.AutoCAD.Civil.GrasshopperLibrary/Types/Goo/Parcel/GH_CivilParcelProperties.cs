@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D Parcel properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilParcelPropertiesWrapper"/> containing
+/// This Goo wraps a <see cref="CivilParcelProperties"/> containing
 /// properties from a Parcel.
 /// </remarks>
-public class GH_CivilParcelProperties : GH_Goo<CivilParcelPropertiesWrapper>
+public class GH_CivilParcelProperties : GH_Goo<CivilParcelProperties>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilParcelProperties"/> class with no value.
@@ -25,7 +25,7 @@ public class GH_CivilParcelProperties : GH_Goo<CivilParcelPropertiesWrapper>
     /// specified parcel properties wrapper.
     /// </summary>
     /// <param name="parcelProperties">The Civil 3D parcel properties wrapper.</param>
-    public GH_CivilParcelProperties(CivilParcelPropertiesWrapper parcelProperties) : base(parcelProperties)
+    public GH_CivilParcelProperties(CivilParcelProperties parcelProperties) : base(parcelProperties)
     {
     }
 
@@ -42,7 +42,7 @@ public class GH_CivilParcelProperties : GH_Goo<CivilParcelPropertiesWrapper>
     /// Constructs a new <see cref="GH_CivilParcelProperties"/> via the interface.
     /// </summary>
     public GH_CivilParcelProperties(ICivilParcelProperties parcelProperties)
-        : base((parcelProperties as CivilParcelPropertiesWrapper)!)
+        : base((parcelProperties as CivilParcelProperties)!)
     {
     }
 
@@ -81,7 +81,7 @@ public class GH_CivilParcelProperties : GH_Goo<CivilParcelPropertiesWrapper>
             return true;
         }
 
-        if (source is CivilParcelPropertiesWrapper wrapper)
+        if (source is CivilParcelProperties wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
@@ -89,7 +89,7 @@ public class GH_CivilParcelProperties : GH_Goo<CivilParcelPropertiesWrapper>
 
         if (source is ICivilParcelProperties props)
         {
-            Value = (props as CivilParcelPropertiesWrapper)?.Duplicate();
+            Value = (props as CivilParcelProperties)?.Duplicate();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilParcelProperties : GH_Goo<CivilParcelPropertiesWrapper>
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilParcelPropertiesWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilParcelProperties)))
         {
             target = (Q)(object)Value!;
             return true;

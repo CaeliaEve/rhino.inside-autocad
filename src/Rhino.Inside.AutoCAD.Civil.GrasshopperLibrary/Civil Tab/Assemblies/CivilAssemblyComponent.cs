@@ -87,7 +87,7 @@ public class CivilAssemblyComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(assembly.StyleId)));
 
-        DA.SetData(2, new GH_CivilAssemblyProperties(new CivilAssemblyPropertiesWrapper(assembly)));
+        DA.SetData(2, new GH_CivilAssemblyProperties(CivilAssemblyProperties.CreateFromAssembly(assembly)));
 
         var assemblyData = transactionManager.PerformTask(() => new
         {

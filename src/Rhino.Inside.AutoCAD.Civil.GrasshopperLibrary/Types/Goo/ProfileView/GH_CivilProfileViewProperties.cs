@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D ProfileView properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilProfileViewPropertiesWrapper"/> containing
+/// This Goo wraps a <see cref="CivilProfileViewProperties"/> containing
 /// properties from a ProfileView.
 /// </remarks>
-public class GH_CivilProfileViewProperties : GH_Goo<CivilProfileViewPropertiesWrapper>
+public class GH_CivilProfileViewProperties : GH_Goo<CivilProfileViewProperties>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilProfileViewProperties"/> class with no value.
@@ -25,7 +25,7 @@ public class GH_CivilProfileViewProperties : GH_Goo<CivilProfileViewPropertiesWr
     /// specified ProfileView properties wrapper.
     /// </summary>
     /// <param name="profileViewProperties">The Civil 3D ProfileView properties wrapper.</param>
-    public GH_CivilProfileViewProperties(CivilProfileViewPropertiesWrapper profileViewProperties) : base(profileViewProperties)
+    public GH_CivilProfileViewProperties(CivilProfileViewProperties profileViewProperties) : base(profileViewProperties)
     {
     }
 
@@ -42,7 +42,7 @@ public class GH_CivilProfileViewProperties : GH_Goo<CivilProfileViewPropertiesWr
     /// Constructs a new <see cref="GH_CivilProfileViewProperties"/> via the interface.
     /// </summary>
     public GH_CivilProfileViewProperties(ICivilProfileViewProperties profileViewProperties)
-        : base((profileViewProperties as CivilProfileViewPropertiesWrapper)!)
+        : base((profileViewProperties as CivilProfileViewProperties)!)
     {
     }
 
@@ -81,7 +81,7 @@ public class GH_CivilProfileViewProperties : GH_Goo<CivilProfileViewPropertiesWr
             return true;
         }
 
-        if (source is CivilProfileViewPropertiesWrapper wrapper)
+        if (source is CivilProfileViewProperties wrapper)
         {
             Value = wrapper.Duplicate();
             return true;
@@ -89,7 +89,7 @@ public class GH_CivilProfileViewProperties : GH_Goo<CivilProfileViewPropertiesWr
 
         if (source is ICivilProfileViewProperties props)
         {
-            Value = (props as CivilProfileViewPropertiesWrapper)?.Duplicate();
+            Value = (props as CivilProfileViewProperties)?.Duplicate();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilProfileViewProperties : GH_Goo<CivilProfileViewPropertiesWr
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilProfileViewPropertiesWrapper)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilProfileViewProperties)))
         {
             target = (Q)(object)Value!;
             return true;

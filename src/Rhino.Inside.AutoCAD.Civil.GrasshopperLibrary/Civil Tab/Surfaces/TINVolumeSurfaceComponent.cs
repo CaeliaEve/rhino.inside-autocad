@@ -95,7 +95,7 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(2, styleId);
 
         // Volume Properties
-        var volumePropsWrapper = new CivilVolumePropertiesWrapper(volumeSurface);
+        var volumePropsWrapper = CivilTinVolumeSurfaceProperties.CreateFromVolume(volumeSurface);
         DA.SetData(3, new GH_CivilVolumeProperties(volumePropsWrapper));
 
         // Get the base and comparison surfaces
