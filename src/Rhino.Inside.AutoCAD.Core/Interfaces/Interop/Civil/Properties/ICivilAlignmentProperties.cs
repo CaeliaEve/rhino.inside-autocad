@@ -40,17 +40,6 @@ public interface ICivilAlignmentProperties
     AlignmentType AlignmentType { get; }
 
     /// <summary>
-    /// Gets the number of entities (segments) in the alignment.
-    /// </summary>
-    int EntityCount { get; }
-
-    /// <summary>
-    /// Gets the name of the site containing this alignment.
-    /// </summary>
-    [Obsolete("Use Site property instead. This property will be removed in a future version.")]
-    string SiteName { get; }
-
-    /// <summary>
     /// Gets the site containing this alignment as a NamedId.
     /// </summary>
     /// <remarks>
@@ -86,11 +75,6 @@ public interface ICivilAlignmentProperties
     ICivilDesignSpeeds DesignSpeeds { get; }
 
     /// <summary>
-    /// Gets the CANT information for this alignment.
-    /// </summary>
-    ICivilCANTInfo CANTInfo { get; }
-
-    /// <summary>
     /// Gets the connected alignment information for this alignment.
     /// </summary>
     ICivilConnectedAlignmentInfo ConnectedAlignmentInfo { get; }
@@ -111,4 +95,9 @@ public interface ICivilAlignmentProperties
     /// </summary>
     ICivilAlignmentProperties Update(IAutocadTransactionManager transactionManager,
         string newName, string newDescription);
+
+    /// <summary>
+    /// Gets the CANT information for this alignment. This requires an active transaction.
+    /// </summary>
+    ICivilCantInfo GetCantInfo(IAutocadTransactionManager transactionManager);
 }

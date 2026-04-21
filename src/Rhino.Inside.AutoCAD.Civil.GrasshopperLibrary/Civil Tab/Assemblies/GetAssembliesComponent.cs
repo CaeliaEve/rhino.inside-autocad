@@ -11,7 +11,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that gets all Assemblies from the current Civil 3D document.
 /// </summary>
-[ComponentVersion(introduced: "1.2.20")]
+[ComponentVersion(introduced: "1.2.19")]
 public class GetAssembliesComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />

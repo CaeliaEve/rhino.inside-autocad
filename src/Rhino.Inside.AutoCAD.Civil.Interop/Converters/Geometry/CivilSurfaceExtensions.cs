@@ -90,6 +90,7 @@ public static class CivilSurfaceExtensions
 
         foreach (var triangle in surface.GetTriangles(false))
         {
+            if (triangle.IsVisible == false) continue;
             var indexA = vertexIndexMap[triangle.Vertex1.Location];
             var indexB = vertexIndexMap[triangle.Vertex2.Location];
             var indexC = vertexIndexMap[triangle.Vertex3.Location];

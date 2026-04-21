@@ -10,11 +10,6 @@ namespace Rhino.Inside.AutoCAD.Core.Interfaces;
 public interface ICivilDesignSpeeds
 {
     /// <summary>
-    /// Gets the base design speed for the alignment.
-    /// </summary>
-    double DesignSpeed { get; }
-
-    /// <summary>
     /// Gets the collection of speed stations along the alignment.
     /// </summary>
     IReadOnlyList<ICivilDesignSpeedStation> SpeedStations { get; }
@@ -24,20 +19,4 @@ public interface ICivilDesignSpeeds
     /// </summary>
     /// <returns>A new instance with the same values.</returns>
     ICivilDesignSpeeds ShallowClone();
-}
-
-/// <summary>
-/// Represents a design speed at a specific station along an alignment.
-/// </summary>
-public interface ICivilDesignSpeedStation
-{
-    /// <summary>
-    /// Gets the station value where this speed applies.
-    /// </summary>
-    double Station { get; }
-
-    /// <summary>
-    /// Gets the design speed value at this station.
-    /// </summary>
-    double Speed { get; }
 }

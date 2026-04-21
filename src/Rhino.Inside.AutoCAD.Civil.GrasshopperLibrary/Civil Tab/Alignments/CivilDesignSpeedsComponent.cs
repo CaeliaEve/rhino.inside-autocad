@@ -1,6 +1,4 @@
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -17,6 +15,10 @@ public class CivilDesignSpeedsComponent : RhinoInsideAutocad_ComponentBase
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
+
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilDesignSpeedsComponent"/> class.
@@ -38,8 +40,6 @@ public class CivilDesignSpeedsComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddNumberParameter("Design Speed", "Speed",
-            "The base design speed for the alignment.", GH_ParamAccess.item);
 
         pManager.AddNumberParameter("Stations", "Sta",
             "Station values for speed changes.", GH_ParamAccess.list);
@@ -55,12 +55,10 @@ public class CivilDesignSpeedsComponent : RhinoInsideAutocad_ComponentBase
 
         if (!DA.GetData(0, ref designSpeeds) || designSpeeds is null) return;
 
-        DA.SetData(0, designSpeeds.DesignSpeed);
-
         var stations = designSpeeds.SpeedStations.Select(s => s.Station).ToList();
         var speeds = designSpeeds.SpeedStations.Select(s => s.Speed).ToList();
 
-        DA.SetDataList(1, stations);
-        DA.SetDataList(2, speeds);
+        DA.SetDataList(0, stations);
+        DA.SetDataList(1, speeds);
     }
 }

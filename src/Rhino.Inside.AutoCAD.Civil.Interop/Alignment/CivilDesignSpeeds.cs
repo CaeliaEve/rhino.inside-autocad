@@ -8,8 +8,6 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </summary>
 public record CivilDesignSpeeds : ICivilDesignSpeeds
 {
-    /// <inheritdoc />
-    public double DesignSpeed { get; }
 
     /// <inheritdoc />
     public IReadOnlyList<ICivilDesignSpeedStation> SpeedStations { get; }
@@ -24,8 +22,8 @@ public record CivilDesignSpeeds : ICivilDesignSpeeds
     /// </summary>
     private CivilDesignSpeeds()
     {
-        DesignSpeed = 0;
-        SpeedStations = Array.Empty<ICivilDesignSpeedStation>();
+
+        this.SpeedStations = Array.Empty<ICivilDesignSpeedStation>();
     }
 
     /// <summary>
@@ -36,25 +34,23 @@ public record CivilDesignSpeeds : ICivilDesignSpeeds
     {
         try
         {
-            DesignSpeed = alignment.DesignSpeed;
 
             var stations = new List<ICivilDesignSpeedStation>();
             var speedTable = alignment.DesignSpeeds;
 
             if (speedTable != null)
             {
-                foreach (DesignSpeed speed in speedTable)
+                foreach (var speed in speedTable)
                 {
-                    stations.Add(new CivilDesignSpeedStation(speed.Station, speed.Value));
+                    stations.Add(new CivilDesignSpeedStation(speed));
                 }
             }
 
-            SpeedStations = stations;
+            this.SpeedStations = stations;
         }
         catch
         {
-            DesignSpeed = 0;
-            SpeedStations = Array.Empty<ICivilDesignSpeedStation>();
+            this.SpeedStations = Array.Empty<ICivilDesignSpeedStation>();
         }
     }
 
@@ -69,37 +65,6 @@ public record CivilDesignSpeeds : ICivilDesignSpeeds
     /// </summary>
     public override string ToString()
     {
-        return $"Design Speed: {DesignSpeed:F2} ({SpeedStations.Count} speed stations)";
-    }
-}
-
-/// <summary>
-/// Represents a design speed at a specific station.
-/// </summary>
-public record CivilDesignSpeedStation : ICivilDesignSpeedStation
-{
-    /// <inheritdoc />
-    public double Station { get; }
-
-    /// <inheritdoc />
-    public double Speed { get; }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="CivilDesignSpeedStation"/>.
-    /// </summary>
-    /// <param name="station">The station value.</param>
-    /// <param name="speed">The speed value.</param>
-    public CivilDesignSpeedStation(double station, double speed)
-    {
-        Station = station;
-        Speed = speed;
-    }
-
-    /// <summary>
-    /// Returns a string representation of this speed station.
-    /// </summary>
-    public override string ToString()
-    {
-        return $"Station {Station:F2}: {Speed:F2}";
+        return $"Design Speed ({this.SpeedStations.Count} speed stations)";
     }
 }

@@ -1,4 +1,3 @@
-using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
@@ -10,88 +9,64 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </summary>
 public record CivilConnectedAlignmentInfo : ICivilConnectedAlignmentInfo
 {
-    /// <inheritdoc />
-    public INamedId ParentAlignment { get; }
-
-    /// <inheritdoc />
-    public IReadOnlyList<INamedId> ChildAlignments { get; }
-
-    /// <inheritdoc />
-    public bool IsConnected { get; }
-
     /// <summary>
-    /// Gets an empty connected alignment info instance.
+    /// Constructs an empty instance of <see cref="CivilConnectedAlignmentInfo"/> representing a
+    /// non connnected alignment.
     /// </summary>
     public static CivilConnectedAlignmentInfo Empty { get; } = new();
 
+    /// <inheritdoc />
+    public bool IsConnectedAlignment { get; }
+
+    /// <inheritdoc />
+    public double ConnectionOverlapLengthIn { get; }
+
+    /// <inheritdoc />
+    public double ConnectionOverlapLengthOut { get; }
+
+    /// <inheritdoc />
+    public IObjectId IncomingParentAlignmentId { get; }
+
+    /// <inheritdoc />
+    public IObjectId OutgoingParentAlignmentId { get; }
+
+    /// <inheritdoc />
+    public double OffsetIn { get; }
+
+    /// <inheritdoc />
+    public double OffsetOut { get; }
+
     /// <summary>
-    /// Initializes a new empty instance of <see cref="CivilConnectedAlignmentInfo"/>.
+    /// Private constructor to create an empty instance of <see cref="CivilConnectedAlignmentInfo"/>
+    /// with default values.
     /// </summary>
     private CivilConnectedAlignmentInfo()
     {
-        ParentAlignment = NamedId.Empty;
-        ChildAlignments = Array.Empty<INamedId>();
-        IsConnected = false;
+        this.ConnectionOverlapLengthIn = 0;
+        this.ConnectionOverlapLengthOut = 0;
+        this.IncomingParentAlignmentId = AutocadObjectIdWrapper.DefaultId;
+        this.OutgoingParentAlignmentId = AutocadObjectIdWrapper.DefaultId;
+        this.OffsetIn = 0;
+        this.OffsetOut = 0;
+        this.IsConnectedAlignment = false;
     }
 
     /// <summary>
     /// Initializes a new instance of <see cref="CivilConnectedAlignmentInfo"/> from an Alignment.
     /// </summary>
-    /// <param name="alignment">The Civil 3D alignment to extract connection info from.</param>
-    /// <param name="transaction">The transaction to use for database lookups.</param>
-    public CivilConnectedAlignmentInfo(Alignment alignment, Transaction transaction)
+    /// <param name="info">The Civil 3D alignment to extract connection info from.</param>
+    public CivilConnectedAlignmentInfo(ConnectedAlignmentInfo info)
     {
-        try
-        {
-            // Get parent alignment if this is a connected alignment
-            if (alignment.IsConnectedAlignment)
-            {
-                var parentId = alignment.ConnectedAlignmentParentId;
-                if (!parentId.IsNull)
-                {
-                    var parentAlignment = transaction.GetObject(parentId, OpenMode.ForRead) as Alignment;
-                    ParentAlignment = parentAlignment != null
-                        ? new NamedId(parentAlignment.Name, parentId)
-                        : NamedId.Empty;
-                }
-                else
-                {
-                    ParentAlignment = NamedId.Empty;
-                }
-            }
-            else
-            {
-                ParentAlignment = NamedId.Empty;
-            }
+        this.ConnectionOverlapLengthIn = info.ConnectionOverlapLengthIn;
+        this.ConnectionOverlapLengthOut = info.ConnectionOverlapLengthOut;
+        this.OffsetIn = info.OffsetIn;
+        this.OffsetOut = info.OffsetOut;
 
-            // Get child alignments
-            var children = new List<INamedId>();
-            var childIds = alignment.GetConnectedAlignmentIds();
+        this.IncomingParentAlignmentId = new AutocadObjectIdWrapper(info.IncomingParentAlignmentId);
+        this.OutgoingParentAlignmentId = new AutocadObjectIdWrapper(info.OutgoingParentAlignmentId);
 
-            if (childIds != null)
-            {
-                foreach (ObjectId childId in childIds)
-                {
-                    if (!childId.IsNull)
-                    {
-                        var childAlignment = transaction.GetObject(childId, OpenMode.ForRead) as Alignment;
-                        if (childAlignment != null)
-                        {
-                            children.Add(new NamedId(childAlignment.Name, childId));
-                        }
-                    }
-                }
-            }
+        this.IsConnectedAlignment = true;
 
-            ChildAlignments = children;
-            IsConnected = ParentAlignment.IsValid || children.Count > 0;
-        }
-        catch
-        {
-            ParentAlignment = NamedId.Empty;
-            ChildAlignments = Array.Empty<INamedId>();
-            IsConnected = false;
-        }
     }
 
     /// <inheritdoc />
@@ -105,17 +80,9 @@ public record CivilConnectedAlignmentInfo : ICivilConnectedAlignmentInfo
     /// </summary>
     public override string ToString()
     {
-        if (!IsConnected)
-            return "Not Connected";
+        if (!this.IsConnectedAlignment)
+            return "Not Connected Alignment";
 
-        var parts = new List<string>();
-
-        if (ParentAlignment.IsValid)
-            parts.Add($"Parent: {ParentAlignment.Name}");
-
-        if (ChildAlignments.Count > 0)
-            parts.Add($"{ChildAlignments.Count} children");
-
-        return $"Connected: {string.Join(", ", parts)}";
+        return $"Connected Alignment: OverlapIn={this.ConnectionOverlapLengthIn:F2}, OverlapOut={this.ConnectionOverlapLengthOut:F2}, OffsetIn={this.OffsetIn:F2}, OffsetOut={this.OffsetOut:F2}";
     }
 }

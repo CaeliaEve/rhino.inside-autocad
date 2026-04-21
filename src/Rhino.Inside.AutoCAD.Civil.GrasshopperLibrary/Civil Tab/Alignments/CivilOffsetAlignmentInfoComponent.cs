@@ -1,7 +1,6 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
-using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -16,6 +15,9 @@ public class CivilOffsetAlignmentInfoComponent : RhinoInsideAutocad_ComponentBas
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilOffsetAlignmentInfoComponent"/> class.
@@ -40,14 +42,25 @@ public class CivilOffsetAlignmentInfoComponent : RhinoInsideAutocad_ComponentBas
         pManager.AddBooleanParameter("Is Offset Alignment", "IsOfs",
             "Whether this is an offset alignment.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Parent Alignment",
-            "Parent", "The parent alignment as a NamedId.", GH_ParamAccess.item);
-
         pManager.AddNumberParameter("Nominal Offset", "Offset",
             "The nominal offset distance from the parent alignment.", GH_ParamAccess.item);
 
-        pManager.AddTextParameter("Offset Side", "Side",
+        pManager.AddTextParameter("Side", "Side",
             "The side of the offset (Left or Right).", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Parent Alignment Id",
+            "ParentId", "The parent alignment ObjectId.", GH_ParamAccess.item);
+
+        // Regions
+        pManager.AddNumberParameter("Region Start Stations", "RegStaSt",
+            "Start stations of offset regions.", GH_ParamAccess.list);
+
+        pManager.AddNumberParameter("Region End Stations", "RegStaEnd",
+            "End stations of offset regions.", GH_ParamAccess.list);
+
+        pManager.AddNumberParameter("Region Offsets", "RegOfs",
+            "Offset values of regions.", GH_ParamAccess.list);
+
     }
 
     /// <inheritdoc />
@@ -58,8 +71,14 @@ public class CivilOffsetAlignmentInfoComponent : RhinoInsideAutocad_ComponentBas
         if (!DA.GetData(0, ref offsetInfo) || offsetInfo is null) return;
 
         DA.SetData(0, offsetInfo.IsOffsetAlignment);
-        DA.SetData(1, new GH_NamedId(offsetInfo.ParentAlignment as NamedId));
-        DA.SetData(2, offsetInfo.NominalOffset);
-        DA.SetData(3, offsetInfo.OffsetSide);
+        DA.SetData(1, offsetInfo.NominalOffset);
+        DA.SetData(2, offsetInfo.Side);
+        DA.SetData(3, new GH_AutocadObjectId(offsetInfo.ParentAlignmentId));
+
+        // Regions
+        DA.SetDataList(4, offsetInfo.Regions.Select(r => r.StartStation).ToList());
+        DA.SetDataList(5, offsetInfo.Regions.Select(r => r.EndStation).ToList());
+        DA.SetDataList(6, offsetInfo.Regions.Select(r => r.Offset).ToList());
+
     }
 }

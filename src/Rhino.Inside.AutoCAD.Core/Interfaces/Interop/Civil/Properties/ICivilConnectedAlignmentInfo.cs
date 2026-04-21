@@ -4,28 +4,45 @@ namespace Rhino.Inside.AutoCAD.Core.Interfaces;
 /// Represents connected alignment information for a Civil 3D Alignment.
 /// </summary>
 /// <remarks>
-/// Provides information about parent and child alignment relationships,
-/// used for intersecting and connected alignment types.
+/// Wraps the ConnectedAlignmentInfo from a Civil 3D Alignment, providing
+/// connection overlap lengths, parent alignment references, and offset values.
 /// </remarks>
 public interface ICivilConnectedAlignmentInfo
 {
     /// <summary>
-    /// Gets the parent alignment as a NamedId.
+    /// Gets a value indicating whether this alignment is a connected alignment.
     /// </summary>
-    /// <remarks>
-    /// Returns an empty NamedId if this alignment has no parent.
-    /// </remarks>
-    INamedId ParentAlignment { get; }
+    bool IsConnectedAlignment { get; }
 
     /// <summary>
-    /// Gets the collection of child alignments as NamedIds.
+    /// Gets the connection overlap length at the incoming end.
     /// </summary>
-    IReadOnlyList<INamedId> ChildAlignments { get; }
+    double ConnectionOverlapLengthIn { get; }
 
     /// <summary>
-    /// Gets a value indicating whether this alignment is connected to other alignments.
+    /// Gets the connection overlap length at the outgoing end.
     /// </summary>
-    bool IsConnected { get; }
+    double ConnectionOverlapLengthOut { get; }
+
+    /// <summary>
+    /// Gets the incoming parent alignment ObjectId.
+    /// </summary>
+    IObjectId IncomingParentAlignmentId { get; }
+
+    /// <summary>
+    /// Gets the outgoing parent alignment ObjectId.
+    /// </summary>
+    IObjectId OutgoingParentAlignmentId { get; }
+
+    /// <summary>
+    /// Gets the offset value at the incoming connection.
+    /// </summary>
+    double OffsetIn { get; }
+
+    /// <summary>
+    /// Gets the offset value at the outgoing connection.
+    /// </summary>
+    double OffsetOut { get; }
 
     /// <summary>
     /// Creates a shallow copy of this connected alignment information.

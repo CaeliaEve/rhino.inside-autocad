@@ -15,20 +15,12 @@ public interface ICivilRailAlignmentInfo
     bool IsRailAlignment { get; }
 
     /// <summary>
-    /// Gets the rail gauge value.
+    /// Gets the rail Track Width value.
     /// </summary>
     /// <remarks>
     /// Returns 0 if this is not a rail alignment.
     /// </remarks>
-    double Gauge { get; }
-
-    /// <summary>
-    /// Gets the CANT information for this rail alignment.
-    /// </summary>
-    /// <remarks>
-    /// Returns empty CANT info if this is not a rail alignment or has no CANT data.
-    /// </remarks>
-    ICivilCANTInfo CANTInfo { get; }
+    double TrackWidth { get; }
 
     /// <summary>
     /// Creates a shallow copy of this rail alignment information.

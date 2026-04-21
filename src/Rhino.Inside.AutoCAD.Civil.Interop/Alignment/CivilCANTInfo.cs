@@ -6,97 +6,71 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// <summary>
 /// Wraps CANT (superelevation) information extracted from a Civil 3D Alignment.
 /// </summary>
-public record CivilCANTInfo : ICivilCANTInfo
+public record CivilCantInfo : ICivilCantInfo
 {
     /// <inheritdoc />
-    public bool HasCANT { get; }
+    public bool HasCantInfo { get; }
 
     /// <inheritdoc />
-    public IReadOnlyList<ICivilCANTCriticalStation> CriticalStations { get; }
+    public IReadOnlyList<ICivilCantCriticalStation> CriticalStations { get; }
 
     /// <inheritdoc />
-    public IReadOnlyList<ICivilCANTCurve> Curves { get; }
+    public IReadOnlyList<ICivilCantCurve> Curves { get; }
 
     /// <summary>
     /// Gets an empty CANT info instance with no data.
     /// </summary>
-    public static CivilCANTInfo Empty { get; } = new();
+    public static CivilCantInfo Empty { get; } = new();
 
     /// <summary>
-    /// Initializes a new empty instance of <see cref="CivilCANTInfo"/>.
+    /// Initializes a new empty instance of <see cref="CivilCantInfo"/>.
     /// </summary>
-    public CivilCANTInfo()
+    public CivilCantInfo()
     {
-        HasCANT = false;
-        CriticalStations = Array.Empty<ICivilCANTCriticalStation>();
-        Curves = Array.Empty<ICivilCANTCurve>();
+        this.HasCantInfo = false;
+        this.CriticalStations = Array.Empty<ICivilCantCriticalStation>();
+        this.Curves = Array.Empty<ICivilCantCurve>();
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="CivilCANTInfo"/> from an Alignment.
+    /// Initializes a new instance of <see cref="CivilCantInfo"/> from an Alignment.
     /// </summary>
     /// <param name="alignment">The Civil 3D alignment to extract CANT from.</param>
-    public CivilCANTInfo(Alignment alignment)
+    public CivilCantInfo(Alignment alignment)
     {
-        try
+        var cantCurveCollection = alignment.CANTCurves;
+        var cantStations = alignment.CANTCriticalStaitons;
+
+        var cantCriticalStations = new List<ICivilCantCriticalStation>();
+
+        if (cantStations != null)
         {
-            var cantInfo = alignment.GetCANT();
-
-            if (cantInfo == null)
+            foreach (var station in cantStations)
             {
-                HasCANT = false;
-                CriticalStations = Array.Empty<ICivilCANTCriticalStation>();
-                Curves = Array.Empty<ICivilCANTCurve>();
-                return;
+                cantCriticalStations.Add(new CivilCantCriticalStation(station));
             }
-
-            HasCANT = true;
-
-            var criticalStations = new List<ICivilCANTCriticalStation>();
-            var cantCriticalStations = cantInfo.GetCANTCriticalStations();
-
-            if (cantCriticalStations != null)
-            {
-                foreach (var station in cantCriticalStations)
-                {
-                    criticalStations.Add(new CivilCANTCriticalStation(
-                        station.Station,
-                        station.StationType.ToString(),
-                        station.Cant,
-                        station.Pivot));
-                }
-            }
-
-            CriticalStations = criticalStations;
-
-            var curves = new List<ICivilCANTCurve>();
-            var cantCurves = cantInfo.GetCANTCurves();
-
-            if (cantCurves != null)
-            {
-                foreach (var curve in cantCurves)
-                {
-                    curves.Add(new CivilCANTCurve(
-                        curve.StartStation,
-                        curve.EndStation,
-                        curve.Radius,
-                        curve.DesignCant,
-                        curve.AppliedCant));
-                }
-            }
-
-            Curves = curves;
         }
-        catch
+
+        this.CriticalStations = cantCriticalStations;
+
+        var curves = new List<ICivilCantCurve>();
+
+        if (cantCurveCollection != null)
         {
-            HasCANT = false;
-            CriticalStations = Array.Empty<ICivilCANTCriticalStation>();
-            Curves = Array.Empty<ICivilCANTCurve>();
+            foreach (var curve in cantCurveCollection)
+            {
+                curves.Add(new CivilCantCurve(curve));
+            }
         }
+
+        this.Curves = curves;
+
+        this.HasCantInfo = cantCriticalStations.Any() && curves.Any();
+
     }
 
     /// <inheritdoc />
-    public ICivilCANTInfo ShallowClone()
+    public ICivilCantInfo ShallowClone()
     {
         return this with { };
     }
@@ -106,87 +80,9 @@ public record CivilCANTInfo : ICivilCANTInfo
     /// </summary>
     public override string ToString()
     {
-        if (!HasCANT)
+        if (!this.HasCantInfo)
             return "No CANT Data";
 
-        return $"CANT Info: {CriticalStations.Count} critical stations, {Curves.Count} curves";
-    }
-}
-
-/// <summary>
-/// Represents a CANT critical station.
-/// </summary>
-public record CivilCANTCriticalStation : ICivilCANTCriticalStation
-{
-    /// <inheritdoc />
-    public double Station { get; }
-
-    /// <inheritdoc />
-    public string StationType { get; }
-
-    /// <inheritdoc />
-    public double Cant { get; }
-
-    /// <inheritdoc />
-    public double Pivot { get; }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="CivilCANTCriticalStation"/>.
-    /// </summary>
-    public CivilCANTCriticalStation(double station, string stationType, double cant, double pivot)
-    {
-        Station = station;
-        StationType = stationType ?? string.Empty;
-        Cant = cant;
-        Pivot = pivot;
-    }
-
-    /// <summary>
-    /// Returns a string representation of this critical station.
-    /// </summary>
-    public override string ToString()
-    {
-        return $"{StationType} at Station {Station:F2}: Cant={Cant:F4}, Pivot={Pivot:F4}";
-    }
-}
-
-/// <summary>
-/// Represents a CANT curve.
-/// </summary>
-public record CivilCANTCurve : ICivilCANTCurve
-{
-    /// <inheritdoc />
-    public double StartStation { get; }
-
-    /// <inheritdoc />
-    public double EndStation { get; }
-
-    /// <inheritdoc />
-    public double Radius { get; }
-
-    /// <inheritdoc />
-    public double DesignCant { get; }
-
-    /// <inheritdoc />
-    public double AppliedCant { get; }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="CivilCANTCurve"/>.
-    /// </summary>
-    public CivilCANTCurve(double startStation, double endStation, double radius, double designCant, double appliedCant)
-    {
-        StartStation = startStation;
-        EndStation = endStation;
-        Radius = radius;
-        DesignCant = designCant;
-        AppliedCant = appliedCant;
-    }
-
-    /// <summary>
-    /// Returns a string representation of this CANT curve.
-    /// </summary>
-    public override string ToString()
-    {
-        return $"Curve Sta {StartStation:F2}-{EndStation:F2}: R={Radius:F2}, Design={DesignCant:F4}, Applied={AppliedCant:F4}";
+        return $"CANT Info: {this.CriticalStations.Count} critical stations, {this.Curves.Count} curves";
     }
 }

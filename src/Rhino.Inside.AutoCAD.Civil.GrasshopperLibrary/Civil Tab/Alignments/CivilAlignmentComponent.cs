@@ -3,7 +3,6 @@ using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -20,6 +19,9 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilAlignmentComponent"/> class.
@@ -63,81 +65,6 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
             "Individual labels from the Alignment.", GH_ParamAccess.list);
     }
 
-    /// <summary>
-    /// Extracts all label groups from a Civil 3D Alignment.
-    /// </summary>
-    public List<ICivilAlignmentLabelGroup> GetAlignmentLabelGroups(
-        Alignment alignment,
-        IAutocadTransactionManager transactionManager)
-    {
-        var labelGroups = new List<ICivilAlignmentLabelGroup>();
-
-        try
-        {
-            var labelGroupIds = alignment.GetAlignmentLabelGroupIds();
-
-            foreach (ObjectId labelGroupId in labelGroupIds)
-            {
-                if (labelGroupId.IsNull || labelGroupId.IsErased)
-                    continue;
-
-                var labelGroup = transactionManager.Unwrap()
-                    .GetObject(labelGroupId, OpenMode.ForRead) as AlignmentLabelGroup;
-
-                if (labelGroup == null)
-                    continue;
-
-                var wrapper = new CivilAlignmentLabelGroupWrapper(labelGroup);
-                labelGroups.Add(wrapper);
-            }
-        }
-        catch
-        {
-            // Return empty list if label group extraction fails
-        }
-
-        return labelGroups;
-    }
-
-    /// <summary>
-    /// Extracts all individual labels from a Civil 3D Alignment as a flat list.
-    /// </summary>
-    public List<ICivilFeatureLabel> GetAlignmentLabels(
-        Alignment alignment,
-        IAutocadTransactionManager transactionManager)
-    {
-        var labels = new List<ICivilFeatureLabel>();
-
-        try
-        {
-            var labelIds = alignment.GetAlignmentLabelIds();
-
-            foreach (ObjectId labelId in labelIds)
-            {
-                if (labelId.IsNull || labelId.IsErased)
-                    continue;
-
-                var featureLabel = transactionManager.Unwrap()
-                    .GetObject(labelId, OpenMode.ForRead) as FeatureLabel;
-
-                if (featureLabel == null)
-                    continue;
-
-                var wrapper = featureLabel.CreateLabelWrapper(transactionManager);
-                if (wrapper != null)
-                {
-                    labels.Add(wrapper);
-                }
-            }
-        }
-        catch
-        {
-            // Return empty list if label extraction fails
-        }
-
-        return labels;
-    }
-
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -152,33 +79,29 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
 
         var transactionManager = document.CreateTransactionManager();
 
-        var alignment = transactionManager.PerformTask(() =>
-            transactionManager.Unwrap().GetObject(alignmentId.Unwrap(), OpenMode.ForRead) as
-            Alignment);
+        var alignmentWrapper = transactionManager.PerformTask(() =>
+        {
+            var alignment = transactionManager.Unwrap()
+                .GetObject(alignmentId.Unwrap(), OpenMode.ForRead) as Alignment;
 
-        if (alignment == null)
+            if (alignment == null)
+                return null;
+
+            return new CivilAlignmentWrapper(alignment, transactionManager);
+        });
+
+        if (alignmentWrapper == null)
         {
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read Alignment");
             return;
         }
 
         DA.SetData(0, new GH_AutocadObjectId(alignmentId));
-
-        DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(alignment.StyleId)));
-
-        DA.SetData(2, new GH_CivilAlignmentProperties(new CivilAlignmentProperties(alignment)));
-
-        var alignmentData = transactionManager.PerformTask(() => new
-        {
-            Entities = alignment.GetAlignmentEntities(transactionManager),
-            Curve = alignment.ToRhinoCurve(transactionManager),
-            LabelGroups = this.GetAlignmentLabelGroups(alignment, transactionManager),
-            Labels = this.GetAlignmentLabels(alignment, transactionManager)
-        });
-
-        DA.SetDataList(3, alignmentData.Entities.Select(entity => new GH_CivilAlignmentEntity(entity)).ToList());
-        DA.SetData(4, alignmentData.Curve);
-        DA.SetDataList(5, alignmentData.LabelGroups.Select(group => new GH_CivilAlignmentLabelGroup(group)).ToList());
-        DA.SetDataList(6, alignmentData.Labels.Select(label => new GH_CivilFeatureLabel(label.Unwrap())).ToList());
+        DA.SetData(1, new GH_AutocadObjectId(alignmentWrapper.StyleId));
+        DA.SetData(2, new GH_CivilAlignmentProperties(alignmentWrapper.Properties));
+        DA.SetDataList(3, alignmentWrapper.Entities.Select(entity => new GH_CivilAlignmentEntity(entity)).ToList());
+        DA.SetData(4, alignmentWrapper.CenterlineCurve);
+        DA.SetDataList(5, alignmentWrapper.LabelGroups.Select(group => new GH_CivilAlignmentLabelGroup(group)).ToList());
+        DA.SetDataList(6, alignmentWrapper.Labels.Select(label => new GH_CivilFeatureLabel(label.Unwrap())).ToList());
     }
 }

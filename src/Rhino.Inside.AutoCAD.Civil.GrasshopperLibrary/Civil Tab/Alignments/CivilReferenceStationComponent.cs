@@ -16,6 +16,9 @@ public class CivilReferenceStationComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
 
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilReferenceStationComponent"/> class.
     /// </summary>

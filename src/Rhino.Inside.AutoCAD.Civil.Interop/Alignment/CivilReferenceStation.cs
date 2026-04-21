@@ -1,6 +1,7 @@
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -28,9 +29,9 @@ public record CivilReferenceStation : ICivilReferenceStation
     /// </summary>
     private CivilReferenceStation()
     {
-        HasReferencePoint = false;
-        ReferencePoint = Point3d.Unset;
-        ReferencePointStation = 0;
+        this.HasReferencePoint = false;
+        this.ReferencePoint = Point3d.Unset;
+        this.ReferencePointStation = 0;
     }
 
     /// <summary>
@@ -42,15 +43,15 @@ public record CivilReferenceStation : ICivilReferenceStation
         try
         {
             var refPoint = alignment.ReferencePoint;
-            HasReferencePoint = true;
-            ReferencePoint = new Point3d(refPoint.X, refPoint.Y, refPoint.Z);
-            ReferencePointStation = alignment.ReferencePointStation;
+            this.HasReferencePoint = true;
+            this.ReferencePoint = refPoint.ToRhinoPoint3d();
+            this.ReferencePointStation = alignment.ReferencePointStation;
         }
         catch
         {
-            HasReferencePoint = false;
-            ReferencePoint = Point3d.Unset;
-            ReferencePointStation = 0;
+            this.HasReferencePoint = false;
+            this.ReferencePoint = Point3d.Unset;
+            this.ReferencePointStation = 0;
         }
     }
 
@@ -65,9 +66,9 @@ public record CivilReferenceStation : ICivilReferenceStation
     /// </summary>
     public override string ToString()
     {
-        if (!HasReferencePoint)
+        if (!this.HasReferencePoint)
             return "No Reference Point";
 
-        return $"Reference Station: {ReferencePointStation:F2} at ({ReferencePoint.X:F2}, {ReferencePoint.Y:F2}, {ReferencePoint.Z:F2})";
+        return $"Reference Station: {this.ReferencePointStation:F2} at ({this.ReferencePoint.X:F2}, {this.ReferencePoint.Y:F2}, {this.ReferencePoint.Z:F2})";
     }
 }

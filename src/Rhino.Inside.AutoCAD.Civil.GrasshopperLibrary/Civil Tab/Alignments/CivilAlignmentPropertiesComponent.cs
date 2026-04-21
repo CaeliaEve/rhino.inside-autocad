@@ -1,9 +1,7 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
-using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -18,6 +16,9 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilAlignmentPropertiesComponent"/> class.
@@ -66,9 +67,6 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
         pManager.AddTextParameter("Alignment Type", "Type",
             "The type of alignment (Centerline, Offset, CurbReturn, etc.).", GH_ParamAccess.item);
 
-        pManager.AddIntegerParameter("Entity Count", "Count",
-            "The number of entities in the alignment.", GH_ParamAccess.item);
-
         pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Site",
             "Site", "The site containing this alignment as a NamedId.", GH_ParamAccess.item);
 
@@ -114,16 +112,18 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
         if (DA.GetData(1, ref newName) && newName != alignmentProperties.Name) updateFlag = true;
         if (DA.GetData(2, ref newDescription) && newDescription != alignmentProperties.Description) updateFlag = true;
 
+        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
+            .AutoCadInstance.ActiveDocument;
+
+        var transactionManager = document.CreateTransactionManager();
+
         if (updateFlag)
         {
-            var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-                .AutoCadInstance.ActiveDocument;
-
-            var transactionManager = document.CreateTransactionManager();
-
             alignmentProperties = transactionManager.PerformTask(() =>
                 alignmentProperties.Update(transactionManager, newName, newDescription));
         }
+
+        var cantInfo = transactionManager.PerformTask(() => alignmentProperties.GetCantInfo(transactionManager));
 
         // Basic properties
         DA.SetData(0, alignmentProperties.Name);
@@ -132,19 +132,18 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
         DA.SetData(3, alignmentProperties.EndStation);
         DA.SetData(4, alignmentProperties.Length);
         DA.SetData(5, alignmentProperties.AlignmentType.ToString());
-        DA.SetData(6, alignmentProperties.EntityCount);
 
         // NamedId properties
-        DA.SetData(7, new GH_NamedId(alignmentProperties.Site as NamedId));
-        DA.SetData(8, new GH_NamedId(alignmentProperties.Style as NamedId));
-        DA.SetData(9, new GH_NamedId(alignmentProperties.DesignCheckSet as NamedId));
+        DA.SetData(6, new GH_NamedId(alignmentProperties.Site));
+        DA.SetData(7, new GH_NamedId(alignmentProperties.Style));
+        DA.SetData(8, new GH_NamedId(alignmentProperties.DesignCheckSet));
 
         // Extended property types
-        DA.SetData(10, new GH_CivilReferenceStation(alignmentProperties.ReferenceStation as CivilReferenceStation));
-        DA.SetData(11, new GH_CivilDesignSpeeds(alignmentProperties.DesignSpeeds as CivilDesignSpeeds));
-        DA.SetData(12, new GH_CivilCANTInfo(alignmentProperties.CANTInfo as CivilCANTInfo));
-        DA.SetData(13, new GH_CivilConnectedAlignmentInfo(alignmentProperties.ConnectedAlignmentInfo as CivilConnectedAlignmentInfo));
-        DA.SetData(14, new GH_CivilOffsetAlignmentInfo(alignmentProperties.OffsetAlignmentInfo as CivilOffsetAlignmentInfo));
-        DA.SetData(15, new GH_CivilRailAlignmentInfo(alignmentProperties.RailAlignmentInfo as CivilRailAlignmentInfo));
+        DA.SetData(9, new GH_CivilReferenceStation(alignmentProperties.ReferenceStation));
+        DA.SetData(10, new GH_CivilDesignSpeeds(alignmentProperties.DesignSpeeds));
+        DA.SetData(11, new GH_CivilCANTInfo(cantInfo));
+        DA.SetData(12, new GH_CivilConnectedAlignmentInfo(alignmentProperties.ConnectedAlignmentInfo));
+        DA.SetData(13, new GH_CivilOffsetAlignmentInfo(alignmentProperties.OffsetAlignmentInfo));
+        DA.SetData(14, new GH_CivilRailAlignmentInfo(alignmentProperties.RailAlignmentInfo));
     }
 }

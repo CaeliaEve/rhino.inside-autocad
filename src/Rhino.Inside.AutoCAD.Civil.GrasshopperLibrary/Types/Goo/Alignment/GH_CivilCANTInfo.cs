@@ -7,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D Alignment CANT information.
 /// </summary>
-public class GH_CivilCANTInfo : GH_Goo<CivilCANTInfo>
+public class GH_CivilCANTInfo : GH_Goo<CivilCantInfo>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilCANTInfo"/> class with no value.
@@ -20,7 +20,7 @@ public class GH_CivilCANTInfo : GH_Goo<CivilCANTInfo>
     /// Initializes a new instance of the <see cref="GH_CivilCANTInfo"/> class.
     /// </summary>
     /// <param name="cantInfo">The CANT info to wrap.</param>
-    public GH_CivilCANTInfo(CivilCANTInfo cantInfo) : base(cantInfo)
+    public GH_CivilCANTInfo(CivilCantInfo cantInfo) : base(cantInfo)
     {
     }
 
@@ -28,15 +28,15 @@ public class GH_CivilCANTInfo : GH_Goo<CivilCANTInfo>
     /// Initializes a new instance by copying another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilCANTInfo(GH_CivilCANTInfo other) : base(other.Value?.ShallowClone() as CivilCANTInfo)
+    public GH_CivilCANTInfo(GH_CivilCANTInfo other) : base(other.Value?.ShallowClone() as CivilCantInfo)
     {
     }
 
     /// <summary>
     /// Constructs via the interface.
     /// </summary>
-    public GH_CivilCANTInfo(ICivilCANTInfo cantInfo)
-        : base((cantInfo as CivilCANTInfo)!)
+    public GH_CivilCANTInfo(ICivilCantInfo cantInfo)
+        : base((cantInfo as CivilCantInfo)!)
     {
     }
 
@@ -71,19 +71,19 @@ public class GH_CivilCANTInfo : GH_Goo<CivilCANTInfo>
     {
         if (source is GH_CivilCANTInfo goo)
         {
-            this.Value = goo.Value?.ShallowClone() as CivilCANTInfo;
+            this.Value = goo.Value?.ShallowClone() as CivilCantInfo;
             return true;
         }
 
-        if (source is CivilCANTInfo wrapper)
+        if (source is CivilCantInfo wrapper)
         {
-            this.Value = wrapper.ShallowClone() as CivilCANTInfo;
+            this.Value = wrapper.ShallowClone() as CivilCantInfo;
             return true;
         }
 
-        if (source is ICivilCANTInfo props)
+        if (source is ICivilCantInfo props)
         {
-            this.Value = (props as CivilCANTInfo)?.ShallowClone() as CivilCANTInfo;
+            this.Value = (props as CivilCantInfo)?.ShallowClone() as CivilCantInfo;
             return this.Value != null;
         }
 
@@ -93,7 +93,7 @@ public class GH_CivilCANTInfo : GH_Goo<CivilCANTInfo>
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilCANTInfo)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilCantInfo)))
         {
             target = (Q)(object)this.Value!;
             return true;

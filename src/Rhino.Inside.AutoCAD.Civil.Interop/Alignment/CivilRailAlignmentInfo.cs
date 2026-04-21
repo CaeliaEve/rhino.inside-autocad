@@ -8,14 +8,13 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </summary>
 public record CivilRailAlignmentInfo : ICivilRailAlignmentInfo
 {
+    private readonly RailAlignmentInfo _railInfo;
+
     /// <inheritdoc />
     public bool IsRailAlignment { get; }
 
     /// <inheritdoc />
-    public double Gauge { get; }
-
-    /// <inheritdoc />
-    public ICivilCANTInfo CANTInfo { get; }
+    public double TrackWidth { get; }
 
     /// <summary>
     /// Gets an empty rail alignment info instance.
@@ -27,43 +26,26 @@ public record CivilRailAlignmentInfo : ICivilRailAlignmentInfo
     /// </summary>
     private CivilRailAlignmentInfo()
     {
-        IsRailAlignment = false;
-        Gauge = 0;
-        CANTInfo = CivilCANTInfo.Empty;
+        this.IsRailAlignment = false;
+        this.TrackWidth = 0;
     }
 
     /// <summary>
     /// Initializes a new instance of <see cref="CivilRailAlignmentInfo"/> from an Alignment.
     /// </summary>
-    /// <param name="alignment">The Civil 3D alignment to extract rail info from.</param>
-    public CivilRailAlignmentInfo(Alignment alignment)
+    public CivilRailAlignmentInfo(RailAlignmentInfo railInfo)
     {
-        try
-        {
-            IsRailAlignment = alignment.IsRailAlignment;
-
-            if (!IsRailAlignment)
-            {
-                Gauge = 0;
-                CANTInfo = CivilCANTInfo.Empty;
-                return;
-            }
-
-            Gauge = alignment.RailAlignmentInfo?.Gauge ?? 0;
-            CANTInfo = new CivilCANTInfo(alignment);
-        }
-        catch
-        {
-            IsRailAlignment = false;
-            Gauge = 0;
-            CANTInfo = CivilCANTInfo.Empty;
-        }
+        _railInfo = railInfo;
+        this.IsRailAlignment = true;
+        this.TrackWidth = railInfo.TrackWidth;
     }
 
     /// <inheritdoc />
     public ICivilRailAlignmentInfo ShallowClone()
     {
-        return this with { };
+        return this.IsRailAlignment
+            ? new CivilRailAlignmentInfo(_railInfo)
+            : CivilRailAlignmentInfo.Empty;
     }
 
     /// <summary>
@@ -71,9 +53,9 @@ public record CivilRailAlignmentInfo : ICivilRailAlignmentInfo
     /// </summary>
     public override string ToString()
     {
-        if (!IsRailAlignment)
+        if (!this.IsRailAlignment)
             return "Not Rail Alignment";
 
-        return $"Rail Alignment: Gauge={Gauge:F2}, HasCANT={CANTInfo.HasCANT}";
+        return $"Rail Alignment: TrackWidth={this.TrackWidth:F2}";
     }
 }

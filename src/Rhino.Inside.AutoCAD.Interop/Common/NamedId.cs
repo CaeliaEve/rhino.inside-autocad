@@ -37,7 +37,7 @@ public record NamedId : INamedId
     /// <param name="objectId">The AutoCAD ObjectId to wrap.</param>
     public NamedId(string name, CadObjectId objectId)
     {
-        Name = name ?? string.Empty;
+        this.Name = name ?? string.Empty;
         _objectIdWrapper = new AutocadObjectIdWrapper(objectId);
     }
 
@@ -49,7 +49,7 @@ public record NamedId : INamedId
     /// <param name="objectId">The ObjectId wrapper.</param>
     public NamedId(string name, IObjectId objectId)
     {
-        Name = name ?? string.Empty;
+        this.Name = name ?? string.Empty;
         _objectIdWrapper = objectId as AutocadObjectIdWrapper
             ?? new AutocadObjectIdWrapper(CadObjectId.Null);
     }
@@ -79,7 +79,7 @@ public record NamedId : INamedId
     /// <inheritdoc />
     public INamedId ShallowClone()
     {
-        return new NamedId(Name, _objectIdWrapper.ShallowClone());
+        return new NamedId(this.Name, _objectIdWrapper.ShallowClone());
     }
 
     /// <summary>
@@ -88,9 +88,9 @@ public record NamedId : INamedId
     /// <returns>A string in the format "Name (ObjectId)" or "Empty NamedId" if invalid.</returns>
     public override string ToString()
     {
-        if (!IsValid)
-            return "Empty NamedId";
+        if (!this.IsValid)
+            return "Not set";
 
-        return $"{Name} ({_objectIdWrapper})";
+        return $"{this.Name} ({_objectIdWrapper})";
     }
 }

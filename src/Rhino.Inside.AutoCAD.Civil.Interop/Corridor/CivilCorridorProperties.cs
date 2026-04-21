@@ -40,8 +40,7 @@ public record CivilCorridorProperties : ICivilCorridorProperties
             StartStation = startStation,
             EndStation = endStation,
             Length = endStation - startStation,
-            BaselineCount = corridor.Baselines.Count,
-            SurfaceCount = corridor.CorridorSurfaces.Count,
+
         };
     }
 
@@ -59,12 +58,6 @@ public record CivilCorridorProperties : ICivilCorridorProperties
 
     /// <inheritdoc />
     public double Length { get; init; }
-
-    /// <inheritdoc />
-    public int BaselineCount { get; init; }
-
-    /// <inheritdoc />
-    public int SurfaceCount { get; init; }
 
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilCorridorProperties"/>
@@ -86,14 +79,12 @@ public record CivilCorridorProperties : ICivilCorridorProperties
             StartStation = this.StartStation,
             EndStation = this.EndStation,
             Length = this.Length,
-            BaselineCount = this.BaselineCount,
-            SurfaceCount = this.SurfaceCount,
         };
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"Corridor Properties: {this.Name} (Sta: {this.StartStation:F2} - {this.EndStation:F2}, Length: {this.Length:F2}, Baselines: {this.BaselineCount})";
+        return $"Corridor Properties: {this.Name} (Sta: {this.StartStation:F2} - {this.EndStation:F2}, Length: {this.Length:F2})";
     }
 }

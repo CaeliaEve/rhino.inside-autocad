@@ -1,8 +1,5 @@
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Geometry;
-using Rhino.Inside.AutoCAD.Civil.Interop;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using CadPoint2d = Autodesk.AutoCAD.Geometry.Point2d;
 using RhinoArc = Rhino.Geometry.Arc;
 using RhinoArcCurve = Rhino.Geometry.ArcCurve;
@@ -24,11 +21,10 @@ public static class CivilAlignmentExtensions
     /// Converts a Civil 3D Alignment to a Rhino Curve (PolyCurve), applying unit conversion.
     /// </summary>
     /// <param name="alignment">The Civil 3D Alignment to convert.</param>
-    /// <param name="transactionManager">The transaction manager for database operations.</param>
     /// <returns>A Rhino Curve representing the alignment centerline.</returns>
-    public static RhinoCurve? ToRhinoCurve(this Alignment alignment, IAutocadTransactionManager transactionManager)
+    public static RhinoCurve? ToRhinoCurve(this Alignment alignment)
     {
-        var entities = alignment.GetAlignmentEntities(transactionManager);
+        var entities = alignment.Entities;
 
         if (entities.Count == 0)
             return null;
@@ -47,53 +43,6 @@ public static class CivilAlignmentExtensions
         }
 
         return polyCurve;
-    }
-
-    /// <summary>
-    /// Converts a Civil 3D Alignment to a Rhino Curve using the current active document.
-    /// </summary>
-    /// <param name="alignment">The Civil 3D Alignment to convert.</param>
-    /// <returns>A Rhino Curve representing the alignment centerline.</returns>
-    public static RhinoCurve? ToRhinoCurve(this Alignment alignment)
-    {
-        var activeDocument = Application.DocumentManager.MdiActiveDocument;
-
-        using var documentLock = activeDocument.LockDocument();
-
-        var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
-
-        using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
-
-        var result = alignment.ToRhinoCurve(transactionManagerWrapper);
-
-        transaction.Commit();
-
-        return result;
-    }
-
-    /// <summary>
-    /// Extracts all entities from a Civil 3D Alignment as wrapper objects.
-    /// </summary>
-    /// <param name="alignment">The Civil 3D Alignment to extract entities from.</param>
-    /// <param name="transactionManager">The transaction manager for database operations.</param>
-    /// <returns>A list of alignment entity wrappers.</returns>
-    public static List<CivilAlignmentEntityWrapper> GetAlignmentEntities(
-        this Alignment alignment,
-        IAutocadTransactionManager transactionManager)
-    {
-        var entities = new List<CivilAlignmentEntityWrapper>();
-        var entityCollection = alignment.Entities;
-
-        for (var i = 0; i < entityCollection.Count; i++)
-        {
-            var entity = entityCollection[i];
-
-            var wrapper = new CivilAlignmentEntityWrapper(entity, i);
-
-            entities.Add(wrapper);
-        }
-
-        return entities;
     }
 
     /// <summary>

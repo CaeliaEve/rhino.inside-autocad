@@ -175,11 +175,7 @@ public static class CivilCorridorExtensions
 
             foreach (var point in featureLine.FeatureLinePoints)
             {
-                var xyz = point.XYZ;
-                var rhinoPoint = new RhinoPoint3d(
-                    UnitConverter.ToRhinoLength(xyz.X),
-                    UnitConverter.ToRhinoLength(xyz.Y),
-                    UnitConverter.ToRhinoLength(xyz.Z));
+                var rhinoPoint = point.XYZ.ToRhinoPoint3d();
                 points.Add(rhinoPoint);
             }
 

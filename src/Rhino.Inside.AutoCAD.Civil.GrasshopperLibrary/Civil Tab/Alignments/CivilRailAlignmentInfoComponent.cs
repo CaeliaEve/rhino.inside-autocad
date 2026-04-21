@@ -14,6 +14,9 @@ public class CivilRailAlignmentInfoComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("B1C2D3E4-F5A6-7890-1234-567890ABCDE6");
 
     /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
+
+    /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
 
     /// <summary>
@@ -39,11 +42,8 @@ public class CivilRailAlignmentInfoComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddBooleanParameter("Is Rail Alignment", "IsRail",
             "Whether this is a rail alignment.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Gauge", "Gauge",
+        pManager.AddNumberParameter("TrackWidth", "Width",
             "The rail gauge value.", GH_ParamAccess.item);
-
-        pManager.AddParameter(new Param_CivilCANTInfo(GH_ParamAccess.item), "CANT Info",
-            "CANT", "The CANT information for this rail alignment.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -54,7 +54,6 @@ public class CivilRailAlignmentInfoComponent : RhinoInsideAutocad_ComponentBase
         if (!DA.GetData(0, ref railInfo) || railInfo is null) return;
 
         DA.SetData(0, railInfo.IsRailAlignment);
-        DA.SetData(1, railInfo.Gauge);
-        DA.SetData(2, new GH_CivilCANTInfo(railInfo.CANTInfo as CivilCANTInfo));
+        DA.SetData(1, railInfo.TrackWidth);
     }
 }

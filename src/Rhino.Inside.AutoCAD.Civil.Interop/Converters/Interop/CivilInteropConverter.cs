@@ -107,4 +107,16 @@ public static class CivilInteropConverter
     {
         return label.AutocadObject;
     }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilAlignment"/> to its underlying Civil 3D <see cref="Alignment"/>.
+    /// </summary>
+    /// <param name="alignment">The alignment wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="Alignment"/> instance.</returns>
+    public static Alignment Unwrap(this CivilAlignmentWrapper alignment)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)alignment;
+
+        return (Alignment)wrapper.AutocadObject;
+    }
 }

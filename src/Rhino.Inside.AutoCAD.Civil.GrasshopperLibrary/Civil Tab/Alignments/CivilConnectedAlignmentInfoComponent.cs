@@ -1,7 +1,6 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
-using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -16,6 +15,9 @@ public class CivilConnectedAlignmentInfoComponent : RhinoInsideAutocad_Component
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilConnectedAlignmentInfoComponent"/> class.
@@ -37,14 +39,26 @@ public class CivilConnectedAlignmentInfoComponent : RhinoInsideAutocad_Component
     /// <inheritdoc />
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddBooleanParameter("Is Connected", "Conn",
-            "Whether the alignment is connected to other alignments.", GH_ParamAccess.item);
+        pManager.AddBooleanParameter("Is Connected Alignment", "IsConn",
+            "Whether this is a connected alignment.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Parent Alignment",
-            "Parent", "The parent alignment as a NamedId.", GH_ParamAccess.item);
+        pManager.AddNumberParameter("Connection Overlap Length In", "OverlapIn",
+            "The connection overlap length at the incoming end.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.list), "Child Alignments",
-            "Children", "Child alignments as NamedIds.", GH_ParamAccess.list);
+        pManager.AddNumberParameter("Connection Overlap Length Out", "OverlapOut",
+            "The connection overlap length at the outgoing end.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Incoming Parent Alignment Id",
+            "InParentId", "The incoming parent alignment ObjectId.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Outgoing Parent Alignment Id",
+            "OutParentId", "The outgoing parent alignment ObjectId.", GH_ParamAccess.item);
+
+        pManager.AddNumberParameter("Offset In", "OfsIn",
+            "The offset value at the incoming connection.", GH_ParamAccess.item);
+
+        pManager.AddNumberParameter("Offset Out", "OfsOut",
+            "The offset value at the outgoing connection.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -54,12 +68,12 @@ public class CivilConnectedAlignmentInfoComponent : RhinoInsideAutocad_Component
 
         if (!DA.GetData(0, ref connInfo) || connInfo is null) return;
 
-        DA.SetData(0, connInfo.IsConnected);
-        DA.SetData(1, new GH_NamedId(connInfo.ParentAlignment as NamedId));
-
-        var children = connInfo.ChildAlignments
-            .Select(c => new GH_NamedId(c as NamedId))
-            .ToList();
-        DA.SetDataList(2, children);
+        DA.SetData(0, connInfo.IsConnectedAlignment);
+        DA.SetData(1, connInfo.ConnectionOverlapLengthIn);
+        DA.SetData(2, connInfo.ConnectionOverlapLengthOut);
+        DA.SetData(3, new GH_AutocadObjectId(connInfo.IncomingParentAlignmentId));
+        DA.SetData(4, new GH_AutocadObjectId(connInfo.OutgoingParentAlignmentId));
+        DA.SetData(5, connInfo.OffsetIn);
+        DA.SetData(6, connInfo.OffsetOut);
     }
 }

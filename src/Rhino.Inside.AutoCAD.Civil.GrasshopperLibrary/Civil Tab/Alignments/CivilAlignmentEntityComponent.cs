@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
@@ -14,6 +15,8 @@ public class CivilAlignmentEntityComponent : RhinoInsideAutocad_ComponentBase
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilAlignmentEntityComponent"/> class.
@@ -52,6 +55,9 @@ public class CivilAlignmentEntityComponent : RhinoInsideAutocad_ComponentBase
 
         pManager.AddCurveParameter("Curve", "C",
             "The entity geometry as a Rhino curve.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_CivilAlignmentSubEntity(GH_ParamAccess.list), "Sub-Entities",
+            "SE", "The sub-entities that make up this alignment entity.", GH_ParamAccess.list);
     }
 
     /// <inheritdoc />
@@ -69,5 +75,12 @@ public class CivilAlignmentEntityComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(3, entity.Length);
         DA.SetData(4, entity.EntityIndex);
         DA.SetData(5, entity.ToRhinoCurve());
+
+        var subEntities = entity.SubEntities
+            .OfType<CivilAlignmentSubEntityWrapper>()
+            .Select(se => new GH_CivilAlignmentSubEntity(se))
+            .ToList();
+
+        DA.SetDataList(6, subEntities);
     }
 }

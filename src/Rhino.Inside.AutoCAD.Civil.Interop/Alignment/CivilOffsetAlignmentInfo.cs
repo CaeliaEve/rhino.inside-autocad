@@ -1,4 +1,3 @@
-using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
@@ -10,78 +9,55 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </summary>
 public record CivilOffsetAlignmentInfo : ICivilOffsetAlignmentInfo
 {
-    /// <inheritdoc />
-    public bool IsOffsetAlignment { get; }
+    /// <summary>
+    /// Constructs an empty instance of <see cref="CivilOffsetAlignmentInfo"/> representing a
+    /// non-offset alignment.
+    /// </summary>
+    public static CivilOffsetAlignmentInfo Empty { get; } = new();
 
     /// <inheritdoc />
-    public INamedId ParentAlignment { get; }
+    public bool IsOffsetAlignment { get; }
 
     /// <inheritdoc />
     public double NominalOffset { get; }
 
     /// <inheritdoc />
-    public string OffsetSide { get; }
+    public string Side { get; }
+
+    /// <inheritdoc />
+    public IObjectId ParentAlignmentId { get; }
+
+    /// <inheritdoc />
+    public IReadOnlyList<ICivilOffsetAlignmentRegion> Regions { get; }
 
     /// <summary>
-    /// Gets an empty offset alignment info instance.
-    /// </summary>
-    public static CivilOffsetAlignmentInfo Empty { get; } = new();
-
-    /// <summary>
-    /// Initializes a new empty instance of <see cref="CivilOffsetAlignmentInfo"/>.
+    /// Private constructor to create an empty instance representing a non-offset alignment.
     /// </summary>
     private CivilOffsetAlignmentInfo()
     {
-        IsOffsetAlignment = false;
-        ParentAlignment = NamedId.Empty;
-        NominalOffset = 0;
-        OffsetSide = string.Empty;
+        this.NominalOffset = 0;
+        this.Side = string.Empty;
+        this.ParentAlignmentId = AutocadObjectIdWrapper.DefaultId;
+        this.Regions = Array.Empty<ICivilOffsetAlignmentRegion>();
     }
 
     /// <summary>
     /// Initializes a new instance of <see cref="CivilOffsetAlignmentInfo"/> from an Alignment.
     /// </summary>
     /// <param name="alignment">The Civil 3D alignment to extract offset info from.</param>
-    /// <param name="transaction">The transaction to use for database lookups.</param>
-    public CivilOffsetAlignmentInfo(Alignment alignment, Transaction transaction)
+    public CivilOffsetAlignmentInfo(OffsetAlignmentInfo info)
     {
-        try
+        this.NominalOffset = info.NominalOffset;
+        this.Side = info.Side.ToString();
+        this.ParentAlignmentId = new AutocadObjectIdWrapper(info.ParentAlignmentId);
+
+        // Extract regions
+        var regions = new List<ICivilOffsetAlignmentRegion>();
+        foreach (var region in info.Regions)
         {
-            IsOffsetAlignment = alignment.IsOffsetAlignment;
-
-            if (!IsOffsetAlignment)
-            {
-                ParentAlignment = NamedId.Empty;
-                NominalOffset = 0;
-                OffsetSide = string.Empty;
-                return;
-            }
-
-            var parentId = alignment.OffsetAlignmentInfo?.ParentAlignmentId ?? ObjectId.Null;
-
-            if (!parentId.IsNull)
-            {
-                var parentAlignmentObj = transaction.GetObject(parentId, OpenMode.ForRead) as Alignment;
-                ParentAlignment = parentAlignmentObj != null
-                    ? new NamedId(parentAlignmentObj.Name, parentId)
-                    : NamedId.Empty;
-            }
-            else
-            {
-                ParentAlignment = NamedId.Empty;
-            }
-
-            var offsetInfo = alignment.OffsetAlignmentInfo;
-            NominalOffset = offsetInfo?.NominalOffset ?? 0;
-            OffsetSide = offsetInfo?.Side.ToString() ?? string.Empty;
+            regions.Add(new CivilOffsetAlignmentRegion(region));
         }
-        catch
-        {
-            IsOffsetAlignment = false;
-            ParentAlignment = NamedId.Empty;
-            NominalOffset = 0;
-            OffsetSide = string.Empty;
-        }
+        this.Regions = regions;
     }
 
     /// <inheritdoc />
@@ -95,9 +71,9 @@ public record CivilOffsetAlignmentInfo : ICivilOffsetAlignmentInfo
     /// </summary>
     public override string ToString()
     {
-        if (!IsOffsetAlignment)
+        if (!this.IsOffsetAlignment)
             return "Not Offset Alignment";
 
-        return $"Offset {NominalOffset:F2} {OffsetSide} from {ParentAlignment.Name}";
+        return $"Offset Alignment: NominalOffset={this.NominalOffset:F2}, Side={this.Side}, Regions={this.Regions.Count}";
     }
 }

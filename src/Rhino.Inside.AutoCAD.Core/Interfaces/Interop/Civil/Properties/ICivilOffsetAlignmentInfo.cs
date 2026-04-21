@@ -4,8 +4,8 @@ namespace Rhino.Inside.AutoCAD.Core.Interfaces;
 /// Represents offset alignment information for a Civil 3D Alignment.
 /// </summary>
 /// <remarks>
-/// Provides information about offset alignments including the parent alignment,
-/// nominal offset distance, and which side the offset is on.
+/// Wraps the OffsetAlignmentInfo from a Civil 3D Alignment, providing
+/// offset distance, side, parent alignment, regions and transitions.
 /// </remarks>
 public interface ICivilOffsetAlignmentInfo
 {
@@ -15,28 +15,24 @@ public interface ICivilOffsetAlignmentInfo
     bool IsOffsetAlignment { get; }
 
     /// <summary>
-    /// Gets the parent alignment as a NamedId.
-    /// </summary>
-    /// <remarks>
-    /// Returns an empty NamedId if this is not an offset alignment.
-    /// </remarks>
-    INamedId ParentAlignment { get; }
-
-    /// <summary>
     /// Gets the nominal offset distance from the parent alignment.
     /// </summary>
-    /// <remarks>
-    /// Returns 0 if this is not an offset alignment.
-    /// </remarks>
     double NominalOffset { get; }
 
     /// <summary>
     /// Gets the side of the offset relative to the parent alignment.
     /// </summary>
-    /// <remarks>
-    /// Returns "Left" or "Right", or an empty string if not an offset alignment.
-    /// </remarks>
-    string OffsetSide { get; }
+    string Side { get; }
+
+    /// <summary>
+    /// Gets the parent alignment ObjectId.
+    /// </summary>
+    IObjectId ParentAlignmentId { get; }
+
+    /// <summary>
+    /// Gets the offset regions.
+    /// </summary>
+    IReadOnlyList<ICivilOffsetAlignmentRegion> Regions { get; }
 
     /// <summary>
     /// Creates a shallow copy of this offset alignment information.
