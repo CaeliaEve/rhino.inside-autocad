@@ -13,7 +13,10 @@ public class CivilSubassemblyComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("A7B8C9D0-E1F2-3456-7890-123456789CDE");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilSubassemblyComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilSubassemblyComponent"/> class.

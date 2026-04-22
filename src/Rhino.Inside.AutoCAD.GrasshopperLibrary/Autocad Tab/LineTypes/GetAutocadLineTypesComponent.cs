@@ -49,21 +49,15 @@ public class GetAutocadLineTypesComponent : RhinoInsideAutocad_ComponentBase, IR
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
+        var document = this.GetDocumentOrDefault(autocadDocument);
+
+        if (document is null)
         {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+            return;
         }
 
-        if (autocadDocument is null)
-            return;
-
-        var lineTypesRegister = autocadDocument.LineTypeRegister;
+        var lineTypesRegister = document.LineTypeRegister;
 
         var gooLineTypes = lineTypesRegister
             .Select(lineType => new GH_AutocadLineType(lineType))

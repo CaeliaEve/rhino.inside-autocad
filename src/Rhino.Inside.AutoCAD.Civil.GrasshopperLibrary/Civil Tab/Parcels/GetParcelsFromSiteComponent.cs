@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -18,7 +17,7 @@ public class GetParcelsFromSiteComponent : RhinoInsideAutocad_ComponentBase, IRe
     public override Guid ComponentGuid => new("E1F2A3B4-C5D6-7890-1234-123456789012");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.GetParcelsFromSiteComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetParcelsFromSiteComponent"/> class.
@@ -26,7 +25,7 @@ public class GetParcelsFromSiteComponent : RhinoInsideAutocad_ComponentBase, IRe
     public GetParcelsFromSiteComponent()
         : base("Get Parcels from Site", "CVL-SiteParcels",
             "Returns all Parcels from a Civil 3D Site",
-            "Civil3d", "Parcels")
+            "Civil3d", "Site/Parcels")
     {
     }
 
@@ -53,8 +52,12 @@ public class GetParcelsFromSiteComponent : RhinoInsideAutocad_ComponentBase, IRe
 
         var site = siteGoo.Value;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(site.Id);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 

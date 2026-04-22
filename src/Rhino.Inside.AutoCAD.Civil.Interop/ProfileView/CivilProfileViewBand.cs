@@ -1,4 +1,7 @@
+using Autodesk.Civil.DatabaseServices;
+using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -8,63 +11,57 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// <remarks>
 /// This is a simple data wrapper class that holds extracted band information.
 /// </remarks>
-public class CivilProfileViewBand : ICivilProfileViewBand
+public class CivilProfileViewBand : AutocadWrapperBase<ProfileViewBandItem>, ICivilProfileViewBand
 {
-    /// <inheritdoc />
-    public string Name { get; }
+    private readonly ProfileViewBandItem _bandItem;
 
     /// <inheritdoc />
-    public string BandType { get; }
+    public CivilBandType BandType { get; }
 
     /// <inheritdoc />
-    public string StyleName { get; }
+    public IObjectId StyleId { get; }
 
     /// <inheritdoc />
-    public string Location { get; }
+    public CivilBandLocationType Location { get; }
 
     /// <inheritdoc />
-    public bool IsVisible { get; }
+    public IObjectId DataSourceId { get; }
+
+    /// <inheritdoc />
+    public int Index { get; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="CivilProfileViewBand"/>
     /// with the specified values.
     /// </summary>
-    /// <param name="name">The name of the band.</param>
-    /// <param name="bandType">The type of the band.</param>
-    /// <param name="styleName">The name of the band style.</param>
-    /// <param name="location">The location (Top or Bottom).</param>
-    /// <param name="isVisible">Whether the band is visible.</param>
-    public CivilProfileViewBand(
-        string name,
-        string bandType,
-        string styleName,
-        string location,
-        bool isVisible)
+    public CivilProfileViewBand(ProfileViewBandItem bandItem, int index) : base(bandItem)
     {
-        this.Name = name;
-        this.BandType = bandType;
-        this.StyleName = styleName;
-        this.Location = location;
-        this.IsVisible = isVisible;
+        _bandItem = bandItem;
+
+        this.BandType = bandItem.BandType.ToRhinoInsideBandType();
+
+        this.StyleId = new AutocadObjectIdWrapper(bandItem.BandStyleId);
+
+        this.Location = bandItem.Location.ToRhinoInsideBandLocationType();
+
+        this.DataSourceId = new AutocadObjectIdWrapper(bandItem.DataSourceId);
+
+        this.Index = index;
     }
 
     /// <summary>
     /// Creates a duplicate of this band wrapper.
     /// </summary>
     /// <returns>A new instance with copied data.</returns>
-    public CivilProfileViewBand Duplicate()
+    public CivilProfileViewBand ShallowClone()
     {
-        return new CivilProfileViewBand(
-            this.Name,
-            this.BandType,
-            this.StyleName,
-            this.Location,
-            this.IsVisible);
+        return new CivilProfileViewBand(_bandItem, this.Index);
+
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"ProfileView Band: {this.Name} ({this.BandType}, {this.Location})";
+        return $"ProfileView Band: {this.BandType.ToString()} ({this.BandType}, {this.Location})";
     }
 }

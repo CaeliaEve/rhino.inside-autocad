@@ -18,7 +18,7 @@ public class Param_CivilProfileProperties : GH_Param<GH_CivilProfileProperties>
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilProfileProperties;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilProfileProperties"/> class with the

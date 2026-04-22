@@ -18,7 +18,7 @@ public class Param_CivilAlignmentEntity : GH_Param<GH_CivilAlignmentEntity>
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilAlignmentEntity;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilAlignmentEntity"/> class with the

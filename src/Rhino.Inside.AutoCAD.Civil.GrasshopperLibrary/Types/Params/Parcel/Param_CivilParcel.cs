@@ -18,7 +18,7 @@ public class Param_CivilParcel : Param_AutocadObjectBase<GH_CivilParcel, CivilPa
     public override Guid ComponentGuid => new Guid("B2C3D4E5-F6A7-8901-BCDE-F23456789012");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilParcel;
 
     /// <inheritdoc />
     protected override string SingularPromptMessage => "Select a Civil3d Parcel";

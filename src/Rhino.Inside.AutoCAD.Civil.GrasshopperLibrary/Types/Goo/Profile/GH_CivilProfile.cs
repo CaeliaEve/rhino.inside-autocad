@@ -1,11 +1,11 @@
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilProfile = Autodesk.Civil.DatabaseServices.Profile;
 using RhinoCurve = Rhino.Geometry.Curve;
 
-namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
+namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D Profiles.

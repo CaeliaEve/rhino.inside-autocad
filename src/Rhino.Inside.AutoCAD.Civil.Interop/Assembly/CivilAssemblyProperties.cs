@@ -1,5 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
+using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -14,77 +15,48 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </remarks>
 public record CivilAssemblyProperties : ICivilAssemblyProperties
 {
-    /// <summary>
-    /// Constructs a new instance of <see cref="CivilAssemblyProperties"/> by extracting
-    /// data from a given <see cref="Assembly"/>.
-    /// </summary>
-    public static CivilAssemblyProperties CreateFromAssembly(Assembly assembly)
-    {
-        var subassemblyIds = ExtractSubassemblyIds(assembly);
-
-        return new CivilAssemblyProperties()
-        {
-            Name = assembly.Name,
-            Description = assembly.Description ?? string.Empty,
-            AssemblyType = assembly.Type.ToString(),
-            Code = assembly.CodeSetStyleName ?? string.Empty,
-            SubassemblyCount = subassemblyIds.Count,
-            SubassemblyIds = subassemblyIds,
-        };
-    }
+    private readonly Assembly _assembly;
 
     /// <inheritdoc />
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; } = string.Empty;
 
     /// <inheritdoc />
-    public string Description { get; init; } = string.Empty;
+    public string Description { get; } = string.Empty;
 
     /// <inheritdoc />
-    public string AssemblyType { get; init; } = string.Empty;
+    public CivilAssemblyType AssemblyType { get; }
 
     /// <inheritdoc />
-    public string Code { get; init; } = string.Empty;
+    public string Code { get; } = string.Empty;
 
     /// <inheritdoc />
-    public int SubassemblyCount { get; init; }
+    public IReadOnlyList<IObjectId> SubassemblyIds { get; } = Array.Empty<IObjectId>();
 
     /// <inheritdoc />
-    public IReadOnlyList<IObjectId> SubassemblyIds { get; init; } = Array.Empty<IObjectId>();
+    public INamedId Style { get; } = NamedId.Empty;
 
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilAssemblyProperties"/>
     /// </summary>
-    private CivilAssemblyProperties()
+    public CivilAssemblyProperties(Assembly assembly)
     {
-    }
+        _assembly = assembly;
 
-    /// <summary>
-    /// Creates a duplicate of this assembly properties wrapper.
-    /// </summary>
-    /// <returns>A new instance with copied data.</returns>
-    public CivilAssemblyProperties ShallowClone()
-    {
-        return new CivilAssemblyProperties()
-        {
-            Name = this.Name,
-            Description = this.Description,
-            AssemblyType = this.AssemblyType,
-            Code = this.Code,
-            SubassemblyCount = this.SubassemblyCount,
-            SubassemblyIds = this.SubassemblyIds.ToList().AsReadOnly(),
-        };
-    }
+        var subassemblyIds = this.ExtractSubassemblyIds(assembly);
 
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"Assembly Properties: {this.Name} (Type: {this.AssemblyType}, Subassemblies: {this.SubassemblyCount})";
+        this.Name = assembly.Name;
+        this.Description = assembly.Description ?? string.Empty;
+        this.AssemblyType = assembly.Type.ToRhinoInsideAssemblyType();
+        this.Code = assembly.CodeSetStyleName ?? string.Empty;
+        this.SubassemblyIds = subassemblyIds;
+        this.Style = new NamedId(assembly.StyleName, assembly.StyleId);
+
     }
 
     /// <summary>
     /// Extracts subassembly IDs from an assembly.
     /// </summary>
-    private static IReadOnlyList<IObjectId> ExtractSubassemblyIds(Assembly assembly)
+    private IReadOnlyList<IObjectId> ExtractSubassemblyIds(Assembly assembly)
     {
         var subassemblyIds = new List<IObjectId>();
 
@@ -107,5 +79,20 @@ public record CivilAssemblyProperties : ICivilAssemblyProperties
         }
 
         return subassemblyIds.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Creates a duplicate of this assembly properties wrapper.
+    /// </summary>
+    /// <returns>A new instance with copied data.</returns>
+    public CivilAssemblyProperties Duplicate()
+    {
+        return new CivilAssemblyProperties(_assembly);
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return $"Assembly Properties: {this.Name} (Type: {this.AssemblyType}, Subassemblies: {this.SubassemblyIds.Count})";
     }
 }

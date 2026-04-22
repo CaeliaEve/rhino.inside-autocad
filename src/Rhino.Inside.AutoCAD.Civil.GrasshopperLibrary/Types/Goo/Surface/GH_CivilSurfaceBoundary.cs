@@ -11,7 +11,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// </summary>
 /// <remarks>
 /// This Goo wraps a <see cref="CivilSurfaceBoundary"/> and provides
-/// preview support for displaying the boundary polyline in viewports.
+/// preview support for displaying the boundary Curve in viewports.
 /// </remarks>
 public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IGH_PreviewData
 {
@@ -49,16 +49,16 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value?.Polyline != null && Value.Polyline.Count >= 3;
+    public override bool IsValid => this.Value?.Curve != null;
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No boundary data";
-            if (Value.Polyline == null || Value.Polyline.Count < 3)
+            if (this.Value.Curve == null)
                 return "Invalid boundary geometry";
             return string.Empty;
         }
@@ -75,15 +75,15 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     {
         get
         {
-            if (Value?.Polyline == null || Value.Polyline.Count == 0)
+            if (this.Value?.Curve == null)
                 return BoundingBox.Empty;
 
-            return Value.Polyline.BoundingBox;
+            return this.Value.Curve.GetBoundingBox(false);
         }
     }
 
     /// <inheritdoc />
-    public BoundingBox ClippingBox => Boundingbox;
+    public BoundingBox ClippingBox => this.Boundingbox;
 
     /// <inheritdoc />
     public override IGH_Goo Duplicate()
@@ -100,7 +100,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     /// <inheritdoc />
     public override BoundingBox GetBoundingBox(Transform xform)
     {
-        var box = Boundingbox;
+        var box = this.Boundingbox;
         box.Transform(xform);
         return box;
     }
@@ -108,16 +108,16 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     /// <inheritdoc />
     public override IGH_GeometricGoo Transform(Transform xform)
     {
-        if (Value?.Polyline == null)
+        if (this.Value?.Curve == null)
             return this;
 
-        var transformedPolyline = new Polyline(Value.Polyline);
-        transformedPolyline.Transform(xform);
+        var transformedCurve = this.Value.Curve.DuplicateCurve();
+        transformedCurve.Transform(xform);
 
         var transformed = new CivilSurfaceBoundary(
-            Value.BoundaryType,
-            transformedPolyline,
-            Value.Name);
+            this.Value.BoundaryType,
+            transformedCurve,
+            this.Value.Name);
 
         return new GH_CivilSurfaceBoundary(transformed);
     }
@@ -125,19 +125,16 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     /// <inheritdoc />
     public override IGH_GeometricGoo Morph(SpaceMorph xmorph)
     {
-        if (Value?.Polyline == null)
+        if (this.Value?.Curve == null)
             return this;
 
-        var morphedPolyline = new Polyline(Value.Polyline.Count);
-        foreach (var point in Value.Polyline)
-        {
-            morphedPolyline.Add(xmorph.MorphPoint(point));
-        }
+        var morphedCurve = this.Value.Curve.DuplicateCurve();
+        xmorph.Morph(morphedCurve);
 
         var morphed = new CivilSurfaceBoundary(
-            Value.BoundaryType,
-            morphedPolyline,
-            Value.Name);
+            this.Value.BoundaryType,
+            morphedCurve,
+            this.Value.Name);
 
         return new GH_CivilSurfaceBoundary(morphed);
     }
@@ -147,20 +144,20 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     {
         if (source is GH_CivilSurfaceBoundary goo)
         {
-            Value = goo.Value?.Duplicate();
+            this.Value = goo.Value?.Duplicate();
             return true;
         }
 
         if (source is CivilSurfaceBoundary wrapper)
         {
-            Value = wrapper.Duplicate();
+            this.Value = wrapper.Duplicate();
             return true;
         }
 
         if (source is ICivilSurfaceBoundary boundary)
         {
-            Value = (boundary as CivilSurfaceBoundary)?.Duplicate();
-            return Value != null;
+            this.Value = (boundary as CivilSurfaceBoundary)?.Duplicate();
+            return this.Value != null;
         }
 
         return false;
@@ -171,7 +168,7 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     {
         if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceBoundary)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -182,17 +179,16 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
         }
 
         // Cast to curve
-        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && Value?.Polyline != null)
+        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && this.Value?.Curve != null)
         {
-            var curve = new PolylineCurve(Value.Polyline);
-            target = (Q)(object)new GH_Curve(curve);
+            target = (Q)(object)new GH_Curve(this.Value.Curve);
             return true;
         }
 
-        // Cast to polyline
-        if (typeof(Q).IsAssignableFrom(typeof(Polyline)) && Value?.Polyline != null)
+        // Cast to Curve
+        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && this.Value?.Curve != null)
         {
-            target = (Q)(object)new Polyline(Value.Polyline);
+            target = (Q)(object)this.Value.Curve;
             return true;
         }
 
@@ -202,10 +198,10 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     /// <inheritdoc />
     public void DrawViewportWires(GH_PreviewWireArgs args)
     {
-        if (Value?.Polyline == null || Value.Polyline.Count < 2)
+        if (this.Value?.Curve == null)
             return;
 
-        args.Pipeline.DrawPolyline(Value.Polyline, args.Color, args.Thickness);
+        args.Pipeline.DrawCurve(this.Value.Curve, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />
@@ -217,9 +213,9 @@ public class GH_CivilSurfaceBoundary : GH_GeometricGoo<CivilSurfaceBoundary>, IG
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d Surface Boundary";
 
-        return Value.ToString();
+        return this.Value.ToString();
     }
 }

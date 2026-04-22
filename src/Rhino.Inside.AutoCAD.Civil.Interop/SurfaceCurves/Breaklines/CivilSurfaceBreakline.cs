@@ -15,7 +15,7 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 public class CivilSurfaceBreakline : ICivilSurfaceBreakline
 {
     /// <inheritdoc />
-    public SurfaceBreaklineType BreaklineType { get; }
+    public CivilSurfaceBreaklineType BreaklineType { get; }
 
     /// <inheritdoc />
     public Curve Curve { get; }
@@ -35,7 +35,7 @@ public class CivilSurfaceBreakline : ICivilSurfaceBreakline
     /// <param name="name">
     /// The name of the breakline definition.
     /// </param>
-    public CivilSurfaceBreakline(SurfaceBreaklineType breaklineType, Curve curve, string name)
+    public CivilSurfaceBreakline(CivilSurfaceBreaklineType breaklineType, Curve curve, string name)
     {
         this.BreaklineType = breaklineType;
         this.Curve = curve;

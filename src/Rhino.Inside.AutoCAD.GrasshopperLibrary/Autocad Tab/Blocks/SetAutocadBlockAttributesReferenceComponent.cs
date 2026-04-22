@@ -1,5 +1,4 @@
-﻿using Autodesk.AutoCAD.ApplicationServices.Core;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -70,34 +69,40 @@ public class SetAutocadBlockAttributesReferenceComponent : RhinoInsideAutocad_Co
         DA.GetData(1, ref value);
         DA.GetData(2, ref isMText);
 
-        var activeDocument = Application.DocumentManager.MdiActiveDocument;
+        var activeDocument = this.GetDocumentForObjectId(attribute.Id);
 
-        using var documentLock = activeDocument.LockDocument();
-
-        var database = activeDocument.Database;
-
-        var transactionManager = database.TransactionManager;
-        var transaction = transactionManager.StartTransaction();
-
-        var cadAttributeReference = transactionManager.GetObject(attribute.Id.Unwrap(), OpenMode.ForWrite) as AttributeReference;
-
-        cadAttributeReference.IsMTextAttribute = isMText;
-
-        if (isMText)
+        if (activeDocument is null)
         {
-            var mText = cadAttributeReference.MTextAttribute.Clone() as MText;
-            mText.Contents = value;
-            cadAttributeReference.MTextAttribute = mText;
-
-        }
-        else
-        {
-            cadAttributeReference.TextString = value;
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+            return;
         }
 
-        transaction.Commit();
+        var transactionManager = activeDocument.CreateTransactionManager();
 
-        var newWrapper = new AttributeWrapper(cadAttributeReference);
+        var newWrapper = transactionManager.PerformTask(() =>
+        {
+            var transaction = transactionManager.Unwrap();
+
+            var cadAttributeReference =
+                transaction.GetObject(attribute.Id.Unwrap(), OpenMode.ForWrite) as
+                    AttributeReference;
+
+            cadAttributeReference.IsMTextAttribute = isMText;
+
+            if (isMText)
+            {
+                var mText = cadAttributeReference.MTextAttribute.Clone() as MText;
+                mText.Contents = value;
+                cadAttributeReference.MTextAttribute = mText;
+
+            }
+            else
+            {
+                cadAttributeReference.TextString = value;
+            }
+
+            return new AttributeWrapper(cadAttributeReference);
+        });
 
         var goo = new GH_BlockAttributeReference(newWrapper);
 

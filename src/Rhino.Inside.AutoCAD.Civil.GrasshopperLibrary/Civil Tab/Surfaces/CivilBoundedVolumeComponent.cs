@@ -3,7 +3,6 @@ using Autodesk.AutoCAD.Geometry;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using RhinoCurve = Rhino.Geometry.PolylineCurve;
@@ -21,7 +20,10 @@ public class CivilBoundedVolumeComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("E9F1A2B3-4C5D-6E7F-8A9B-0C1D2E3F4A5B");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilBoundedVolumeComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilBoundedVolumeComponent"/> class.
@@ -90,8 +92,12 @@ public class CivilBoundedVolumeComponent : RhinoInsideAutocad_ComponentBase
 
         var surfaceId = volumeSurfaceGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(surfaceId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         // Convert Rhino curve to point collection
         var points = ConvertCurveToPoints(boundaryCurve);

@@ -8,6 +8,7 @@ using CivilSurface = Autodesk.Civil.DatabaseServices.Surface;
 using CivilTinSurface = Autodesk.Civil.DatabaseServices.TinSurface;
 using CivilTinVolumeSurface = Autodesk.Civil.DatabaseServices.TinVolumeSurface;
 using RhinoMesh = Rhino.Geometry.Mesh;
+using RhinoPolylineCurve = Rhino.Geometry.PolylineCurve;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -220,4 +221,45 @@ public static class CivilSurfaceExtensions
 
         return result;
     }
+
+    /// <summary>
+    /// Extracts the curve geometry from a SurfaceBreakline.
+    /// </summary>
+    public static RhinoPolylineCurve? ToRhinoCurve(this SurfaceBreakline surfaceBreakline)
+    {
+        var points = new List<Rhino.Geometry.Point3d>();
+
+        var vertices = surfaceBreakline.Vertices;
+
+        foreach (CadPoint3d vertex in vertices)
+        {
+            points.Add(vertex.ToRhinoPoint3d());
+        }
+
+        return new RhinoPolylineCurve(points);
+    }
+
+    /// <summary>
+    /// Extracts the boundary vertices from a SurfaceBoundary.
+    /// </summary>
+    public static RhinoPolylineCurve? ToRhinoCurve(this SurfaceBoundary surfaceBoundary)
+    {
+        var points = new List<Rhino.Geometry.Point3d>();
+
+        var vertices = surfaceBoundary.Vertices!;
+
+        foreach (CadPoint3d vertex in vertices)
+        {
+            points.Add(vertex.ToRhinoPoint3d());
+        }
+
+        // Close the polyline if not already closed
+        if (points.Count > 0 && points.First() != points.Last())
+        {
+            points.Add(points.First());
+        }
+
+        return new RhinoPolylineCurve(points);
+    }
 }
+

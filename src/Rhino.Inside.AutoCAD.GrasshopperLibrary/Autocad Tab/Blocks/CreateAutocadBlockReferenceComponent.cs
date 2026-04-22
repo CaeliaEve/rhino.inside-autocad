@@ -68,19 +68,13 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         AutocadBlockTableRecordWrapper? blockTableRecord = null;
         if (!DA.GetData(1, ref blockTableRecord) || blockTableRecord is null) return;
@@ -95,7 +89,7 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
 
         var blockReferences = new List<GH_AutocadBlockReference>();
 
-        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
+        var transactionManagerWrapper = document.CreateTransactionManager();
 
         _ = transactionManagerWrapper.PerformTask(() =>
         {

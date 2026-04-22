@@ -1,4 +1,5 @@
 using Grasshopper.Kernel.Types;
+using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -96,8 +97,14 @@ public class GH_AutocadFilter : GH_Goo<IObjectFilter>
             "text" => new TextFilter(),
             "leader" => new LeaderFilter(),
             "block" => new BlockReferenceFilter(),
-            "tinSurface" => new CivilTinSurfaceFilter(),
-            "tinVolumeSurface" => new CivilTinVolumeSurfaceFilter(),
+            "alignment" => new CivilAlignmentFilter(),
+            "assembly" => new CivilAssemblyFilter(),
+            "corridor" => new CivilCorridorFilter(),
+            "parcel" => new CivilParcelFilter(),
+            "profile" => new CivilProfileFilter(),
+            "profileview" => new CivilProfileViewFilter(),
+            "tinsurface" => new CivilTinSurfaceFilter(),
+            "tinvolumesurface" => new CivilTinVolumeSurfaceFilter(),
             _ => null
         };
 

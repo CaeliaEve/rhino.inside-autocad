@@ -21,8 +21,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Civil Tab\Alignments\NewFolder\**" />
 	  <Compile Remove="Types\NewFolder\**" />
+	  <EmbeddedResource Remove="Civil Tab\Alignments\NewFolder\**" />
 	  <EmbeddedResource Remove="Types\NewFolder\**" />
+	  <None Remove="Civil Tab\Alignments\NewFolder\**" />
 	  <None Remove="Types\NewFolder\**" />
 	</ItemGroup>
 	

@@ -61,7 +61,7 @@ where TRhinoType : class, IRhinoAdapter
     {
         get
         {
-            if (this.Value == null && this.Value.Bounds.HasValue == false)
+            if (this.Value == null || !this.Value.Bounds.HasValue)
                 return BoundingBox.Empty;
 
             var bounds = this.Value.Bounds;

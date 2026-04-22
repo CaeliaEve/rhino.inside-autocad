@@ -17,7 +17,7 @@ public class GetProfilesFromAlignmentComponent : RhinoInsideAutocad_ComponentBas
     public override Guid ComponentGuid => new("A0B1C2D3-E4F5-6789-A890-123456789DEF");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.GetProfilesFromAlignmentComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetProfilesFromAlignmentComponent"/> class.
@@ -52,8 +52,12 @@ public class GetProfilesFromAlignmentComponent : RhinoInsideAutocad_ComponentBas
 
         var alignmentId = alignmentGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(alignmentId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 

@@ -13,7 +13,7 @@ public class CivilCorridorPropertiesComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("D0E1F2A3-B4C5-6789-0123-456789012BCD");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilCorridorPropertiesComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilCorridorPropertiesComponent"/> class.
@@ -41,14 +41,17 @@ public class CivilCorridorPropertiesComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddTextParameter("Description", "Desc",
             "The description of the corridor.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Start Station", "StaSt",
-            "The starting station of the corridor.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Code",
+            "Code", "The code of the corridor as a NamedId.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("End Station", "StaEnd",
-            "The ending station of the corridor.", GH_ParamAccess.item);
+        pManager.AddNumberParameter("Start Param", "StaP",
+            "The starting parameter of the corridor.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Length", "Len",
-            "The total length of the corridor.", GH_ParamAccess.item);
+        pManager.AddNumberParameter("End Param", "EndP",
+            "The ending parameter of the corridor.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this corridor as a NamedId.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -62,8 +65,9 @@ public class CivilCorridorPropertiesComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetData(0, props.Name);
         DA.SetData(1, props.Description);
-        DA.SetData(2, props.StartStation);
-        DA.SetData(3, props.EndStation);
-        DA.SetData(4, props.Length);
+        DA.SetData(2, new GH_NamedId(props.Code));
+        DA.SetData(3, props.StartParam);
+        DA.SetData(4, props.EndParam);
+        DA.SetData(5, new GH_NamedId(props.Style));
     }
 }

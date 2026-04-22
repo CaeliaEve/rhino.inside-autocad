@@ -1,5 +1,4 @@
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -15,7 +14,7 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
     public override Guid ComponentGuid => new("F6A7B8C9-D0E1-2345-F012-567890123DEF");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilAlignmentPropertiesComponent;
 
     /// <inheritdoc />
     public override GH_Exposure Exposure => GH_Exposure.primary;
@@ -98,6 +97,7 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+
         GH_CivilAlignmentProperties? propsGoo = null;
 
         if (!DA.GetData(0, ref propsGoo) || propsGoo?.Value is null) return;
@@ -112,8 +112,12 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
         if (DA.GetData(1, ref newName) && newName != alignmentProperties.Name) updateFlag = true;
         if (DA.GetData(2, ref newDescription) && newDescription != alignmentProperties.Description) updateFlag = true;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(alignmentProperties.AlignmentId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 
@@ -131,7 +135,7 @@ public class CivilAlignmentPropertiesComponent : RhinoInsideAutocad_ComponentBas
         DA.SetData(2, alignmentProperties.StartStation);
         DA.SetData(3, alignmentProperties.EndStation);
         DA.SetData(4, alignmentProperties.Length);
-        DA.SetData(5, alignmentProperties.AlignmentType.ToString());
+        DA.SetData(5, alignmentProperties.CivilAlignmentType.ToString());
 
         // NamedId properties
         DA.SetData(6, new GH_NamedId(alignmentProperties.Site));

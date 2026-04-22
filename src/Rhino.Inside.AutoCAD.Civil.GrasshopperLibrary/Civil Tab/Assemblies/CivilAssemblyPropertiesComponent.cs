@@ -13,7 +13,7 @@ public class CivilAssemblyPropertiesComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("F6A7B8C9-D0E1-2345-6789-012345678BCD");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilAssemblyPropertiesComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilAssemblyPropertiesComponent"/> class.
@@ -47,11 +47,11 @@ public class CivilAssemblyPropertiesComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddTextParameter("Code", "C",
             "The code name of the assembly.", GH_ParamAccess.item);
 
-        pManager.AddIntegerParameter("Subassembly Count", "SubCount",
-            "The number of subassemblies in the assembly.", GH_ParamAccess.item);
-
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.list), "Subassembly Ids", "SubIds",
             "The subassembly ObjectIds in the assembly.", GH_ParamAccess.list);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this assembly as a NamedId.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -67,7 +67,7 @@ public class CivilAssemblyPropertiesComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(1, props.Description);
         DA.SetData(2, props.AssemblyType);
         DA.SetData(3, props.Code);
-        DA.SetData(4, props.SubassemblyCount);
-        DA.SetDataList(5, props.SubassemblyIds.Select(id => new GH_AutocadObjectId(id)).ToList());
+        DA.SetDataList(4, props.SubassemblyIds.Select(id => new GH_AutocadObjectId(id)).ToList());
+        DA.SetData(5, new GH_NamedId(props.Style));
     }
 }

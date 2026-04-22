@@ -22,6 +22,7 @@ public class GrasshopperInstance : IGrasshopperInstance
     private const string _grasshopperInitializationFailed = MessageConstants.GrasshopperInitializationFailed;
 
     private IGrasshopperSelectionTracker? _selectionTracker;
+    private GH_Canvas? _activeCanvas;
 
     /// <inheritdoc />
     public event EventHandler<IGrasshopperObjectModifiedEventArgs>? PreviewExpired;
@@ -144,11 +145,10 @@ public class GrasshopperInstance : IGrasshopperInstance
     /// </summary>
     private void OnCanvasCreated(GH_Canvas canvas)
     {
-
         this.LoadGrasshopperLibrary();
 
-        var activeCanvas = Grasshopper.Instances.ActiveCanvas;
-        activeCanvas.DocumentChanged += this.OnDocumentChanged;
+        _activeCanvas = Grasshopper.Instances.ActiveCanvas;
+        _activeCanvas.DocumentChanged += this.OnDocumentChanged;
     }
 
     /// <summary>
@@ -265,6 +265,7 @@ public class GrasshopperInstance : IGrasshopperInstance
         _selectionTracker.ObjectsSelected -= this.OnObjectsSelected;
         _selectionTracker.ObjectsDeselected -= this.OnObjectsDeselected;
 
+        _selectionTracker.Dispose();
         _selectionTracker = null;
     }
 
@@ -371,6 +372,12 @@ public class GrasshopperInstance : IGrasshopperInstance
     public void Shutdown()
     {
         this.RemoveDocumentSubscriptions();
+
+        if (_activeCanvas != null)
+        {
+            _activeCanvas.DocumentChanged -= this.OnDocumentChanged;
+            _activeCanvas = null;
+        }
 
         Grasshopper.Instances.CanvasCreated -= this.OnCanvasCreated;
     }

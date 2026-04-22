@@ -18,7 +18,7 @@ public class Param_CivilProfileView : Param_AutocadObjectBase<GH_CivilProfileVie
     public override Guid ComponentGuid => new Guid("A1B2C3D4-E5F6-7890-AB12-CD34EF567890");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilProfileView;
 
     /// <inheritdoc />
     protected override string SingularPromptMessage => "Select a Civil3d ProfileView";

@@ -37,7 +37,7 @@ public class CivilGrasshopperPluginInfo : GH_AssemblyInfo
     /// <summary>
     /// Gets the unique identifier (GUID) of the plugin.
     /// </summary>
-    public override Guid Id => new Guid("C1V1L3D0-PLUG-INFO-GUID-000000000001");
+    public override Guid Id => new Guid("C1C13D00-0000-1AF0-0010-000000000001");
 
     /// <summary>
     /// Gets the name of the plugin author.

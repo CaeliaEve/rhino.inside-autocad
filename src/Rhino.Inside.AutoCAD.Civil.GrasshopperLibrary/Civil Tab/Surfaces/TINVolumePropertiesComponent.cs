@@ -13,7 +13,10 @@ public class TINVolumePropertiesComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("C3D4E5F6-A7B8-9012-CDEF-234567890ABC");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.TINVolumePropertiesComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TINVolumePropertiesComponent"/> class.
@@ -58,6 +61,9 @@ public class TINVolumePropertiesComponent : RhinoInsideAutocad_ComponentBase
 
         pManager.AddNumberParameter("Adjusted Net", "ANet",
             "Adjusted net volume.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this volume surface as a NamedId.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -82,5 +88,6 @@ public class TINVolumePropertiesComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(5, props.AdjustedCutVolume);
         DA.SetData(6, props.AdjustedFillVolume);
         DA.SetData(7, props.AdjustedNetVolume);
+        DA.SetData(8, new GH_NamedId(props.Style));
     }
 }

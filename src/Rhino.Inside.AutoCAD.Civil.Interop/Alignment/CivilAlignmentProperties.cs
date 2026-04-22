@@ -32,7 +32,7 @@ public record CivilAlignmentProperties : ICivilAlignmentProperties
     public double Length { get; }
 
     /// <inheritdoc />
-    public Core.AlignmentType AlignmentType { get; }
+    public Core.CivilAlignmentType CivilAlignmentType { get; }
 
     /// <inheritdoc />
     public INamedId Site { get; }
@@ -58,6 +58,9 @@ public record CivilAlignmentProperties : ICivilAlignmentProperties
     /// <inheritdoc />
     public ICivilRailAlignmentInfo RailAlignmentInfo { get; }
 
+    /// <inheritdoc />
+    public IObjectId AlignmentId { get; }
+
     /// <summary>
     /// Initializes a new instance of <see cref="CivilAlignmentProperties"/> with a transaction.
     /// </summary>
@@ -71,11 +74,13 @@ public record CivilAlignmentProperties : ICivilAlignmentProperties
         this.StartStation = alignment.StartingStation;
         this.EndStation = alignment.EndingStation;
         this.Length = alignment.Length;
-        this.AlignmentType = alignment.AlignmentType.ToRhinoInsideAlignmentType();
+        this.CivilAlignmentType = alignment.AlignmentType.ToRhinoInsideAlignmentType();
 
         this.Site = new NamedId(alignment.SiteName, alignment.SiteId);
 
         this.Style = new NamedId(alignment.StyleName, alignment.StyleId);
+
+        this.AlignmentId = new AutocadObjectIdWrapper(alignment.Id);
 
         this.DesignCheckSet = new NamedId(alignment.DesignCheckSetName, alignment.DesignCheckSetId);
 

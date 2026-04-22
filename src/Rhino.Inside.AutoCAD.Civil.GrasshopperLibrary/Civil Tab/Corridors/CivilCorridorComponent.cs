@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -18,7 +17,7 @@ public class CivilCorridorComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("C9D0E1F2-A3B4-5678-9012-345678901ABC");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilCorridorComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilCorridorComponent"/> class.
@@ -42,9 +41,6 @@ public class CivilCorridorComponent : RhinoInsideAutocad_ComponentBase
     {
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Id", "Id",
             "The Id of the Corridor.", GH_ParamAccess.item);
-
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
-            "The Id of the Style of the Corridor.", GH_ParamAccess.item);
 
         pManager.AddParameter(new Param_CivilCorridorProperties(GH_ParamAccess.item), "Properties", "Props",
             "Corridor properties (use Corridor Properties component to extract values).", GH_ParamAccess.item);
@@ -74,36 +70,40 @@ public class CivilCorridorComponent : RhinoInsideAutocad_ComponentBase
 
         var corridorId = corridorGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
-
-        var transactionManager = document.CreateTransactionManager();
-
-        var corridor = transactionManager.PerformTask(() =>
-            transactionManager.Unwrap().GetObject(corridorId.Unwrap(), OpenMode.ForRead) as
-            Corridor);
-
-        if (corridor == null)
+        var document = this.GetDocumentForObjectId(corridorId);
+        if (document is null)
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read Corridor");
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
             return;
         }
 
-        DA.SetData(0, new GH_AutocadObjectId(corridorId));
+        var transactionManager = document.CreateTransactionManager();
 
-        DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(corridor.StyleId)));
-
-        DA.SetData(2, new GH_CivilCorridorProperties(CivilCorridorProperties.CreateFromCorridor(corridor)));
-
-        var corridorData = transactionManager.PerformTask(() =>
+        var result = transactionManager.PerformTask(() =>
         {
-            var baselines = new List<GH_CivilCorridorBaseline>();
+            var corridor = transactionManager.Unwrap()
+                .GetObject(corridorId.Unwrap(), OpenMode.ForRead) as Corridor;
+
+            if (corridor == null)
+            {
+                return CorridorGooResult.Failed;
+            }
+
+            var wrapper = new CivilCorridorWrapper(corridor);
+
+            var properties = wrapper.Properties;
+
+            var propertiesGoo = new GH_CivilCorridorProperties(properties);
+
+            var baselines = wrapper.GetBaselines(transactionManager);
+
+            var baselinesGoo = new List<GH_CivilCorridorBaseline>();
             var allRegions = new List<GH_CivilCorridorBaselineRegion>();
             var allFeatureLines = new List<GH_CivilCorridorFeatureLine>();
 
-            foreach (Baseline baseline in corridor.Baselines)
+            foreach (var baseline in baselines)
             {
-                baselines.Add(new GH_CivilCorridorBaseline(new CivilCorridorBaselineWrapper(baseline)));
+                baselinesGoo.Add(new GH_CivilCorridorBaseline(baseline));
 
                 // Get regions from this baseline
                 var regions = baseline.GetRegions(transactionManager);
@@ -114,20 +114,28 @@ public class CivilCorridorComponent : RhinoInsideAutocad_ComponentBase
                 allFeatureLines.AddRange(featureLines.Select(fl => new GH_CivilCorridorFeatureLine(fl)));
             }
 
-            return new
-            {
-                Baselines = baselines,
-                Regions = allRegions,
-                FeatureLines = allFeatureLines,
-                Surfaces = corridor.GetCorridorSurfaces(transactionManager),
-                Mesh = corridor.ToRhinoMesh(transactionManager)
-            };
+            var surfaces = wrapper.GetCorridorSurfaces(transactionManager);
+
+            var surfacesGoo = surfaces.Select(s => new GH_CivilCorridorSurface(s))
+                .ToList();
+
+            var mesh = corridor.ToRhinoMesh(transactionManager);
+
+            return new CorridorGooResult(propertiesGoo, baselinesGoo, allRegions, allFeatureLines, surfacesGoo, mesh);
         });
 
-        DA.SetDataList(3, corridorData.Baselines);
-        DA.SetDataList(4, corridorData.Regions);
-        DA.SetDataList(5, corridorData.FeatureLines);
-        DA.SetDataList(6, corridorData.Surfaces.Select(s => new GH_CivilCorridorSurface(s)).ToList());
-        DA.SetData(7, corridorData.Mesh);
+        if (result.IsSuccess == false)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read Corridor");
+            return;
+        }
+
+        DA.SetData(0, new GH_AutocadObjectId(corridorId));
+        DA.SetData(1, result.PropertiesGoo);
+        DA.SetDataList(2, result.BaselinesGoo);
+        DA.SetDataList(3, result.RegionsGoo);
+        DA.SetDataList(4, result.FeatureLinesGoo);
+        DA.SetDataList(5, result.SurfacesGoo);
+        DA.SetData(6, result.Mesh);
     }
 }

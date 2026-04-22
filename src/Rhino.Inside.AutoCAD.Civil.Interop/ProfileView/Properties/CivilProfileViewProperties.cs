@@ -1,5 +1,5 @@
-using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
+using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -14,128 +14,50 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </remarks>
 public record CivilProfileViewProperties : ICivilProfileViewProperties
 {
-    /// <summary>
-    /// Constructs a new instance of <see cref="CivilProfileViewProperties"/> by extracting
-    /// data from a given <see cref="ProfileView"/>.
-    /// </summary>
-    /// <param name="profileView">The ProfileView to extract properties from.</param>
-    /// <param name="transactionManager">The transaction manager for database operations.</param>
-    public static CivilProfileViewProperties CreateFromProfileView(
-        ProfileView profileView,
-        IAutocadTransactionManager transactionManager)
-    {
-        // Count bands from both top and bottom
-        var topBandCount = profileView.Bands.GetTopBandItems()?.Count ?? 0;
-        var bottomBandCount = profileView.Bands.GetBottomBandItems()?.Count ?? 0;
-
-        // Get alignment name and profile count from the profile view
-        var alignmentName = GetAlignmentName(profileView, transactionManager);
-        var profileCount = GetProfileCount(profileView, transactionManager);
-
-        return new CivilProfileViewProperties()
-        {
-            Name = profileView.Name,
-            Description = profileView.Description ?? string.Empty,
-            StationStart = profileView.StationStart,
-            StationEnd = profileView.StationEnd,
-            ElevationMin = profileView.ElevationMin,
-            ElevationMax = profileView.ElevationMax,
-            AlignmentName = alignmentName,
-            ProfileCount = profileCount,
-            BandCount = topBandCount + bottomBandCount,
-            // Scale information - using default values
-            // TODO: Determine correct API to extract scale from ProfileView
-            HorizontalScale = 1.0,
-            VerticalScale = 1.0,
-            VerticalExaggeration = 1.0,
-        };
-    }
-
-    /// <summary>
-    /// Gets the parent alignment name for a ProfileView.
-    /// </summary>
-    private static string GetAlignmentName(ProfileView profileView, IAutocadTransactionManager transactionManager)
-    {
-        try
-        {
-            var alignmentId = profileView.AlignmentId;
-            if (alignmentId.IsNull || alignmentId.IsErased)
-                return string.Empty;
-
-            var alignment = transactionManager.Unwrap()
-                .GetObject(alignmentId, OpenMode.ForRead) as Alignment;
-
-            return alignment?.Name ?? string.Empty;
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-    /// <summary>
-    /// Gets the count of profiles displayed in the ProfileView.
-    /// </summary>
-    private static int GetProfileCount(ProfileView profileView, IAutocadTransactionManager transactionManager)
-    {
-        try
-        {
-            var alignmentId = profileView.AlignmentId;
-            if (alignmentId.IsNull || alignmentId.IsErased)
-                return 0;
-
-            var alignment = transactionManager.Unwrap()
-                .GetObject(alignmentId, OpenMode.ForRead) as Alignment;
-
-            return alignment?.GetProfileIds().Count ?? 0;
-        }
-        catch
-        {
-            return 0;
-        }
-    }
+    private readonly ProfileView _profileView;
 
     /// <inheritdoc />
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; }
 
     /// <inheritdoc />
-    public string Description { get; init; } = string.Empty;
+    public string Description { get; }
 
     /// <inheritdoc />
-    public double StationStart { get; init; }
+    public Interval StationRange { get; }
 
     /// <inheritdoc />
-    public double StationEnd { get; init; }
+    public Interval ElevationRange { get; }
 
     /// <inheritdoc />
-    public double ElevationMin { get; init; }
+    public INamedId Style { get; }
 
     /// <inheritdoc />
-    public double ElevationMax { get; init; }
-
-    /// <inheritdoc />
-    public string AlignmentName { get; init; } = string.Empty;
-
-    /// <inheritdoc />
-    public int ProfileCount { get; init; }
-
-    /// <inheritdoc />
-    public int BandCount { get; init; }
-
-    /// <inheritdoc />
-    public double HorizontalScale { get; init; }
-
-    /// <inheritdoc />
-    public double VerticalScale { get; init; }
-
-    /// <inheritdoc />
-    public double VerticalExaggeration { get; init; }
+    public IObjectId ProfileViewId { get; }
 
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilProfileViewProperties"/>
     /// </summary>
-    private CivilProfileViewProperties()
+    public CivilProfileViewProperties(ProfileView profileView)
     {
+        _profileView = profileView;
+
+        var stationRange = new Interval(profileView.StationStart, profileView.StationEnd);
+        var elevationRange = new Interval(profileView.ElevationMin, profileView.ElevationMax);
+
+        this.Name = profileView.Name;
+        this.Description = profileView.Description ?? string.Empty;
+        this.StationRange = stationRange;
+        this.ElevationRange = elevationRange;
+
+        this.Style = new NamedId(profileView.StyleName, profileView.StyleId);
+        this.ProfileViewId = new AutocadObjectIdWrapper(_profileView.Id);
+    }
+
+    /// <inheritdoc />
+    public IProfileViewCoordinateSystem GetCoordinateSystem(IAutocadTransactionManager transactionManager)
+    {
+        return
+              new ProfileViewCoordinateSystem(_profileView, transactionManager);
     }
 
     /// <summary>
@@ -144,26 +66,12 @@ public record CivilProfileViewProperties : ICivilProfileViewProperties
     /// <returns>A new instance with copied data.</returns>
     public CivilProfileViewProperties Duplicate()
     {
-        return new CivilProfileViewProperties()
-        {
-            Name = this.Name,
-            Description = this.Description,
-            StationStart = this.StationStart,
-            StationEnd = this.StationEnd,
-            ElevationMin = this.ElevationMin,
-            ElevationMax = this.ElevationMax,
-            AlignmentName = this.AlignmentName,
-            ProfileCount = this.ProfileCount,
-            BandCount = this.BandCount,
-            HorizontalScale = this.HorizontalScale,
-            VerticalScale = this.VerticalScale,
-            VerticalExaggeration = this.VerticalExaggeration,
-        };
+        return new CivilProfileViewProperties(_profileView);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"ProfileView Properties: {this.Name} (Sta: {this.StationStart:F2} - {this.StationEnd:F2}, Elev: {this.ElevationMin:F2} - {this.ElevationMax:F2})";
+        return $"ProfileView Properties: {this.Name} (Sta: {this.StationRange.T0:F2} - {this.StationRange.T1:F2}, Elev: {this.ElevationRange.T0:F2} - {this.ElevationRange.T1:F2})";
     }
 }

@@ -13,7 +13,10 @@ public class CivilCorridorFeatureLineComponent : RhinoInsideAutocad_ComponentBas
     public override Guid ComponentGuid => new("B4C5D6E7-F8A9-0123-4567-890123456F01");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilCorridorFeatureLineComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilCorridorFeatureLineComponent"/> class.

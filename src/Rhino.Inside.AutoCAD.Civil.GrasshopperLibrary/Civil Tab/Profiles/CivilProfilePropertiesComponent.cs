@@ -13,7 +13,7 @@ public class CivilProfilePropertiesComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("E8F9A0B1-C2D3-4567-E678-901234567BCD");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilProfilePropertiesComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilProfilePropertiesComponent"/> class.
@@ -41,11 +41,11 @@ public class CivilProfilePropertiesComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddTextParameter("Description", "Desc",
             "The description of the profile.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Start Station", "StaSt",
-            "The starting station of the profile.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilStationPoint(GH_ParamAccess.item), "Start Point", "StaPt",
+            "The starting station and elevation of the profile.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("End Station", "StaEnd",
-            "The ending station of the profile.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilStationPoint(GH_ParamAccess.item), "End Point", "EndPt",
+            "The ending station and elevation of the profile.", GH_ParamAccess.item);
 
         pManager.AddNumberParameter("Min Elevation", "MinElev",
             "The minimum elevation of the profile.", GH_ParamAccess.item);
@@ -56,11 +56,8 @@ public class CivilProfilePropertiesComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddTextParameter("Profile Type", "Type",
             "The type of profile (ExistingGround, Layout, etc.).", GH_ParamAccess.item);
 
-        pManager.AddIntegerParameter("Entity Count", "Count",
-            "The number of entities in the profile.", GH_ParamAccess.item);
-
-        pManager.AddTextParameter("Parent Alignment", "Align",
-            "The name of the parent alignment.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this profile as a NamedId.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -74,12 +71,11 @@ public class CivilProfilePropertiesComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetData(0, props.Name);
         DA.SetData(1, props.Description);
-        DA.SetData(2, props.StartStation);
-        DA.SetData(3, props.EndStation);
+        DA.SetData(2, new GH_CivilStationPoint(props.Start));
+        DA.SetData(3, new GH_CivilStationPoint(props.End));
         DA.SetData(4, props.MinElevation);
         DA.SetData(5, props.MaxElevation);
         DA.SetData(6, props.ProfileType.ToString());
-        DA.SetData(7, props.EntityCount);
-        DA.SetData(8, props.ParentAlignmentName);
+        DA.SetData(7, new GH_NamedId(props.Style));
     }
 }

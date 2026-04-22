@@ -169,6 +169,20 @@ public class AutoCadInstance : IAutoCadInstance
         return null;
     }
 
+    /// <inheritdoc/>
+    public IAutocadDocument? FindDocumentByFingerprintGuid(string fingerprintGuid)
+    {
+        foreach (var autoCadDocument in this.Documents)
+        {
+            var nativeDocument = autoCadDocument.Unwrap();
+            if (nativeDocument.Database.FingerprintGuid == fingerprintGuid)
+            {
+                return autoCadDocument;
+            }
+        }
+        return null;
+    }
+
     /// <summary>
     /// Event handler which fires when the <see cref=" DocumentCollection.DocumentActivated"/>
     /// is raised. Raises the <see cref="DocumentCreated"/> event.

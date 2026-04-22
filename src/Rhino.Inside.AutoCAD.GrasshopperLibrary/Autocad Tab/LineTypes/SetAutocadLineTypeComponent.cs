@@ -1,7 +1,5 @@
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
-
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -79,51 +77,6 @@ public class SetAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
             "Comments associated with the linetype", GH_ParamAccess.item);
     }
 
-    /// <summary>
-    /// Updates the properties of an AutoCAD linetype, Return a new Wrapper with updated values.
-    /// If the update fails, the original linetype is returned and an error message is added
-    /// to the component.
-    /// Note: When modifying dash pattern properties, the dash lengths would need to be recalculated
-    /// For now, we update the properties. A full implementation would regenerate the dash pattern.
-    /// </summary>
-    private AutocadLinetypeTableRecordWrapper UpdateLayout(AutocadLinetypeTableRecordWrapper linetype, string newName,
-     double newPatternLength, int newNumberOfDashes, bool newScaleToFit, string newComments)
-    {
-        try
-        {
-            var cadLinetypeId = linetype.Id.Unwrap();
-
-            var activeDocument = Application.DocumentManager.MdiActiveDocument;
-
-            using var documentLock = activeDocument.LockDocument();
-
-            var database = activeDocument.Database;
-
-            using var transaction = database.TransactionManager.StartTransaction();
-
-            var cadLineType =
-                transaction.GetObject(cadLinetypeId, OpenMode.ForWrite) as LinetypeTableRecord;
-
-            cadLineType!.Name = newName;
-            cadLineType.PatternLength = newPatternLength;
-            cadLineType.NumDashes = newNumberOfDashes;
-            cadLineType.IsScaledToFit = newScaleToFit;
-            cadLineType.Comments = newComments ?? string.Empty;
-
-            transaction.Commit();
-
-            activeDocument.Editor.Regen();
-
-            return new AutocadLinetypeTableRecordWrapper(cadLineType);
-
-        }
-        catch (Exception e)
-        {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, e.Message);
-            return linetype;
-        }
-    }
-
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -171,7 +124,30 @@ public class SetAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
 
         if (change)
         {
-            lineType = this.UpdateLayout(lineType, newName, newPatternLength, newNumberOfDashes, newScaleToFit, newComments);
+            var document = this.GetDocumentForObjectId(lineType.Id);
+            if (document is null)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+                return;
+            }
+
+            var transactionManager = document.CreateTransactionManager();
+
+            lineType = transactionManager.PerformTask(() =>
+            {
+                var transaction = transactionManager.Unwrap();
+
+                var cadLineType =
+                    transaction.GetObject(lineType.Id.Unwrap(), OpenMode.ForWrite) as LinetypeTableRecord;
+
+                cadLineType!.Name = newName;
+                cadLineType.PatternLength = newPatternLength;
+                cadLineType.NumDashes = newNumberOfDashes;
+                cadLineType.IsScaledToFit = newScaleToFit;
+                cadLineType.Comments = newComments ?? string.Empty;
+
+                return new AutocadLinetypeTableRecordWrapper(cadLineType);
+            });
         }
 
         // Output updated values

@@ -1,16 +1,15 @@
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilAssembly = Autodesk.Civil.DatabaseServices.Assembly;
 using RhinoPoint = Rhino.Geometry.Point;
 
-namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
+namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D Assemblies.
 /// </summary>
-public class GH_CivilAssembly : GH_AutocadGeometricGoo<CivilAssembly, RhinoGeometryAdapter<RhinoPoint>>
+public class GH_CivilAssembly : GH_CivilOneWayGoo<CivilAssembly, RhinoGeometryAdapter<RhinoPoint>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilAssembly"/> class with no value.
@@ -37,28 +36,21 @@ public class GH_CivilAssembly : GH_AutocadGeometricGoo<CivilAssembly, RhinoGeome
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilAssembly, RhinoGeometryAdapter<RhinoPoint>> CreateClonedInstance(CivilAssembly entity)
+    protected override GH_CivilOneWayGoo<CivilAssembly, RhinoGeometryAdapter<RhinoPoint>> CreateClonedInstance(CivilAssembly entity)
     {
         return new GH_CivilAssembly(entity.Clone() as CivilAssembly, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilAssembly, RhinoGeometryAdapter<RhinoPoint>> CreateInstance(CivilAssembly entity)
+    protected override GH_CivilOneWayGoo<CivilAssembly, RhinoGeometryAdapter<RhinoPoint>> CreateInstance(CivilAssembly entity)
     {
         return new GH_CivilAssembly(entity);
     }
 
     /// <inheritdoc />
-    protected override CivilAssembly? Convert(RhinoGeometryAdapter<RhinoPoint> rhinoType)
+    protected override RhinoGeometryAdapter<RhinoPoint>? ConvertToRhino(CivilAssembly wrapperType)
     {
-        // Converting from Rhino Point back to Civil 3D Assembly is not supported
-        return null;
-    }
-
-    /// <inheritdoc />
-    protected override RhinoGeometryAdapter<RhinoPoint>? Convert(CivilAssembly wrapperType)
-    {
-        var point = wrapperType.ToRhinoPoint();
+        var point = wrapperType.Location.ToRhinoPoint3d();
         return new RhinoGeometryAdapter<RhinoPoint>(new RhinoPoint(point));
     }
 

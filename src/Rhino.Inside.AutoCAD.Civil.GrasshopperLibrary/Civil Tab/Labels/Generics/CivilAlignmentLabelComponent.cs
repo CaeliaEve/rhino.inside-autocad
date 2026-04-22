@@ -19,7 +19,7 @@ public class CivilAlignmentLabelComponent : RhinoInsideAutocad_ComponentBase
     private readonly GooTypeRegistry _gooConverterRegister = GooTypeRegistry.Instance!;
 
     public override Guid ComponentGuid => new("A7B8C9D0-E1F2-3456-0123-67890ABCDEF2");
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilAlignmentLabelComponent;
 
     public CivilAlignmentLabelComponent()
         : base("Civil3d Alignment Label", "CVL-AlignLbl",
@@ -74,8 +74,12 @@ public class CivilAlignmentLabelComponent : RhinoInsideAutocad_ComponentBase
 
         var label = goo.Value;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(goo.Reference.ObjectId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 

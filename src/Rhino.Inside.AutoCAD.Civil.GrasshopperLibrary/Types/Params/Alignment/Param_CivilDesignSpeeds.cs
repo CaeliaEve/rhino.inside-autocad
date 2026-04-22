@@ -14,7 +14,7 @@ public class Param_CivilDesignSpeeds : GH_Param<GH_CivilDesignSpeeds>
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilDesignSpeeds;
 
     /// <summary>
     /// Initializes a new instance with the specified instance description.

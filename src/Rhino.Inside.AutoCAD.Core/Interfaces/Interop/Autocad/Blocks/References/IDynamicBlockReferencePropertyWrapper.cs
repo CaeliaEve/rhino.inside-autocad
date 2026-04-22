@@ -62,6 +62,11 @@ public interface IDynamicBlockReferencePropertyWrapper
     public DynamicPropertyTypeCode TypeCode { get; }
 
     /// <summary>
+    /// Gets the ObjectId of the block reference that owns this dynamic property.
+    /// </summary>
+    public IObjectId BlockReferenceId { get; }
+
+    /// <summary>
     /// Sets the value of this dynamic property.
     /// </summary>
     /// <param name="propertyValue">

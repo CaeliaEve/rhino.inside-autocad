@@ -1,5 +1,4 @@
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
@@ -15,6 +14,9 @@ public class CivilSurfaceBoundaryComponent : RhinoInsideAutocad_ComponentBase
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilSurfaceBoundary;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilSurfaceBoundaryComponent"/> class.
@@ -59,17 +61,10 @@ public class CivilSurfaceBoundaryComponent : RhinoInsideAutocad_ComponentBase
 
         var boundary = boundaryGoo.Value;
 
-        // Output boundary type as string
         DA.SetData(0, boundary.BoundaryType.ToString());
 
-        // Output polyline as curve
-        if (boundary.Polyline != null && boundary.Polyline.Count >= 2)
-        {
-            var curve = new PolylineCurve(boundary.Polyline);
-            DA.SetData(1, curve);
-        }
+        DA.SetData(1, boundary.Curve);
 
-        // Output name
         DA.SetData(2, boundary.Name);
     }
 }

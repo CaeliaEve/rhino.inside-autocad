@@ -1,9 +1,8 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Civil.Interop.Constants;
-using Rhino.Inside.AutoCAD.Civil.Interop.TIN_Naming;
+using Rhino.Inside.AutoCAD.Civil.Interop.Naming;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -23,7 +22,10 @@ public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_Component
     public override Guid ComponentGuid => new("C8D9E2F1-7A5B-4C3D-8E6F-2B1A9C4D5E7F");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CreateCivilTINVolumeSurfaceComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateCivilTINVolumeSurfaceComponent"/> class.
@@ -92,20 +94,13 @@ public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_Component
 
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?
-                .AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         if (!DA.GetData(1, ref baseSurfaceGoo) || baseSurfaceGoo is null)
         {
@@ -127,7 +122,7 @@ public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_Component
         var baseSurfaceId = baseSurfaceGoo.Reference.ObjectId;
         var comparisonSurfaceId = comparisonSurfaceGoo.Reference.ObjectId;
 
-        var transactionManager = autocadDocument.CreateTransactionManager();
+        var transactionManager = document.CreateTransactionManager();
 
         var result = transactionManager.PerformTask(() =>
         {

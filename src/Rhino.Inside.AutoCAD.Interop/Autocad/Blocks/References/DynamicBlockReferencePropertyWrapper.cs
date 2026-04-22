@@ -25,6 +25,9 @@ public class DynamicBlockReferencePropertyWrapper : AutocadWrapperBase<DynamicBl
     /// <inheritdoc />
     public DynamicPropertyTypeCode TypeCode { get; }
 
+    /// <inheritdoc />
+    public IObjectId BlockReferenceId { get; }
+
     /// <summary>
     /// Constructs a new <see cref="IDynamicBlockReferencePropertyWrapper"/>.
     /// </summary>
@@ -44,6 +47,8 @@ public class DynamicBlockReferencePropertyWrapper : AutocadWrapperBase<DynamicBl
         this.AllowedValues = dynamicBlockReferenceProperty.GetAllowedValues();
 
         this.TypeCode = (DynamicPropertyTypeCode)_dynamicBlockReferenceProperty.PropertyTypeCode;
+
+        this.BlockReferenceId = new AutocadObjectIdWrapper(dynamicBlockReferenceProperty.BlockId);
     }
 
     /// <inheritdoc />

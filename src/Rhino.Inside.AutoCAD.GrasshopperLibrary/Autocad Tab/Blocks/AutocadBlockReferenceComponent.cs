@@ -73,8 +73,12 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
         if (!DA.GetData(0, ref blockReferenceWrapper)
             || blockReferenceWrapper is null) return;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(blockReferenceWrapper.Id);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManagerWrapper = document.CreateTransactionManager();
 

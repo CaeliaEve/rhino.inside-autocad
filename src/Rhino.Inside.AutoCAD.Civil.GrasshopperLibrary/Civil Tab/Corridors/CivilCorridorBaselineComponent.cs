@@ -13,7 +13,10 @@ public class CivilCorridorBaselineComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("E1F2A3B4-C5D6-7890-1234-567890123CDE");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilCorridorBaselineComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilCorridorBaselineComponent"/> class.
@@ -50,8 +53,6 @@ public class CivilCorridorBaselineComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddNumberParameter("End Station", "StaEnd",
             "The ending station of the baseline.", GH_ParamAccess.item);
 
-        pManager.AddIntegerParameter("Region Count", "RgnCount",
-            "The number of regions in this baseline.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -68,6 +69,5 @@ public class CivilCorridorBaselineComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(2, new GH_AutocadObjectId(baseline.ProfileId));
         DA.SetData(3, baseline.StartStation);
         DA.SetData(4, baseline.EndStation);
-        DA.SetData(5, baseline.RegionCount);
     }
 }

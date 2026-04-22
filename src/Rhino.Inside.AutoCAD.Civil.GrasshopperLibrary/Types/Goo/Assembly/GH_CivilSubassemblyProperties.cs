@@ -8,10 +8,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper Goo object for Civil 3D Subassembly properties.
 /// </summary>
 /// <remarks>
-/// This Goo wraps a <see cref="CivilSubassemblyProperties"/> containing
+/// This Goo wraps a <see cref="CivilSubassemblyWrapper"/> containing
 /// properties from a Subassembly.
 /// </remarks>
-public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyProperties>
+public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyWrapper>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilSubassemblyProperties"/> class with no value.
@@ -24,8 +24,8 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyProperties>
     /// Initializes a new instance of the <see cref="GH_CivilSubassemblyProperties"/> class with the
     /// specified subassembly properties wrapper.
     /// </summary>
-    /// <param name="subassemblyProperties">The Civil 3D subassembly properties wrapper.</param>
-    public GH_CivilSubassemblyProperties(CivilSubassemblyProperties subassemblyProperties) : base(subassemblyProperties)
+    /// <param name="subassemblyWrapper">The Civil 3D subassembly properties wrapper.</param>
+    public GH_CivilSubassemblyProperties(CivilSubassemblyWrapper subassemblyWrapper) : base(subassemblyWrapper)
     {
     }
 
@@ -41,8 +41,8 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyProperties>
     /// <summary>
     /// Constructs a new <see cref="GH_CivilSubassemblyProperties"/> via the interface.
     /// </summary>
-    public GH_CivilSubassemblyProperties(ICivilSubassemblyProperties subassemblyProperties)
-        : base((subassemblyProperties as CivilSubassemblyProperties)!)
+    public GH_CivilSubassemblyProperties(ICivilSubassembly subassemblyProperties)
+        : base((subassemblyProperties as CivilSubassemblyWrapper)!)
     {
     }
 
@@ -81,15 +81,15 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyProperties>
             return true;
         }
 
-        if (source is CivilSubassemblyProperties wrapper)
+        if (source is CivilSubassemblyWrapper wrapper)
         {
             Value = wrapper.ShallowClone();
             return true;
         }
 
-        if (source is ICivilSubassemblyProperties props)
+        if (source is ICivilSubassembly props)
         {
-            Value = (props as CivilSubassemblyProperties)?.ShallowClone();
+            Value = (props as CivilSubassemblyWrapper)?.ShallowClone();
             return Value != null;
         }
 
@@ -99,7 +99,7 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyProperties>
     /// <inheritdoc />
     public override bool CastTo<Q>(ref Q target)
     {
-        if (typeof(Q).IsAssignableFrom(typeof(CivilSubassemblyProperties)))
+        if (typeof(Q).IsAssignableFrom(typeof(CivilSubassemblyWrapper)))
         {
             target = (Q)(object)Value!;
             return true;

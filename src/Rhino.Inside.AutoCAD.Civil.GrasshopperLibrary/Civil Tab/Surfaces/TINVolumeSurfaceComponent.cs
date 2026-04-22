@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -18,7 +17,10 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("D5E7A3B1-8C4F-4D2E-9A6B-1F3C7E8D9A2B");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.TINVolumeSurfaceComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TINVolumeSurfaceComponent"/> class.
@@ -46,9 +48,6 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddTextParameter("Name", "N",
             "The name of the Volume Surface.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
-            "The Id of the Style of the Volume Surface.", GH_ParamAccess.item);
-
         pManager.AddParameter(new Param_CivilVolumeProperties(GH_ParamAccess.item), "Volume Properties", "VP",
             "Volume statistics (use Volume Properties component to extract values).", GH_ParamAccess.item);
 
@@ -68,8 +67,12 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
 
         var surfaceId = volumeSurfaceGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(surfaceId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 
@@ -90,13 +93,9 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
         // Name
         DA.SetData(1, volumeSurface.Name);
 
-        // StyleId
-        var styleId = new GH_AutocadObjectId(new AutocadObjectIdWrapper(volumeSurface.StyleId));
-        DA.SetData(2, styleId);
-
         // Volume Properties
         var volumePropsWrapper = CivilTinVolumeSurfaceProperties.CreateFromVolume(volumeSurface);
-        DA.SetData(3, new GH_CivilVolumeProperties(volumePropsWrapper));
+        DA.SetData(2, new GH_CivilVolumeProperties(volumePropsWrapper));
 
         // Get the base and comparison surfaces
         var volumeProps = volumeSurface.GetVolumeProperties();
@@ -111,10 +110,10 @@ public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
 
         // Base Surface
         if (baseSurface != null)
-            DA.SetData(4, new GH_CivilTinSurface(baseSurface));
+            DA.SetData(3, new GH_CivilTinSurface(baseSurface));
 
         // Comparison Surface
         if (comparisonSurface != null)
-            DA.SetData(5, new GH_CivilTinSurface(comparisonSurface));
+            DA.SetData(4, new GH_CivilTinSurface(comparisonSurface));
     }
 }

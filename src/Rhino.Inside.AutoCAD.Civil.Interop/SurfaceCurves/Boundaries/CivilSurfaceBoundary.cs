@@ -1,6 +1,6 @@
-using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using RhinoCurve = Rhino.Geometry.Curve;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -15,10 +15,10 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 public class CivilSurfaceBoundary : ICivilSurfaceBoundary
 {
     /// <inheritdoc />
-    public SurfaceBoundaryType BoundaryType { get; }
+    public CivilSurfaceBoundaryType BoundaryType { get; }
 
     /// <inheritdoc />
-    public Polyline Polyline { get; }
+    public RhinoCurve Curve { get; }
 
     /// <inheritdoc />
     public string Name { get; }
@@ -35,10 +35,10 @@ public class CivilSurfaceBoundary : ICivilSurfaceBoundary
     /// <param name="name">
     /// The name of the boundary definition.
     /// </param>
-    public CivilSurfaceBoundary(SurfaceBoundaryType boundaryType, Polyline polyline, string name)
+    public CivilSurfaceBoundary(CivilSurfaceBoundaryType boundaryType, RhinoCurve polyline, string name)
     {
         this.BoundaryType = boundaryType;
-        this.Polyline = polyline;
+        this.Curve = polyline;
         this.Name = name ?? string.Empty;
     }
 
@@ -48,8 +48,8 @@ public class CivilSurfaceBoundary : ICivilSurfaceBoundary
     /// <returns>A new instance with copied data.</returns>
     public CivilSurfaceBoundary Duplicate()
     {
-        var polylineCopy = new Polyline(this.Polyline);
-        return new CivilSurfaceBoundary(this.BoundaryType, polylineCopy, this.Name);
+
+        return new CivilSurfaceBoundary(this.BoundaryType, this.Curve.DuplicateCurve(), this.Name);
     }
 
     /// <inheritdoc />

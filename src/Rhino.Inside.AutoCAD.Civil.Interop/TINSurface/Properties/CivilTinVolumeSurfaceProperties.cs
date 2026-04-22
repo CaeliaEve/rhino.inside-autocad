@@ -1,5 +1,6 @@
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -30,6 +31,7 @@ public record CivilTinVolumeSurfaceProperties : ICivilTinVolumeSurfaceProperties
             AdjustedCutVolume = props.AdjustedCutVolume,
             AdjustedFillVolume = props.AdjustedFillVolume,
             AdjustedNetVolume = props.AdjustedCutVolume - props.AdjustedFillVolume,
+            Style = new NamedId(volumeSurface.StyleName, volumeSurface.StyleId),
         };
     }
 
@@ -57,6 +59,9 @@ public record CivilTinVolumeSurfaceProperties : ICivilTinVolumeSurfaceProperties
     /// <inheritdoc />
     public double AdjustedNetVolume { get; init; }
 
+    /// <inheritdoc />
+    public INamedId Style { get; init; } = NamedId.Empty;
+
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilTinVolumeSurfaceProperties"/>
     /// </summary>
@@ -80,6 +85,7 @@ public record CivilTinVolumeSurfaceProperties : ICivilTinVolumeSurfaceProperties
             AdjustedCutVolume = this.AdjustedCutVolume,
             AdjustedFillVolume = this.AdjustedFillVolume,
             AdjustedNetVolume = this.AdjustedNetVolume,
+            Style = this.Style.ShallowClone() as NamedId ?? NamedId.Empty,
         };
     }
 

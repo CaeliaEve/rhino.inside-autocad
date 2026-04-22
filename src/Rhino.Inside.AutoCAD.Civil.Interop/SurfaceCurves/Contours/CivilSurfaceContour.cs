@@ -15,7 +15,7 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 public class CivilSurfaceContour : ICivilSurfaceContour
 {
     /// <inheritdoc />
-    public ContourType ContourType { get; }
+    public CivilContourType CivilContourType { get; }
 
     /// <inheritdoc />
     public Curve Curve { get; }
@@ -26,20 +26,17 @@ public class CivilSurfaceContour : ICivilSurfaceContour
     /// <summary>
     /// Initializes a new instance of <see cref="CivilSurfaceContour"/>.
     /// </summary>
-    /// <param name="contourType">
+    /// <param name="civilContourType">
     /// The contour type (Major or Minor).
     /// </param>
     /// <param name="curve">
     /// The contour geometry as a Rhino curve.
     /// </param>
-    /// <param name="elevation">
-    /// The elevation of the contour line.
-    /// </param>
-    public CivilSurfaceContour(ContourType contourType, Curve curve, double elevation)
+    public CivilSurfaceContour(CivilContourType civilContourType, Curve curve)
     {
-        this.ContourType = contourType;
+        this.CivilContourType = civilContourType;
         this.Curve = curve;
-        this.Elevation = elevation;
+        this.Elevation = curve.PointAtStart.Z;
     }
 
     /// <summary>
@@ -49,12 +46,12 @@ public class CivilSurfaceContour : ICivilSurfaceContour
     public CivilSurfaceContour Duplicate()
     {
         var curveCopy = this.Curve.DuplicateCurve();
-        return new CivilSurfaceContour(this.ContourType, curveCopy, this.Elevation);
+        return new CivilSurfaceContour(this.CivilContourType, curveCopy);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"Surface Contour [{this.ContourType}] Elev: {this.Elevation:F3}";
+        return $"Surface Contour [{this.CivilContourType}] Elev: {this.Elevation:F3}";
     }
 }

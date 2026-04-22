@@ -29,7 +29,7 @@ public class Param_CivilTinSurface : Param_AutocadObjectBase<GH_CivilTinSurface,
     /// Initializes a new instance of the <see cref="Param_CivilTinSurface"/> class.
     /// </summary>
     public Param_CivilTinSurface()
-        : base("Civil3d Surface", "CVL-Srf",
+        : base("Civil3d TIN Surface", "CVL-Srf",
             "A TIN Surface in Civil3d", "Params", "Civil3d")
     { }
 

@@ -1,10 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Runtime;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -20,7 +17,7 @@ public class CivilProfileComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("D7E8F9A0-B1C2-3456-D567-890123456ABC");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilProfileComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilProfileComponent"/> class.
@@ -45,9 +42,6 @@ public class CivilProfileComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Id", "Id",
             "The Id of the Profile.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
-            "The Id of the Style of the Profile.", GH_ParamAccess.item);
-
         pManager.AddParameter(new Param_CivilProfileProperties(GH_ParamAccess.item), "Properties", "Props",
             "Profile properties (use Profile Properties component to extract values).", GH_ParamAccess.item);
 
@@ -64,65 +58,6 @@ public class CivilProfileComponent : RhinoInsideAutocad_ComponentBase
             "Label groups from the Profile.", GH_ParamAccess.list);
     }
 
-    /// <summary>
-    /// Extracts all label groups from a Civil 3D Profile.
-    /// </summary>
-    public List<CivilProfileLabelGroupWrapper> GetProfileLabelGroups(
-        Profile profile,
-        ObjectId profileId,
-        IAutocadTransactionManager transactionManager)
-    {
-        var labelGroups = new List<CivilProfileLabelGroupWrapper>();
-
-        try
-        {
-            // Get profile views that contain this profile through the parent alignment
-            var alignmentId = profile.AlignmentId;
-            if (alignmentId.IsNull || alignmentId.IsErased)
-                return labelGroups;
-
-            var alignment = transactionManager.Unwrap()
-                .GetObject(alignmentId, OpenMode.ForRead) as Alignment;
-
-            if (alignment == null)
-                return labelGroups;
-
-            // Get all profile view IDs for this alignment
-            var profileViewIds = alignment.GetProfileViewIds();
-
-            foreach (ObjectId profileViewId in profileViewIds)
-            {
-                if (profileViewId.IsNull || profileViewId.IsErased)
-                    continue;
-
-                // Get label group IDs for this profile in this profile view
-                var labelGroupClass = RXObject.GetClass(typeof(ProfileLabelGroup));
-                var labelGroupIds = ProfileLabelGroup.GetAvailableLabelGroupIds(
-                    labelGroupClass, profileViewId, profileId, true);
-
-                foreach (ObjectId labelGroupId in labelGroupIds)
-                {
-                    if (labelGroupId.IsNull || labelGroupId.IsErased)
-                        continue;
-
-                    var labelGroup = transactionManager.Unwrap()
-                        .GetObject(labelGroupId, OpenMode.ForRead) as ProfileLabelGroup;
-
-                    if (labelGroup == null)
-                        continue;
-
-                    labelGroups.Add(new CivilProfileLabelGroupWrapper(labelGroup));
-                }
-            }
-        }
-        catch
-        {
-            // Return empty list if label extraction fails
-        }
-
-        return labelGroups;
-    }
-
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -132,56 +67,60 @@ public class CivilProfileComponent : RhinoInsideAutocad_ComponentBase
 
         var profileId = profileGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(profileId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 
-        var profile = transactionManager.PerformTask(() =>
-            transactionManager.Unwrap().GetObject(profileId.Unwrap(), OpenMode.ForRead) as
-            Profile);
+        var result = transactionManager.PerformTask(() =>
+        {
+            var profile = transactionManager.Unwrap()
+                .GetObject(profileId.Unwrap(), OpenMode.ForRead) as Profile;
 
-        if (profile == null)
+            if (profile == null)
+            {
+                return ProfileGooResult.Failed;
+            }
+
+            var wrapper = new CivilProfileWrapper(profile);
+
+            var properties = wrapper.Properties;
+
+            var propertiesGoo = new GH_CivilProfileProperties(properties);
+
+            var entities = wrapper.GetProfileEntities(transactionManager);
+
+            var entitiesGoo = entities.Select(entity => new GH_CivilProfileEntity(entity)).ToList();
+
+            var curve = profile.ToRhinoCurve(transactionManager);
+
+            var alignmentGoo =
+                wrapper.TryGetParentAlignmentName(transactionManager, out var alignment)
+                    ? new GH_CivilAlignment(alignment.Unwrap())
+                    : null;
+
+            var labelGroups = wrapper.GetProfileLabelGroups(transactionManager);
+
+            var labelGroupsGoo = labelGroups.Select(lg => new GH_CivilProfileLabelGroup(lg)).ToList();
+
+            return new ProfileGooResult(propertiesGoo, entitiesGoo, curve, alignmentGoo, labelGroupsGoo);
+        });
+
+        if (result.IsSuccess == false)
         {
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read Profile");
             return;
         }
 
         DA.SetData(0, new GH_AutocadObjectId(profileId));
-
-        DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(profile.StyleId)));
-
-        // Get parent alignment name
-        var parentAlignmentName = transactionManager.PerformTask(() =>
-            profile.GetParentAlignmentName(transactionManager));
-
-        DA.SetData(2, new GH_CivilProfileProperties(CivilProfileProperties.CreateFromProfile(profile, parentAlignmentName)));
-
-        var profileData = transactionManager.PerformTask(() => new
-        {
-            Entities = profile.GetProfileEntities(transactionManager),
-            Curve = profile.ToRhinoCurve(transactionManager),
-            LabelGroups = this.GetProfileLabelGroups(profile, profileId.Unwrap(), transactionManager)
-        });
-
-        DA.SetDataList(3, profileData.Entities.Select(entity => new GH_CivilProfileEntity(entity)).ToList());
-        DA.SetData(4, profileData.Curve);
-
-        // Get parent alignment
-        var parentAlignment = transactionManager.PerformTask(() =>
-        {
-            var alignmentId = profile.AlignmentId;
-            if (alignmentId.IsNull || alignmentId.IsErased)
-                return null;
-
-            return transactionManager.Unwrap().GetObject(alignmentId, OpenMode.ForRead) as Alignment;
-        });
-
-        if (parentAlignment != null)
-        {
-            DA.SetData(5, new GH_CivilAlignment(parentAlignment));
-        }
-
-        DA.SetDataList(6, profileData.LabelGroups.Select(lg => new GH_CivilProfileLabelGroup(lg)).ToList());
+        DA.SetData(1, result.PropertiesGoo);
+        DA.SetDataList(2, result.EntitiesGoo);
+        DA.SetData(3, result.Curve);
+        DA.SetData(4, result.AlignmentGoo);
+        DA.SetDataList(5, result.LabelGroupsGoo);
     }
 }

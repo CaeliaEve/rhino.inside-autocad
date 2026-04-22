@@ -34,7 +34,7 @@ public class GH_CivilAssemblyProperties : GH_Goo<CivilAssemblyProperties>
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilAssemblyProperties(GH_CivilAssemblyProperties other) : base(other.Value?.ShallowClone())
+    public GH_CivilAssemblyProperties(GH_CivilAssemblyProperties other) : base(other.Value?.Duplicate())
     {
     }
 
@@ -47,14 +47,14 @@ public class GH_CivilAssemblyProperties : GH_Goo<CivilAssemblyProperties>
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value != null;
+    public override bool IsValid => this.Value != null;
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No assembly properties data";
             return string.Empty;
         }
@@ -77,20 +77,20 @@ public class GH_CivilAssemblyProperties : GH_Goo<CivilAssemblyProperties>
     {
         if (source is GH_CivilAssemblyProperties goo)
         {
-            Value = goo.Value?.ShallowClone();
+            this.Value = goo.Value?.Duplicate();
             return true;
         }
 
         if (source is CivilAssemblyProperties wrapper)
         {
-            Value = wrapper.ShallowClone();
+            this.Value = wrapper.Duplicate();
             return true;
         }
 
         if (source is ICivilAssemblyProperties props)
         {
-            Value = (props as CivilAssemblyProperties)?.ShallowClone();
-            return Value != null;
+            this.Value = (props as CivilAssemblyProperties)?.Duplicate();
+            return this.Value != null;
         }
 
         return false;
@@ -101,7 +101,7 @@ public class GH_CivilAssemblyProperties : GH_Goo<CivilAssemblyProperties>
     {
         if (typeof(Q).IsAssignableFrom(typeof(CivilAssemblyProperties)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -117,9 +117,9 @@ public class GH_CivilAssemblyProperties : GH_Goo<CivilAssemblyProperties>
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d Assembly Properties";
 
-        return Value.ToString();
+        return this.Value.ToString();
     }
 }

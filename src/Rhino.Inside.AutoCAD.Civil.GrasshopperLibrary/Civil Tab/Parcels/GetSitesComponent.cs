@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -20,7 +19,7 @@ public class GetSitesComponent : RhinoInsideAutocad_ComponentBase, IReferenceCom
     public override Guid ComponentGuid => new("D0E1F2A3-B4C5-6789-0123-012345678901");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.GetSitesComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetSitesComponent"/> class.
@@ -28,7 +27,7 @@ public class GetSitesComponent : RhinoInsideAutocad_ComponentBase, IReferenceCom
     public GetSitesComponent()
         : base("Get Civil3d Sites", "CVL-Sites",
             "Returns the list of all Civil 3D Sites in the document",
-            "Civil3d", "Parcels")
+            "Civil3d", "Site/Parcels")
     {
     }
 
@@ -53,21 +52,15 @@ public class GetSitesComponent : RhinoInsideAutocad_ComponentBase, IReferenceCom
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
+        var document = this.GetDocumentOrDefault(autocadDocument);
+
+        if (document is null)
         {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+            return;
         }
 
-        if (autocadDocument is null)
-            return;
-
-        var transactionManager = autocadDocument.CreateTransactionManager();
+        var transactionManager = document.CreateTransactionManager();
 
         var sites = transactionManager.PerformTask(() =>
         {
@@ -75,7 +68,7 @@ public class GetSitesComponent : RhinoInsideAutocad_ComponentBase, IReferenceCom
 
             try
             {
-                var database = autocadDocument.AutocadDatabase.Unwrap();
+                var database = document.AutocadDatabase.Unwrap();
                 var civilDoc = CivilDocument.GetCivilDocument(database);
 
                 if (civilDoc == null)

@@ -14,7 +14,7 @@ public class Param_CivilConnectedAlignmentInfo : GH_Param<GH_CivilConnectedAlign
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilConnectedAlignmentInfo;
 
     /// <summary>
     /// Initializes a new instance with the specified instance description.

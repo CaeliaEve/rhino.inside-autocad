@@ -1,6 +1,5 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilParcel = Autodesk.Civil.DatabaseServices.Parcel;
 using RhinoCurve = Rhino.Geometry.Curve;
@@ -10,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D Parcels.
 /// </summary>
-public class GH_CivilParcel : GH_AutocadGeometricGoo<CivilParcel, RhinoGeometryAdapter<RhinoCurve>>
+public class GH_CivilParcel : GH_CivilOneWayGoo<CivilParcel, RhinoGeometryAdapter<RhinoCurve>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilParcel"/> class with no value.
@@ -37,26 +36,19 @@ public class GH_CivilParcel : GH_AutocadGeometricGoo<CivilParcel, RhinoGeometryA
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilParcel, RhinoGeometryAdapter<RhinoCurve>> CreateClonedInstance(CivilParcel entity)
+    protected override GH_CivilOneWayGoo<CivilParcel, RhinoGeometryAdapter<RhinoCurve>> CreateClonedInstance(CivilParcel entity)
     {
         return new GH_CivilParcel(entity.Clone() as CivilParcel, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilParcel, RhinoGeometryAdapter<RhinoCurve>> CreateInstance(CivilParcel entity)
+    protected override GH_CivilOneWayGoo<CivilParcel, RhinoGeometryAdapter<RhinoCurve>> CreateInstance(CivilParcel entity)
     {
         return new GH_CivilParcel(entity);
     }
 
     /// <inheritdoc />
-    protected override CivilParcel? Convert(RhinoGeometryAdapter<RhinoCurve> rhinoType)
-    {
-        // Converting from Rhino Curve back to Civil 3D Parcel is not supported
-        return null;
-    }
-
-    /// <inheritdoc />
-    protected override RhinoGeometryAdapter<RhinoCurve>? Convert(CivilParcel wrapperType)
+    protected override RhinoGeometryAdapter<RhinoCurve>? ConvertToRhino(CivilParcel wrapperType)
     {
         var curve = wrapperType.BaseCurve.ToRhinoCurve();
         return curve != null ? new RhinoGeometryAdapter<RhinoCurve>(curve) : null;

@@ -29,11 +29,35 @@ public static class CivilInteropConverter
     }
 
     /// <summary>
+    /// Unwraps an <see cref="ICivilAlignmentLabelGroup"/> to its underlying Civil 3D <see cref="AlignmentLabelGroup"/>.
+    /// </summary>
+    /// <param name="labelGroup">The label group interface to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="AlignmentLabelGroup"/> instance.</returns>
+    public static AlignmentLabelGroup Unwrap(this ICivilAlignmentLabelGroup labelGroup)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)labelGroup;
+
+        return (AlignmentLabelGroup)wrapper.AutocadObject;
+    }
+
+    /// <summary>
     /// Unwraps an <see cref="ICivilProfileLabelGroup"/> to its underlying Civil 3D <see cref="ProfileLabelGroup"/>.
     /// </summary>
     /// <param name="labelGroup">The profile label group wrapper to unwrap.</param>
     /// <returns>The native Civil 3D <see cref="ProfileLabelGroup"/> instance.</returns>
     public static ProfileLabelGroup Unwrap(this CivilProfileLabelGroupWrapper labelGroup)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)labelGroup;
+
+        return (ProfileLabelGroup)wrapper.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilProfileLabelGroup"/> to its underlying Civil 3D <see cref="ProfileLabelGroup"/>.
+    /// </summary>
+    /// <param name="labelGroup">The profile label group interface to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="ProfileLabelGroup"/> instance.</returns>
+    public static ProfileLabelGroup Unwrap(this ICivilProfileLabelGroup labelGroup)
     {
         var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)labelGroup;
 
@@ -118,5 +142,41 @@ public static class CivilInteropConverter
         var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)alignment;
 
         return (Alignment)wrapper.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilAlignment"/> to its underlying Civil 3D <see cref="Alignment"/>.
+    /// </summary>
+    /// <param name="alignment">The alignment interface to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="Alignment"/> instance.</returns>
+    public static Alignment Unwrap(this ICivilAlignment alignment)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)alignment;
+
+        return (Alignment)wrapper.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps a <see cref="CivilProfileWrapper"/> to its underlying Civil 3D <see cref="Profile"/>.
+    /// </summary>
+    /// <param name="profile">The profile wrapper to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="Profile"/> instance.</returns>
+    public static Profile Unwrap(this CivilProfileWrapper profile)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)profile;
+
+        return (Profile)wrapper.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilProfile"/> to its underlying Civil 3D <see cref="Profile"/>.
+    /// </summary>
+    /// <param name="profile">The profile interface to unwrap.</param>
+    /// <returns>The native Civil 3D <see cref="Profile"/> instance.</returns>
+    public static Profile Unwrap(this ICivilProfile profile)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)profile;
+
+        return (Profile)wrapper.AutocadObject;
     }
 }

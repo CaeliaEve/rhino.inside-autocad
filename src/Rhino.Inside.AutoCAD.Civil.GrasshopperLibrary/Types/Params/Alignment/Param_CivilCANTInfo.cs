@@ -14,7 +14,7 @@ public class Param_CivilCANTInfo : GH_Param<GH_CivilCANTInfo>
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilCANTInfo;
 
     /// <summary>
     /// Initializes a new instance with the specified instance description.

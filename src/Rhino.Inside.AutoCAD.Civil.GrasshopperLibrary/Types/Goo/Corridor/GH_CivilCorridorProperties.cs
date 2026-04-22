@@ -9,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// </summary>
 /// <remarks>
 /// This Goo wraps a <see cref="CivilCorridorProperties"/> containing
-/// properties from a Corridor.
+/// properties from a Corridor. The wrapped value is immutable.
 /// </remarks>
 public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorProperties>
 {
@@ -34,7 +34,7 @@ public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorProperties>
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilCorridorProperties(GH_CivilCorridorProperties other) : base(other.Value?.Duplicate())
+    public GH_CivilCorridorProperties(GH_CivilCorridorProperties other) : base(other.Value)
     {
     }
 
@@ -77,19 +77,19 @@ public class GH_CivilCorridorProperties : GH_Goo<CivilCorridorProperties>
     {
         if (source is GH_CivilCorridorProperties goo)
         {
-            Value = goo.Value?.Duplicate();
+            Value = goo.Value;
             return true;
         }
 
         if (source is CivilCorridorProperties wrapper)
         {
-            Value = wrapper.Duplicate();
+            Value = wrapper;
             return true;
         }
 
         if (source is ICivilCorridorProperties props)
         {
-            Value = (props as CivilCorridorProperties)?.Duplicate();
+            Value = props as CivilCorridorProperties;
             return Value != null;
         }
 

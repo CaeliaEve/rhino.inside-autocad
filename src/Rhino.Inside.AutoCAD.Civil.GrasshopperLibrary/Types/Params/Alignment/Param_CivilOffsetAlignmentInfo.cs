@@ -14,7 +14,7 @@ public class Param_CivilOffsetAlignmentInfo : GH_Param<GH_CivilOffsetAlignmentIn
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilOffsetAlignmentInfo;
 
     /// <summary>
     /// Initializes a new instance with the specified instance description.

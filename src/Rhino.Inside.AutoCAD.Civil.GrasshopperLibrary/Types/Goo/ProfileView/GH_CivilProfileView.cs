@@ -1,16 +1,14 @@
 using Grasshopper.Kernel;
-using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilProfileView = Autodesk.Civil.DatabaseServices.ProfileView;
-using RhinoPolylineCurve = Rhino.Geometry.PolylineCurve;
 
-namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
+namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D ProfileViews.
 /// </summary>
-public class GH_CivilProfileView : GH_AutocadGeometricGoo<CivilProfileView, RhinoGeometryAdapter<RhinoPolylineCurve>>
+public class GH_CivilProfileView : GH_CivilOneWayGoo<CivilProfileView, RhinoGraphAdapter>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilProfileView"/> class with no value.
@@ -37,48 +35,44 @@ public class GH_CivilProfileView : GH_AutocadGeometricGoo<CivilProfileView, Rhin
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilProfileView, RhinoGeometryAdapter<RhinoPolylineCurve>> CreateClonedInstance(CivilProfileView entity)
+    protected override GH_CivilOneWayGoo<CivilProfileView, RhinoGraphAdapter> CreateClonedInstance(CivilProfileView entity)
     {
         return new GH_CivilProfileView(entity.Clone() as CivilProfileView, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilProfileView, RhinoGeometryAdapter<RhinoPolylineCurve>> CreateInstance(CivilProfileView entity)
+    protected override GH_CivilOneWayGoo<CivilProfileView, RhinoGraphAdapter> CreateInstance(CivilProfileView entity)
     {
         return new GH_CivilProfileView(entity);
     }
 
     /// <inheritdoc />
-    protected override CivilProfileView? Convert(RhinoGeometryAdapter<RhinoPolylineCurve> rhinoType)
+    protected override RhinoGraphAdapter? ConvertToRhino(CivilProfileView wrapperType)
     {
-        // Converting from Rhino PolylineCurve back to Civil 3D ProfileView is not supported
-        return null;
-    }
+        var profileViewGeometry = wrapperType.ToRhinoCurves();
 
-    /// <inheritdoc />
-    protected override RhinoGeometryAdapter<RhinoPolylineCurve>? Convert(CivilProfileView wrapperType)
-    {
-        var database = wrapperType.Database;
-        if (database == null)
-            return null;
-
-        // Get the display bounds as a rectangle and convert to polyline curve
-        var bounds = wrapperType.GetDisplayBounds();
-
-        // Convert Rectangle3d to a closed PolylineCurve
-        var polyline = bounds.ToPolyline();
-        var curve = new RhinoPolylineCurve(polyline);
-
-        return new RhinoGeometryAdapter<RhinoPolylineCurve>(curve);
+        return new RhinoGraphAdapter(profileViewGeometry.Curves, profileViewGeometry.TextEntities);
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        var curve = this.RhinoGeometry?.Geometry;
-        if (curve != null)
+        var curves = this.RhinoGeometry?.Curves;
+        if (curves != null)
         {
-            args.Pipeline.DrawCurve(curve, args.Color, args.Thickness);
+            foreach (var curve in curves)
+            {
+                args.Pipeline.DrawCurve(curve, args.Color, args.Thickness);
+            }
+        }
+
+        var texts = this.RhinoGeometry?.TextEntities;
+        if (texts != null)
+        {
+            foreach (var text in texts)
+            {
+                args.Pipeline.DrawText(text, args.Color, text.DimensionScale);
+            }
         }
     }
 
@@ -91,10 +85,10 @@ public class GH_CivilProfileView : GH_AutocadGeometricGoo<CivilProfileView, Rhin
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var curve = this.RhinoGeometry?.Geometry;
+        var curve = this.RhinoGeometry?.Curves;
 
         if (curve == null) return;
 
-        previewData.Wires.Add(curve);
+        previewData.Wires.AddRange(curve);
     }
 }

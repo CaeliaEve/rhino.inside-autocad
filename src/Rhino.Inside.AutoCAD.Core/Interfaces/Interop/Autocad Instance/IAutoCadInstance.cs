@@ -53,4 +53,11 @@ public interface IAutoCadInstance
     /// Ensures that the AutoCAD instance is properly shutdown and resources are released.
     /// </summary>
     void Shutdown();
+
+    /// <summary>
+    /// Finds a document by its database's FingerprintGuid.
+    /// </summary>
+    /// <param name="fingerprintGuid">The FingerprintGuid of the database to find.</param>
+    /// <returns>The matching document, or null if not found.</returns>
+    IAutocadDocument? FindDocumentByFingerprintGuid(string fingerprintGuid);
 }

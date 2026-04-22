@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilProfile = Autodesk.Civil.DatabaseServices.Profile;
@@ -17,7 +18,7 @@ public class Param_CivilProfile : Param_AutocadObjectBase<GH_CivilProfile, Civil
     public override Guid ComponentGuid => new Guid("D1E2F3A4-B5C6-7890-DEF1-234567890ABC");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.Param_CivilProfile;
 
     /// <inheritdoc />
     protected override string SingularPromptMessage => "Select a Civil3d Profile";

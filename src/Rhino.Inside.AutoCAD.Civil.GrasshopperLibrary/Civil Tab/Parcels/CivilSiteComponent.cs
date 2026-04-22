@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -18,7 +17,7 @@ public class CivilSiteComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("C9D0E1F2-A3B4-5678-0123-901234567890");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilSiteComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilSiteComponent"/> class.
@@ -26,7 +25,7 @@ public class CivilSiteComponent : RhinoInsideAutocad_ComponentBase
     public CivilSiteComponent()
         : base("Civil3d Site", "CVL-Site",
             "Extracts information from a Civil 3D Site",
-            "Civil3d", "Parcels")
+            "Civil3d", "Site/Parcels")
     {
     }
 
@@ -78,8 +77,12 @@ public class CivilSiteComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(4, site.AlignmentCount);
 
         // Get parcels from the site
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(site.Id);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 

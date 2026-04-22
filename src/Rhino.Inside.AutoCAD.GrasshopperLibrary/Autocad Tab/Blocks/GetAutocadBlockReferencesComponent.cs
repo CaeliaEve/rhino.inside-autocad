@@ -67,25 +67,19 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
 
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         if (!DA.GetData(1, ref blockTableRecordId)
             || blockTableRecordId is null) return;
         DA.GetData(2, ref directOnly);
 
-        var blockTableRecordsRegister = autocadDocument.BlockTableRecordRegister;
+        var blockTableRecordsRegister = document.BlockTableRecordRegister;
 
         if (blockTableRecordsRegister.TryGetById(blockTableRecordId, out var blockTableRecord) == false)
         {
@@ -101,7 +95,7 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
         var normalReferences = new List<GH_AutocadBlockReference>();
         var dynamicReferences = new List<GH_AutocadBlockReference>();
 
-        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
+        var transactionManagerWrapper = document.CreateTransactionManager();
 
         _ = transactionManagerWrapper.PerformTask(() =>
         {

@@ -22,7 +22,7 @@ public class GH_AutocadText : GH_AutocadGeometricGoo<AutocadText, RhinoGeometryA
         {
             case AutocadDBText text:
                 {
-                    var mtext = ConvertToMText(text);
+                    var mtext = text.ConvertToMText();
 
                     return new GH_AutocadText(mtext);
                 }
@@ -31,34 +31,6 @@ public class GH_AutocadText : GH_AutocadGeometricGoo<AutocadText, RhinoGeometryA
             default:
                 throw new ArgumentException($"Unsupported text entity type: {textEntity.GetType().FullName}");
         }
-    }
-
-    /// <summary>
-    /// Converts a DBText to an MText.
-    /// </summary>
-    private static AutocadText ConvertToMText(AutocadDBText dbText)
-    {
-        var mText = new AutocadText();
-
-        mText.Contents = dbText.TextString;
-
-        mText.Location = dbText.Position;
-
-        mText.TextHeight = dbText.Height;
-
-        mText.Rotation = dbText.Rotation;
-
-        mText.TextStyleId = dbText.TextStyleId;
-
-        mText.Layer = dbText.Layer;
-
-        mText.Color = dbText.Color;
-
-        mText.Attachment = dbText.Justify;
-
-        mText.Width = 0;
-
-        return mText;
     }
 
     /// <summary>

@@ -63,9 +63,389 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap AlignmentTypeValueList {
+            get {
+                object obj = ResourceManager.GetObject("AlignmentTypeValueList", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignment {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignment", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentEntity {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentEntity", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentEntityComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentEntityComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentLabelComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentLabelComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentLabelGroupComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentLabelGroupComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentProperties {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentPropertiesComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentPropertiesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAlignmentSubEntityComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAlignmentSubEntityComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAssemblyComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAssemblyComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilAssemblyPropertiesComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilAssemblyPropertiesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilBoundedVolume {
+            get {
+                object obj = ResourceManager.GetObject("CivilBoundedVolume", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilBoundedVolumeComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilBoundedVolumeComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilCantInfoComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilCantInfoComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilConnectedAlignmentInfoComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilConnectedAlignmentInfoComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilCorridorBaselineComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilCorridorBaselineComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilCorridorBaselineRegionComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilCorridorBaselineRegionComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilCorridorComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilCorridorComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilCorridorFeatureLineComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilCorridorFeatureLineComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilCorridorPropertiesComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilCorridorPropertiesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilCorridorSurfaceComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilCorridorSurfaceComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap CivilDefault {
             get {
                 object obj = ResourceManager.GetObject("CivilDefault", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilDesignSpeedsInfoComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilDesignSpeedsInfoComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilOffsetAlignmentInfoComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilOffsetAlignmentInfoComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilParcelComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilParcelComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilParcelPropertiesComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilParcelPropertiesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilParcelSegmentComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilParcelSegmentComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilProfileComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilProfileComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilProfileEntityComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilProfileEntityComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilProfileLabelGroupComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilProfileLabelGroupComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilProfilePropertiesComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilProfilePropertiesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilProfileViewComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilProfileViewComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilProfileViewPropertiesComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilProfileViewPropertiesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilRailAlignmentInfoComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilRailAlignmentInfoComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilReferenceStationComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilReferenceStationComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilSiteComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilSiteComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilStationPointComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilStationPointComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilSubassemblyComponent {
+            get {
+                object obj = ResourceManager.GetObject("CivilSubassemblyComponent", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -103,6 +483,26 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap CivilVolumeSurface {
+            get {
+                object obj = ResourceManager.GetObject("CivilVolumeSurface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CreateCivilAlignmentComponent {
+            get {
+                object obj = ResourceManager.GetObject("CreateCivilAlignmentComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap CreateCivilTINSurface {
             get {
                 object obj = ResourceManager.GetObject("CreateCivilTINSurface", resourceCulture);
@@ -113,9 +513,469 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap CreateCivilTINVolumeSurface {
+            get {
+                object obj = ResourceManager.GetObject("CreateCivilTINVolumeSurface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CreateCivilTINVolumeSurfaceComponent {
+            get {
+                object obj = ResourceManager.GetObject("CreateCivilTINVolumeSurfaceComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Default_24x24 {
             get {
                 object obj = ResourceManager.GetObject("Default_24x24", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetAlignmentsComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetAlignmentsComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetAssembliesComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetAssembliesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetCorridorsComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetCorridorsComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetParcelsFromSiteComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetParcelsFromSiteComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetProfilesFromAlignmentComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetProfilesFromAlignmentComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetProfileViewsFromAlignmentComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetProfileViewsFromAlignmentComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetSitesComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetSitesComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignment {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignment", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentEntity {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentEntity", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentLabelGroup {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentLabelGroup", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentLabelSetStyle {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentLabelSetStyle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentStyle {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentStyle", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAlignmentSubEntity {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAlignmentSubEntity", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAssembly {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAssembly", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilAssemblyProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilAssemblyProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilCANTInfo {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilCANTInfo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilConnectedAlignmentInfo {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilConnectedAlignmentInfo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilCorridor {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilCorridor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilCorridorBaseline {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilCorridorBaseline", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilCorridorBaselineRegion {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilCorridorBaselineRegion", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilCorridorFeatureLine {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilCorridorFeatureLine", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilCorridorProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilCorridorProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilCorridorSurface {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilCorridorSurface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilDesignSpeeds {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilDesignSpeeds", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilFeatureLabel {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilFeatureLabel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilOffsetAlignmentInfo {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilOffsetAlignmentInfo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilParcel {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilParcel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilParcelProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilParcelProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilParcelSegment {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilParcelSegment", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfile {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfile", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileCircularArc {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileCircularArc", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileEntity {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileEntity", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileLabelGroup {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileLabelGroup", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileParabola {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileParabola", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileTangent {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileTangent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileView {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileView", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileViewBand {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileViewBand", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilProfileViewProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilProfileViewProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilRailAlignmentInfo {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilRailAlignmentInfo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilReferenceStation {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilReferenceStation", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilSite {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilSite", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilSubassemblyProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilSubassemblyProperties", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -163,9 +1023,39 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilTinProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilTinProperties", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Param_CivilTinSurface {
             get {
                 object obj = ResourceManager.GetObject("Param_CivilTinSurface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilTinVolumeSurface {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilTinVolumeSurface", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_CivilVolumeProperties {
+            get {
+                object obj = ResourceManager.GetObject("Param_CivilVolumeProperties", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -189,83 +1079,43 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CivilVolumeSurface {
+        internal static System.Drawing.Bitmap TINSurfaceComponent {
             get {
-                object obj = ResourceManager.GetObject("CivilVolumeSurface", resourceCulture);
+                object obj = ResourceManager.GetObject("TINSurfaceComponent", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CreateCivilTINVolumeSurface {
+        internal static System.Drawing.Bitmap TINSurfacePropertiesComponent {
             get {
-                object obj = ResourceManager.GetObject("CreateCivilTINVolumeSurface", resourceCulture);
+                object obj = ResourceManager.GetObject("TINSurfacePropertiesComponent", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CivilBoundedVolume {
+        internal static System.Drawing.Bitmap TINVolumePropertiesComponent {
             get {
-                object obj = ResourceManager.GetObject("CivilBoundedVolume", resourceCulture);
+                object obj = ResourceManager.GetObject("TINVolumePropertiesComponent", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Param_CivilTinVolumeSurface {
+        internal static System.Drawing.Bitmap TINVolumeSurfaceComponent {
             get {
-                object obj = ResourceManager.GetObject("Param_CivilTinVolumeSurface", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Param_CivilAlignmentLine {
-            get {
-                object obj = ResourceManager.GetObject("Param_CivilAlignmentLine", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Param_CivilAlignmentArc {
-            get {
-                object obj = ResourceManager.GetObject("Param_CivilAlignmentArc", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Param_CivilAlignmentSpiral {
-            get {
-                object obj = ResourceManager.GetObject("Param_CivilAlignmentSpiral", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Param_CivilAlignmentComposite {
-            get {
-                object obj = ResourceManager.GetObject("Param_CivilAlignmentComposite", resourceCulture);
+                object obj = ResourceManager.GetObject("TINVolumeSurfaceComponent", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -2,7 +2,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop.Constants;
-using Rhino.Inside.AutoCAD.Civil.Interop.TIN_Naming;
+using Rhino.Inside.AutoCAD.Civil.Interop.Naming;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using RhinoMesh = Rhino.Geometry.Mesh;
@@ -78,20 +78,13 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
 
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?
-                .AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         if (!DA.GetData(1, ref mesh) || mesh is null)
         {
@@ -111,7 +104,7 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
 
         _errorMessage = string.Empty;
 
-        var transactionManager = autocadDocument.CreateTransactionManager();
+        var transactionManager = document.CreateTransactionManager();
 
         var result = transactionManager.PerformTask(() =>
         {

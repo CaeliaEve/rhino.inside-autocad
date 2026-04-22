@@ -1,6 +1,7 @@
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Geometry;
 using CadPoint2d = Autodesk.AutoCAD.Geometry.Point2d;
+using CadVector3d = Autodesk.AutoCAD.Geometry.Vector3d;
 using RhinoArc = Rhino.Geometry.Arc;
 using RhinoArcCurve = Rhino.Geometry.ArcCurve;
 using RhinoCurve = Rhino.Geometry.Curve;
@@ -104,32 +105,14 @@ public static class CivilAlignmentExtensions
     {
         var startPoint = arc.StartPoint.ToRhinoPoint3d();
         var endPoint = arc.EndPoint.ToRhinoPoint3d();
-        var centerPoint = arc.CenterPoint.ToRhinoPoint3d();
-        var radius = UnitConverter.ToRhinoLength(arc.Radius);
 
-        var circle = new Rhino.Geometry.Circle(centerPoint, radius);
+        var cadVector = new CadVector3d(Math.Sin(arc.StartDirection),
+            Math.Cos(arc.StartDirection),
+            0.0);
 
-        if (!circle.IsValid)
-        {
-            throw new InvalidOperationException(
-                "Failed to create a valid circle from the AlignmentArc points.");
-        }
+        var rhinoVector = cadVector.ToRhinoVector3d();
 
-        _ = circle.ClosestParameter(startPoint, out var start);
-        _ = circle.ClosestParameter(endPoint, out var end);
-
-        var interval = new Interval(start, end);
-
-        var rhinoArc = new RhinoArc(circle, interval);
-
-        if (!rhinoArc.IsValid)
-        {
-            throw new InvalidOperationException(
-                "Failed to create a valid Rhino arc from the AlignmentArc.");
-        }
-
-        return new RhinoArcCurve(rhinoArc);
-
+        return new RhinoArcCurve(new RhinoArc(startPoint, rhinoVector, endPoint));
     }
 
     /// <summary>

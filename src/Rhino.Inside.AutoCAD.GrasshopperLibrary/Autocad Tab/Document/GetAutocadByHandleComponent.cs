@@ -61,24 +61,18 @@ public class GetByAutocadHandleComponent : RhinoInsideAutocad_ComponentBase, IRe
 
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         if (!DA.GetData(1, ref handle)
             || handle is null) return;
 
-        var dbObject = autocadDocument.GetObjectByHandle(handle.Value);
+        var dbObject = document.GetObjectByHandle(handle.Value);
 
         var gooObject = _gooConverter.CreateGoo(dbObject);
 

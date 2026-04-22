@@ -12,7 +12,7 @@ public class FilterValueList : GH_ValueList
     public override Guid ComponentGuid => new Guid("70F9E2D3-3EA2-4DBB-87D3-3F8D5AC2DF19");
 
     /// <inheritdoc />
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_Filter;
@@ -22,15 +22,22 @@ public class FilterValueList : GH_ValueList
     /// </summary>
     public FilterValueList()
     {
-        this.Name = "Civil3d Geometry Filter Type";
-        this.NickName = "CVL-Geometry Filter";
+        this.Name = "Civil3d Filter Type";
+        this.NickName = "CVL-Filter";
         this.Description = "Select an Civil 3d element filter type";
         this.Category = "AutoCAD";
         this.SubCategory = "Filter";
 
         this.ListItems.Clear();
 
-        this.ListItems.Add(new GH_ValueListItem("TIN Surface", "\"tinSurface\""));
+        this.ListItems.Add(new GH_ValueListItem("Alignment", "\"alignment\""));
+        this.ListItems.Add(new GH_ValueListItem("Assembly", "\"assembly\""));
+        this.ListItems.Add(new GH_ValueListItem("Corridor", "\"corridor\""));
+        this.ListItems.Add(new GH_ValueListItem("Parcel", "\"parcel\""));
+        this.ListItems.Add(new GH_ValueListItem("Profile", "\"profile\""));
+        this.ListItems.Add(new GH_ValueListItem("Profile View", "\"profileview\""));
+        this.ListItems.Add(new GH_ValueListItem("TIN Surface", "\"tinsurface\""));
+        this.ListItems.Add(new GH_ValueListItem("TIN Volume Surface", "\"tinvolumesurface\""));
 
         this.SelectItem(0);
     }

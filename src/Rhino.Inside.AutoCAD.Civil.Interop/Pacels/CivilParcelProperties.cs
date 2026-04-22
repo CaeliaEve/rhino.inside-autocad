@@ -1,6 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 using CadPolyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
@@ -35,6 +36,7 @@ public record CivilParcelProperties : ICivilParcelProperties
             IsClosed = GetIsClosedFromBaseCurve(baseCurve),
             SegmentCount = CountSegmentsFromBaseCurve(baseCurve),
             SiteName = GetSiteNameFromParcel(parcel),
+            Style = new NamedId(parcel.StyleName, parcel.StyleId),
         };
     }
 
@@ -68,6 +70,9 @@ public record CivilParcelProperties : ICivilParcelProperties
     /// <inheritdoc />
     public bool IsClosed { get; init; }
 
+    /// <inheritdoc />
+    public INamedId Style { get; init; } = NamedId.Empty;
+
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilParcelProperties"/>
     /// </summary>
@@ -93,6 +98,7 @@ public record CivilParcelProperties : ICivilParcelProperties
             SiteName = this.SiteName,
             SegmentCount = this.SegmentCount,
             IsClosed = this.IsClosed,
+            Style = this.Style.ShallowClone() as NamedId ?? NamedId.Empty,
         };
     }
 

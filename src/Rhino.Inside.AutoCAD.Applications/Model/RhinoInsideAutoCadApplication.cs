@@ -97,6 +97,8 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
     {
         this.RhinoInsideManager?.Shutdown();
 
+        this.SupportDialogManager?.Dispose();
+
         this.Bootstrapper?.AssemblyResolver.Terminate();
 
         LoggerService.Instance?.Shutdown();

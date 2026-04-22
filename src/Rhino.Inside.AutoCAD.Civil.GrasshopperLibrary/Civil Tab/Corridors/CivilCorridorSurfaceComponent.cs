@@ -13,7 +13,10 @@ public class CivilCorridorSurfaceComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("A3B4C5D6-E7F8-9012-3456-789012345EF0");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilCorridorSurfaceComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilCorridorSurfaceComponent"/> class.

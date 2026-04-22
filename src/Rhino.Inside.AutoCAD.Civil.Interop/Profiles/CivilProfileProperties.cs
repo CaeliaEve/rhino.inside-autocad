@@ -1,6 +1,7 @@
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -13,27 +14,7 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </remarks>
 public record CivilProfileProperties : ICivilProfileProperties
 {
-    /// <summary>
-    /// Constructs a new instance of <see cref="CivilProfileProperties"/> by extracting
-    /// data from a given <see cref="Profile"/>.
-    /// </summary>
-    /// <param name="profile">The profile to extract properties from.</param>
-    /// <param name="parentAlignmentName">The name of the parent alignment.</param>
-    public static CivilProfileProperties CreateFromProfile(Profile profile, string parentAlignmentName)
-    {
-        return new CivilProfileProperties()
-        {
-            Name = profile.Name,
-            Description = profile.Description ?? string.Empty,
-            StartStation = profile.StartingStation,
-            EndStation = profile.EndingStation,
-            MinElevation = profile.ElevationMin,
-            MaxElevation = profile.ElevationMax,
-            ProfileType = (CivilProfileType)profile.ProfileType,
-            EntityCount = profile.Entities.Count,
-            ParentAlignmentName = parentAlignmentName,
-        };
-    }
+    private readonly Profile _profile;
 
     /// <inheritdoc />
     public string Name { get; init; } = string.Empty;
@@ -42,10 +23,10 @@ public record CivilProfileProperties : ICivilProfileProperties
     public string Description { get; init; } = string.Empty;
 
     /// <inheritdoc />
-    public double StartStation { get; init; }
+    public ICivilStationPoint Start { get; }
 
     /// <inheritdoc />
-    public double EndStation { get; init; }
+    public ICivilStationPoint End { get; }
 
     /// <inheritdoc />
     public double MinElevation { get; init; }
@@ -57,16 +38,30 @@ public record CivilProfileProperties : ICivilProfileProperties
     public CivilProfileType ProfileType { get; init; }
 
     /// <inheritdoc />
-    public int EntityCount { get; init; }
+    public IObjectId ParentAlignmentId { get; }
 
     /// <inheritdoc />
-    public string ParentAlignmentName { get; init; } = string.Empty;
+    public INamedId Style { get; init; } = NamedId.Empty;
 
     /// <summary>
-    /// Initializes a new private empty instance of <see cref="CivilProfileProperties"/>
+    /// Initializes a instance of <see cref="CivilProfileProperties"/>
     /// </summary>
-    private CivilProfileProperties()
+    public CivilProfileProperties(Profile profile)
     {
+        _profile = profile;
+        var startElevation = profile.ElevationAt(profile.StartingStation);
+        var endElevation = profile.ElevationAt(profile.EndingStation);
+
+        this.Name = profile.Name;
+        this.Description = profile.Description ?? string.Empty;
+        this.Start = new CivilStationPoint(profile.StartingStation, startElevation);
+        this.End = new CivilStationPoint(profile.EndingStation, endElevation);
+        this.MinElevation = profile.ElevationMin;
+        this.MaxElevation = profile.ElevationMax;
+        this.ProfileType = profile.ProfileType.ToRhinoInsideProfileType();
+        this.Style = new NamedId(profile.StyleName, profile.StyleId);
+        this.ParentAlignmentId = new AutocadObjectIdWrapper(profile.AlignmentId);
+
     }
 
     /// <summary>
@@ -75,23 +70,12 @@ public record CivilProfileProperties : ICivilProfileProperties
     /// <returns>A new instance with copied data.</returns>
     public CivilProfileProperties Duplicate()
     {
-        return new CivilProfileProperties()
-        {
-            Name = this.Name,
-            Description = this.Description,
-            StartStation = this.StartStation,
-            EndStation = this.EndStation,
-            MinElevation = this.MinElevation,
-            MaxElevation = this.MaxElevation,
-            ProfileType = this.ProfileType,
-            EntityCount = this.EntityCount,
-            ParentAlignmentName = this.ParentAlignmentName,
-        };
+        return new CivilProfileProperties(_profile);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"Profile Properties: {this.Name} (Sta: {this.StartStation:F2} - {this.EndStation:F2}, Elev: {this.MinElevation:F2} - {this.MaxElevation:F2})";
+        return $"Profile Properties: {this.Name} (Start:[{this.Start}] - End:[{this.End}])";
     }
 }

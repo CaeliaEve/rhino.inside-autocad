@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilDocument = Autodesk.Civil.ApplicationServices.CivilDocument;
@@ -18,13 +17,13 @@ public class GetCorridorsComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("C5D6E7F8-A9B0-1234-5678-901234567012");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.GetCorridorsComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetCorridorsComponent"/> class.
     /// </summary>
     public GetCorridorsComponent()
-        : base("Get Corridors", "CVL-GetCorrs",
+        : base("Get Civil3d Corridors", "CVL-GetCorrs",
             "Gets all Corridors from the current Civil 3D document",
             "Civil3d", "Corridors")
     {
@@ -33,7 +32,9 @@ public class GetCorridorsComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
-        // No input parameters - gets corridors from active document
+        pManager.AddParameter(new Param_AutocadDocument(GH_ParamAccess.item), "Document",
+    "Doc", "An AutoCAD Document. If not provided, the active document will be used.", GH_ParamAccess.item);
+        pManager[0].Optional = true;
     }
 
     /// <inheritdoc />
@@ -46,8 +47,17 @@ public class GetCorridorsComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        AutocadDocument? autocadDocument = null;
+
+        DA.GetData(0, ref autocadDocument);
+
+        var document = this.GetDocumentOrDefault(autocadDocument);
+
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 

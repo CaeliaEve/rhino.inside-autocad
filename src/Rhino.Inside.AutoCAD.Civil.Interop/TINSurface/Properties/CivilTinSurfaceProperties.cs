@@ -1,5 +1,6 @@
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -12,52 +13,38 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </remarks>
 public record CivilTinSurfaceProperties : ICivilTinSurfaceProperties
 {
-    /// <summary>
-    /// Constructs a new instance of <see cref="CivilTinSurfaceProperties"/> by extracting
-    /// data from a given <see cref="TinSurface"/>.
-    /// </summary>
-    public static CivilTinSurfaceProperties CreateFromTinSurface(TinSurface tinSurface)
-    {
-        var generalProps = tinSurface.GetGeneralProperties();
-
-        return new CivilTinSurfaceProperties()
-        {
-            Name = tinSurface.Name,
-            MinimumElevation = generalProps.MinimumElevation,
-            MaximumElevation = generalProps.MaximumElevation,
-            MinimumX = generalProps.MinimumCoordinateX,
-            MaximumX = generalProps.MaximumCoordinateX,
-            MinimumY = generalProps.MinimumCoordinateY,
-            MaximumY = generalProps.MaximumCoordinateY,
-        };
-    }
+    private readonly TinSurface _tinSurface;
 
     /// <inheritdoc />
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; }
 
     /// <inheritdoc />
-    public double MinimumElevation { get; init; }
+    public ICivilSurfacePoint MinimumPoint { get; }
 
     /// <inheritdoc />
-    public double MaximumElevation { get; init; }
+    public ICivilSurfacePoint MaximumPoint { get; }
 
     /// <inheritdoc />
-    public double MinimumX { get; init; }
-
-    /// <inheritdoc />
-    public double MaximumX { get; init; }
-
-    /// <inheritdoc />
-    public double MinimumY { get; init; }
-
-    /// <inheritdoc />
-    public double MaximumY { get; init; }
+    public INamedId Style { get; } = NamedId.Empty;
 
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilTinSurfaceProperties"/>
     /// </summary>
-    private CivilTinSurfaceProperties()
+    public CivilTinSurfaceProperties(TinSurface tinSurface)
     {
+        _tinSurface = tinSurface;
+        var generalProps = tinSurface.GetGeneralProperties();
+
+        this.Name = tinSurface.Name;
+
+        this.MinimumPoint = new CivilSurfacePoint(generalProps.MinimumCoordinateX,
+            generalProps.MinimumCoordinateY, generalProps.MinimumElevation);
+
+        this.MaximumPoint = new CivilSurfacePoint(generalProps.MaximumCoordinateX,
+            generalProps.MaximumCoordinateY, generalProps.MaximumElevation);
+
+        this.Style = new NamedId(tinSurface.StyleName, tinSurface.StyleId);
+
     }
 
     /// <summary>
@@ -66,21 +53,12 @@ public record CivilTinSurfaceProperties : ICivilTinSurfaceProperties
     /// <returns>A new instance with copied data.</returns>
     public CivilTinSurfaceProperties Duplicate()
     {
-        return new CivilTinSurfaceProperties()
-        {
-            Name = this.Name,
-            MinimumElevation = this.MinimumElevation,
-            MaximumElevation = this.MaximumElevation,
-            MinimumX = this.MinimumX,
-            MaximumX = this.MaximumX,
-            MinimumY = this.MinimumY,
-            MaximumY = this.MaximumY,
-        };
+        return new CivilTinSurfaceProperties(_tinSurface);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"TIN Properties: {this.Name} (Elev: {this.MinimumElevation:F2} - {this.MaximumElevation:F2})";
+        return $"TIN Properties: {this.Name} (Elev: {this.MinimumPoint.Elevation:F2} - {this.MaximumPoint.Elevation:F2})";
     }
 }

@@ -1,6 +1,5 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
-using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -14,7 +13,10 @@ public class CivilProfileEntityComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("F9A0B1C2-D3E4-5678-F789-012345678CDE");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilProfileEntityComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilProfileEntityComponent"/> class.
@@ -39,17 +41,11 @@ public class CivilProfileEntityComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddTextParameter("Type", "T",
             "The type of entity (Tangent, CircularArc, Parabola, etc.).", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Start Station", "StaSt",
-            "The starting station of this entity along the profile.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilStationPoint(GH_ParamAccess.item), "Start Point", "StaPt",
+            "The starting station and elevation of this entity along the profile.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("End Station", "StaEnd",
-            "The ending station of this entity along the profile.", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("Start Elevation", "StartElev",
-            "The elevation at the start of this entity.", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("End Elevation", "EndElev",
-            "The elevation at the end of this entity.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_CivilStationPoint(GH_ParamAccess.item), "End Point", "EndPt",
+            "The ending station and elevation of this entity along the profile.", GH_ParamAccess.item);
 
         pManager.AddNumberParameter("Length", "Len",
             "The length of this entity.", GH_ParamAccess.item);
@@ -71,12 +67,10 @@ public class CivilProfileEntityComponent : RhinoInsideAutocad_ComponentBase
         var entity = entityGoo.Value;
 
         DA.SetData(0, entity.EntityType);
-        DA.SetData(1, entity.StartStation);
-        DA.SetData(2, entity.EndStation);
-        DA.SetData(3, entity.StartElevation);
-        DA.SetData(4, entity.EndElevation);
-        DA.SetData(5, entity.Length);
-        DA.SetData(6, entity.EntityIndex);
-        DA.SetData(7, entity.ToRhinoCurve());
+        DA.SetData(1, new GH_CivilStationPoint(entity.Start));
+        DA.SetData(2, new GH_CivilStationPoint(entity.End));
+        DA.SetData(3, entity.Length);
+        DA.SetData(4, entity.EntityIndex);
+        DA.SetData(5, entity.ToRhinoCurve());
     }
 }

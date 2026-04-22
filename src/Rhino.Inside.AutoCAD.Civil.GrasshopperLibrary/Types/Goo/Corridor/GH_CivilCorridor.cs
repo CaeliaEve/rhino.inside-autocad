@@ -5,12 +5,12 @@ using Rhino.Inside.AutoCAD.Interop;
 using CivilCorridor = Autodesk.Civil.DatabaseServices.Corridor;
 using RhinoMesh = Rhino.Geometry.Mesh;
 
-namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
+namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D Corridors.
 /// </summary>
-public class GH_CivilCorridor : GH_AutocadGeometricGoo<CivilCorridor, RhinoGeometryAdapter<RhinoMesh>>
+public class GH_CivilCorridor : GH_CivilOneWayGoo<CivilCorridor, RhinoGeometryAdapter<RhinoMesh>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilCorridor"/> class with no value.
@@ -37,26 +37,19 @@ public class GH_CivilCorridor : GH_AutocadGeometricGoo<CivilCorridor, RhinoGeome
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilCorridor, RhinoGeometryAdapter<RhinoMesh>> CreateClonedInstance(CivilCorridor entity)
+    protected override GH_CivilOneWayGoo<CivilCorridor, RhinoGeometryAdapter<RhinoMesh>> CreateClonedInstance(CivilCorridor entity)
     {
         return new GH_CivilCorridor(entity.Clone() as CivilCorridor, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilCorridor, RhinoGeometryAdapter<RhinoMesh>> CreateInstance(CivilCorridor entity)
+    protected override GH_CivilOneWayGoo<CivilCorridor, RhinoGeometryAdapter<RhinoMesh>> CreateInstance(CivilCorridor entity)
     {
         return new GH_CivilCorridor(entity);
     }
 
     /// <inheritdoc />
-    protected override CivilCorridor? Convert(RhinoGeometryAdapter<RhinoMesh> rhinoType)
-    {
-        // Converting from Rhino Mesh back to Civil 3D Corridor is not supported
-        return null;
-    }
-
-    /// <inheritdoc />
-    protected override RhinoGeometryAdapter<RhinoMesh>? Convert(CivilCorridor wrapperType)
+    protected override RhinoGeometryAdapter<RhinoMesh>? ConvertToRhino(CivilCorridor wrapperType)
     {
         var mesh = wrapperType.ToRhinoMesh();
         return mesh != null ? new RhinoGeometryAdapter<RhinoMesh>(mesh) : null;

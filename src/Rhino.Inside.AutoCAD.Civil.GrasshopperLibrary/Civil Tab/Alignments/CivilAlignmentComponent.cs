@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -18,7 +17,7 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("E5F6A7B8-C9D0-1234-EF01-456789012CDE");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilAlignmentComponent;
 
     /// <inheritdoc />
     public override GH_Exposure Exposure => GH_Exposure.primary;
@@ -46,9 +45,6 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Id", "Id",
             "The Id of the Alignment.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
-            "The Id of the Style of the Alignment.", GH_ParamAccess.item);
-
         pManager.AddParameter(new Param_CivilAlignmentProperties(GH_ParamAccess.item), "Properties", "Props",
             "Alignment properties (use Alignment Properties component to extract values).", GH_ParamAccess.item);
 
@@ -74,34 +70,57 @@ public class CivilAlignmentComponent : RhinoInsideAutocad_ComponentBase
 
         var alignmentId = alignmentGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(alignmentId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 
-        var alignmentWrapper = transactionManager.PerformTask(() =>
+        var result = transactionManager.PerformTask(() =>
         {
             var alignment = transactionManager.Unwrap()
                 .GetObject(alignmentId.Unwrap(), OpenMode.ForRead) as Alignment;
 
             if (alignment == null)
-                return null;
+            {
+                return AlignmentGooResult.Failed;
+            }
 
-            return new CivilAlignmentWrapper(alignment, transactionManager);
+            var wrapper = new CivilAlignmentWrapper(alignment);
+
+            var propertiesGoo = new GH_CivilAlignmentProperties(wrapper.Properties);
+
+            var entitiesGoo = wrapper.Entities
+                .Select(entity => new GH_CivilAlignmentEntity(entity))
+                .ToList();
+
+            var curve = wrapper.CenterlineCurve;
+
+            var labelGroupsGoo = wrapper.GetLabelGroups(transactionManager)
+                .Select(group => new GH_CivilAlignmentLabelGroup(group))
+                .ToList();
+
+            var labelsGoo = wrapper.GetLabels(transactionManager)
+                .Select(label => new GH_CivilFeatureLabel(label.Unwrap()))
+                .ToList();
+
+            return new AlignmentGooResult(propertiesGoo, entitiesGoo, curve, labelGroupsGoo, labelsGoo);
         });
 
-        if (alignmentWrapper == null)
+        if (result.IsSuccess == false)
         {
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read Alignment");
             return;
         }
 
         DA.SetData(0, new GH_AutocadObjectId(alignmentId));
-        DA.SetData(1, new GH_AutocadObjectId(alignmentWrapper.StyleId));
-        DA.SetData(2, new GH_CivilAlignmentProperties(alignmentWrapper.Properties));
-        DA.SetDataList(3, alignmentWrapper.Entities.Select(entity => new GH_CivilAlignmentEntity(entity)).ToList());
-        DA.SetData(4, alignmentWrapper.CenterlineCurve);
-        DA.SetDataList(5, alignmentWrapper.LabelGroups.Select(group => new GH_CivilAlignmentLabelGroup(group)).ToList());
-        DA.SetDataList(6, alignmentWrapper.Labels.Select(label => new GH_CivilFeatureLabel(label.Unwrap())).ToList());
+        DA.SetData(1, result.PropertiesGoo);
+        DA.SetDataList(2, result.EntitiesGoo);
+        DA.SetData(3, result.Curve);
+        DA.SetDataList(4, result.LabelGroupsGoo);
+        DA.SetDataList(5, result.LabelsGoo);
     }
 }

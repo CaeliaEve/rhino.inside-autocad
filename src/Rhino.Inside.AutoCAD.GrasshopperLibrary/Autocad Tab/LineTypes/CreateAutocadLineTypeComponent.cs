@@ -77,19 +77,13 @@ public class CreateAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
 
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         if (!DA.GetData(1, ref name) || string.IsNullOrEmpty(name)) return;
 
@@ -114,7 +108,7 @@ public class CreateAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
             return;
         }
 
-        if (!autocadDocument.LineTypeRegister.TryAddLineType(name, patternLength, numberOfDashes, scaleToFit, out var lineType))
+        if (!document.LineTypeRegister.TryAddLineType(name, patternLength, numberOfDashes, scaleToFit, out var lineType))
         {
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "LineType already exists");
             // Still output existing linetype info

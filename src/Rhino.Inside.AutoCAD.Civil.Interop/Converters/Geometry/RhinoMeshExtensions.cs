@@ -3,7 +3,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Civil.Interop;
-using Rhino.Inside.AutoCAD.Civil.Interop.TIN_Naming;
+using Rhino.Inside.AutoCAD.Civil.Interop.Naming;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using CivilTinSurface = Autodesk.Civil.DatabaseServices.TinSurface;

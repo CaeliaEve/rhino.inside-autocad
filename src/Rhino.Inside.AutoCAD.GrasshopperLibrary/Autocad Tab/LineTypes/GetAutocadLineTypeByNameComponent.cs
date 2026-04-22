@@ -53,23 +53,17 @@ public class GetAutocadLineTypeByNameComponent : RhinoInsideAutocad_ComponentBas
 
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         DA.GetData(1, ref name);
 
-        var lineTypesRegister = autocadDocument.LineTypeRegister;
+        var lineTypesRegister = document.LineTypeRegister;
 
         if (lineTypesRegister.TryGetByName(name, out var lineType) == false)
         {

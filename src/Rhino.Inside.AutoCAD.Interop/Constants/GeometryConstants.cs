@@ -58,4 +58,15 @@ public class GeometryConstants
     /// Used for vertex welding, duplicate detection, and geometric comparisons.
     /// </remarks>
     public const double VertexTolerance = 0.0001;
+
+    /// <summary>
+    /// The tolerance used when determining if a curve segment is too short to be represented as a line or arc.
+    /// </summary>
+    public const double ShortCurveTolernace = 0.0005;
+
+    /// <summary>
+    /// The angular tolerance used when fitting curves and comparing angles, expressed in radians.
+    /// </summary>
+    public const double AngleTolernace = Math.PI / 1800.0;
+
 }

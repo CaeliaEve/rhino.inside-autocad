@@ -18,7 +18,7 @@ public class Param_CivilCorridorBaselineRegion : GH_Param<GH_CivilCorridorBaseli
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilCorridorBaselineRegion;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilCorridorBaselineRegion"/> class with the

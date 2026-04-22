@@ -49,16 +49,16 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value?.Curve != null && Value.Curve.IsValid;
+    public override bool IsValid => this.Value?.Curve != null && this.Value.Curve.IsValid;
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No contour data";
-            if (Value.Curve == null || !Value.Curve.IsValid)
+            if (this.Value.Curve == null || !this.Value.Curve.IsValid)
                 return "Invalid contour geometry";
             return string.Empty;
         }
@@ -75,15 +75,15 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     {
         get
         {
-            if (Value?.Curve == null)
+            if (this.Value?.Curve == null)
                 return BoundingBox.Empty;
 
-            return Value.Curve.GetBoundingBox(true);
+            return this.Value.Curve.GetBoundingBox(true);
         }
     }
 
     /// <inheritdoc />
-    public BoundingBox ClippingBox => Boundingbox;
+    public BoundingBox ClippingBox => this.Boundingbox;
 
     /// <inheritdoc />
     public override IGH_Goo Duplicate()
@@ -100,7 +100,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     /// <inheritdoc />
     public override BoundingBox GetBoundingBox(Transform xform)
     {
-        var box = Boundingbox;
+        var box = this.Boundingbox;
         box.Transform(xform);
         return box;
     }
@@ -108,16 +108,14 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     /// <inheritdoc />
     public override IGH_GeometricGoo Transform(Transform xform)
     {
-        if (Value?.Curve == null)
+        if (this.Value?.Curve == null)
             return this;
 
-        var transformedCurve = Value.Curve.DuplicateCurve();
+        var transformedCurve = this.Value.Curve.DuplicateCurve();
         transformedCurve.Transform(xform);
 
-        var transformed = new CivilSurfaceContour(
-            Value.ContourType,
-            transformedCurve,
-            Value.Elevation);
+        var transformed = new CivilSurfaceContour(this.Value.CivilContourType,
+            transformedCurve);
 
         return new GH_CivilSurfaceContour(transformed);
     }
@@ -125,16 +123,13 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     /// <inheritdoc />
     public override IGH_GeometricGoo Morph(SpaceMorph xmorph)
     {
-        if (Value?.Curve == null)
+        if (this.Value?.Curve == null)
             return this;
 
-        var morphedCurve = Value.Curve.DuplicateCurve();
+        var morphedCurve = this.Value.Curve.DuplicateCurve();
         xmorph.Morph(morphedCurve);
 
-        var morphed = new CivilSurfaceContour(
-            Value.ContourType,
-            morphedCurve,
-            Value.Elevation);
+        var morphed = new CivilSurfaceContour(this.Value.CivilContourType, morphedCurve);
 
         return new GH_CivilSurfaceContour(morphed);
     }
@@ -144,20 +139,20 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     {
         if (source is GH_CivilSurfaceContour goo)
         {
-            Value = goo.Value?.Duplicate();
+            this.Value = goo.Value?.Duplicate();
             return true;
         }
 
         if (source is CivilSurfaceContour wrapper)
         {
-            Value = wrapper.Duplicate();
+            this.Value = wrapper.Duplicate();
             return true;
         }
 
         if (source is ICivilSurfaceContour contour)
         {
-            Value = (contour as CivilSurfaceContour)?.Duplicate();
-            return Value != null;
+            this.Value = (contour as CivilSurfaceContour)?.Duplicate();
+            return this.Value != null;
         }
 
         return false;
@@ -168,7 +163,7 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     {
         if (typeof(Q).IsAssignableFrom(typeof(CivilSurfaceContour)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -179,16 +174,16 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
         }
 
         // Cast to GH_Curve
-        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(GH_Curve)) && this.Value?.Curve != null)
         {
-            target = (Q)(object)new GH_Curve(Value.Curve.DuplicateCurve());
+            target = (Q)(object)new GH_Curve(this.Value.Curve.DuplicateCurve());
             return true;
         }
 
         // Cast to Curve
-        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && Value?.Curve != null)
+        if (typeof(Q).IsAssignableFrom(typeof(Curve)) && this.Value?.Curve != null)
         {
-            target = (Q)(object)Value.Curve.DuplicateCurve();
+            target = (Q)(object)this.Value.Curve.DuplicateCurve();
             return true;
         }
 
@@ -198,10 +193,10 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     /// <inheritdoc />
     public void DrawViewportWires(GH_PreviewWireArgs args)
     {
-        if (Value?.Curve == null)
+        if (this.Value?.Curve == null)
             return;
 
-        args.Pipeline.DrawCurve(Value.Curve, args.Color, args.Thickness);
+        args.Pipeline.DrawCurve(this.Value.Curve, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />
@@ -213,9 +208,9 @@ public class GH_CivilSurfaceContour : GH_GeometricGoo<CivilSurfaceContour>, IGH_
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d Surface Contour";
 
-        return Value.ToString();
+        return this.Value.ToString();
     }
 }

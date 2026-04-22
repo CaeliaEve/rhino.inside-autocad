@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -18,7 +17,7 @@ public class CivilAssemblyComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("E5F6A7B8-C9D0-1234-5678-901234567ABC");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilAssemblyComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilAssemblyComponent"/> class.
@@ -43,9 +42,6 @@ public class CivilAssemblyComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Id", "Id",
             "The Id of the Assembly.", GH_ParamAccess.item);
 
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
-            "The Id of the Style of the Assembly.", GH_ParamAccess.item);
-
         pManager.AddParameter(new Param_CivilAssemblyProperties(GH_ParamAccess.item), "Properties", "Props",
             "Assembly properties (use Assembly Properties component to extract values).", GH_ParamAccess.item);
 
@@ -68,16 +64,46 @@ public class CivilAssemblyComponent : RhinoInsideAutocad_ComponentBase
 
         var assemblyId = assemblyGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(assemblyId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 
-        var assembly = transactionManager.PerformTask(() =>
-            transactionManager.Unwrap().GetObject(assemblyId.Unwrap(), OpenMode.ForRead) as
-            Assembly);
+        var result = transactionManager.PerformTask(() =>
+        {
+            var assembly = transactionManager.Unwrap()
+                .GetObject(assemblyId.Unwrap(), OpenMode.ForRead) as Assembly;
 
-        if (assembly == null)
+            if (assembly == null)
+            {
+                return AssemblyGooResult.Failed;
+            }
+
+            var wrapper = new CivilAssembliesWrapper(assembly);
+
+            var assemblyProperties = wrapper.Properties;
+
+            var propertiesGoo = new GH_CivilAssemblyProperties(assemblyProperties);
+
+            var subassemblies = wrapper.GetSubassemblies(transactionManager);
+
+            var subAssembliesGoo = subassemblies
+                .Select(s => new GH_CivilSubassemblyProperties(s)).ToList();
+
+            var location = assembly.Location.ToRhinoPoint3d();
+
+            var allGeometry = subassemblies.SelectMany(s => s.Geometry)
+                .ToList();
+
+            return new AssemblyGooResult(propertiesGoo, subAssembliesGoo, location,
+                allGeometry);
+        });
+
+        if (result.IsSuccess == false)
         {
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read Assembly");
             return;
@@ -85,23 +111,12 @@ public class CivilAssemblyComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetData(0, new GH_AutocadObjectId(assemblyId));
 
-        DA.SetData(1, new GH_AutocadObjectId(new AutocadObjectIdWrapper(assembly.StyleId)));
+        DA.SetData(1, result.PropertiesGoo);
 
-        DA.SetData(2, new GH_CivilAssemblyProperties(CivilAssemblyProperties.CreateFromAssembly(assembly)));
+        DA.SetDataList(2, result.SubAssembliesGoo);
 
-        var assemblyData = transactionManager.PerformTask(() => new
-        {
-            Subassemblies = assembly.GetSubassemblies(transactionManager),
-            Location = assembly.ToRhinoPoint()
-        });
+        DA.SetData(3, result.Location);
 
-        DA.SetDataList(3, assemblyData.Subassemblies.Select(s => new GH_CivilSubassemblyProperties(s)).ToList());
-        DA.SetData(4, assemblyData.Location);
-
-        // Combine geometry from all subassemblies
-        var allGeometry = assemblyData.Subassemblies
-            .SelectMany(s => s.Geometry)
-            .ToList();
-        DA.SetDataList(5, allGeometry);
+        DA.SetDataList(4, result.AllGeometry);
     }
 }

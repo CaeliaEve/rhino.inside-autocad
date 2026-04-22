@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilAssembly = Autodesk.Civil.DatabaseServices.Assembly;
@@ -17,7 +18,7 @@ public class Param_CivilAssembly : Param_AutocadObjectBase<GH_CivilAssembly, Civ
     public override Guid ComponentGuid => new Guid("31d6c09b-3dc7-46f8-9521-521be02de751");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.Param_CivilAssembly;
 
     /// <inheritdoc />
     protected override string SingularPromptMessage => "Select a Civil3d Assembly";

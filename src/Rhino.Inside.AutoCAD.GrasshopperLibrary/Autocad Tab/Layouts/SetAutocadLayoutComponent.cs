@@ -1,8 +1,6 @@
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -59,47 +57,6 @@ public class SetAutocadLayoutComponent : RhinoInsideAutocad_ComponentBase
             "The associated block table record ID", GH_ParamAccess.item);
     }
 
-    /// <summary>
-    /// Updates the properties of an AutoCAD layout, Return a new Wrapper with updated values.
-    /// If the update fails, the original layout is returned and an error message is added
-    /// to the component.
-    /// </summary>
-    private AutocadLayoutWrapper UpdateLayout(AutocadLayoutWrapper layout, string newName)
-    {
-        try
-        {
-            var cadLayoutId = layout.Id.Unwrap();
-
-            var activeDocument = Application.DocumentManager.MdiActiveDocument;
-
-            using var documentLock = activeDocument.LockDocument();
-
-            var database = activeDocument.Database;
-
-            using var transaction = database.TransactionManager.StartTransaction();
-
-            var cadLayout =
-                transaction.GetObject(cadLayoutId, OpenMode.ForWrite) as Layout;
-
-            cadLayout!.LayoutName = newName;
-
-            transaction.Commit();
-
-            activeDocument.Editor.Regen();
-
-            //Renaming a layout does not trigger a modified event
-            RhinoInsideAutoCadExtension.Application.RhinoInsideManager.AutoCadInstance.ActiveDocument.LayoutRegister.Update();
-
-            return new AutocadLayoutWrapper(cadLayout);
-
-        }
-        catch (Exception e)
-        {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, e.Message);
-            return layout;
-        }
-    }
-
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -121,7 +78,29 @@ public class SetAutocadLayoutComponent : RhinoInsideAutocad_ComponentBase
 
         if (change)
         {
-            layout = this.UpdateLayout(layout, newName);
+            var document = this.GetDocumentForObjectId(layout.Id);
+            if (document is null)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+                return;
+            }
+
+            var transactionManager = document.CreateTransactionManager();
+
+            layout = transactionManager.PerformTask(() =>
+            {
+                var transaction = transactionManager.Unwrap();
+
+                var cadLayout =
+                    transaction.GetObject(layout.Id.Unwrap(), OpenMode.ForWrite) as Layout;
+
+                cadLayout!.LayoutName = newName;
+
+                return new AutocadLayoutWrapper(cadLayout);
+            });
+
+            // Renaming a layout does not trigger a modified event
+            document.LayoutRegister.Update();
         }
 
         // Output updated values

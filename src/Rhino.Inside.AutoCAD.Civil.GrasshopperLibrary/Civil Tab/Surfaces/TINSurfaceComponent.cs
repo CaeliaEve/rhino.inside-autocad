@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -18,7 +17,7 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("423C06AC-6A36-4F90-AC7C-BA42E12BBCE6");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.TINSurfaceComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TINSurfaceComponent"/> class.
@@ -42,9 +41,6 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
     {
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "Id", "Id",
             "The Id of the Surface.", GH_ParamAccess.item);
-
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "StyleId", "StyleId",
-            "The Id of the Style of the Surface.", GH_ParamAccess.item);
 
         pManager.AddParameter(new Param_CivilTinProperties(GH_ParamAccess.item), "TIN Properties", "TP",
             "Surface statistics (use TIN Properties component to extract values).", GH_ParamAccess.item);
@@ -71,59 +67,57 @@ public class TINSurfaceComponent : RhinoInsideAutocad_ComponentBase
 
         var surfaceId = tinSurfaceGoo.Reference.ObjectId;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(surfaceId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 
-        var tinSurface = transactionManager.PerformTask(() =>
-            transactionManager.Unwrap().GetObject(surfaceId.Unwrap(), OpenMode.ForRead) as
-            TinSurface);
+        var result = transactionManager.PerformTask(() =>
+        {
+            var tinSurface = transactionManager.Unwrap()
+                .GetObject(surfaceId.Unwrap(), OpenMode.ForRead) as TinSurface;
 
-        if (tinSurface == null)
+            if (tinSurface == null)
+            {
+                return TINSurfaceGooResult.Failed;
+            }
+
+            var wrapper = new CivilTinSurfaceWrapper(tinSurface);
+
+            var propertiesGoo = new GH_CivilTinProperties(wrapper.Properties);
+
+            var boundariesGoo = wrapper.GetBoundaries(transactionManager)
+                .Select(b => new GH_CivilSurfaceBoundary(b))
+                .ToList();
+
+            var contoursGoo = wrapper.GetContours(transactionManager)
+                .Select(c => new GH_CivilSurfaceContour(c))
+                .ToList();
+
+            var breaklinesGoo = wrapper.GetBreaklines(transactionManager)
+                .Select(bl => new GH_CivilSurfaceBreakline(bl))
+                .ToList();
+
+            var mesh = tinSurface.ToRhinoMesh(transactionManager);
+
+            return new TINSurfaceGooResult(propertiesGoo, boundariesGoo, contoursGoo, breaklinesGoo, mesh);
+        });
+
+        if (result.IsSuccess == false)
         {
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to read TIN Surface");
             return;
         }
 
-        // Id
-        var id = new GH_AutocadObjectId(surfaceId);
-        DA.SetData(0, id);
-
-        // StyleId
-        var styleId = new GH_AutocadObjectId(new AutocadObjectIdWrapper(tinSurface.StyleId));
-        DA.SetData(1, styleId);
-
-        // TIN Properties
-        var tinPropsWrapper = CivilTinSurfaceProperties.CreateFromTinSurface(tinSurface);
-        DA.SetData(2, new GH_CivilTinProperties(tinPropsWrapper));
-
-        // Surface data
-        var surfaceData = transactionManager.PerformTask(() => new
-        {
-            Boundaries = tinSurface.GetBoundaries(transactionManager),
-            Contours = tinSurface.GetContours(transactionManager),
-            Breaklines = tinSurface.GetBreaklines(transactionManager),
-            Mesh = tinSurface.ToRhinoMesh(transactionManager)
-        });
-
-        var boundaryGooList = surfaceData.Boundaries
-            .Select(b => new GH_CivilSurfaceBoundary(b))
-            .ToList();
-
-        var contourGooList = surfaceData.Contours
-            .Select(c => new GH_CivilSurfaceContour(c))
-            .ToList();
-
-        var breaklineGooList = surfaceData.Breaklines
-            .Select(bl => new GH_CivilSurfaceBreakline(bl))
-            .ToList();
-
-        DA.SetDataList(3, boundaryGooList);
-        DA.SetDataList(4, contourGooList);
-        DA.SetDataList(5, breaklineGooList);
-
-        // Mesh
-        DA.SetData(6, surfaceData.Mesh);
+        DA.SetData(0, new GH_AutocadObjectId(surfaceId));
+        DA.SetData(1, result.PropertiesGoo);
+        DA.SetDataList(2, result.BoundariesGoo);
+        DA.SetDataList(3, result.ContoursGoo);
+        DA.SetDataList(4, result.BreaklinesGoo);
+        DA.SetData(5, result.Mesh);
     }
 }

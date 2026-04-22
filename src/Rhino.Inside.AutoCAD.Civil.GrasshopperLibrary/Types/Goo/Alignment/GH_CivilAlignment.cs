@@ -1,16 +1,16 @@
 using Grasshopper.Kernel;
-using Rhino.Geometry;
+using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilAlignment = Autodesk.Civil.DatabaseServices.Alignment;
 using RhinoCurve = Rhino.Geometry.Curve;
 
-namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
+namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
 /// Represents a Grasshopper Goo object for Civil 3D Alignments.
 /// </summary>
-public class GH_CivilAlignment : GH_AutocadGeometricGoo<CivilAlignment, RhinoGeometryAdapter<RhinoCurve>>
+public class GH_CivilAlignment : GH_CivilOneWayGoo<CivilAlignment, RhinoGeometryAdapter<RhinoCurve>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilAlignment"/> class with no value.
@@ -28,6 +28,8 @@ public class GH_CivilAlignment : GH_AutocadGeometricGoo<CivilAlignment, RhinoGeo
     {
     }
 
+    
+
     /// <summary>
     /// A private constructor used to create a reference Goo which is a clone of the
     /// input alignment.
@@ -37,26 +39,19 @@ public class GH_CivilAlignment : GH_AutocadGeometricGoo<CivilAlignment, RhinoGeo
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilAlignment, RhinoGeometryAdapter<RhinoCurve>> CreateClonedInstance(CivilAlignment entity)
+    protected override GH_CivilOneWayGoo<CivilAlignment, RhinoGeometryAdapter<RhinoCurve>> CreateClonedInstance(CivilAlignment entity)
     {
         return new GH_CivilAlignment(entity.Clone() as CivilAlignment, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilAlignment, RhinoGeometryAdapter<RhinoCurve>> CreateInstance(CivilAlignment entity)
+    protected override GH_CivilOneWayGoo<CivilAlignment, RhinoGeometryAdapter<RhinoCurve>> CreateInstance(CivilAlignment entity)
     {
         return new GH_CivilAlignment(entity);
     }
 
     /// <inheritdoc />
-    protected override CivilAlignment? Convert(RhinoGeometryAdapter<RhinoCurve> rhinoType)
-    {
-        // Converting from Rhino Curve back to Civil 3D Alignment is not supported
-        return null;
-    }
-
-    /// <inheritdoc />
-    protected override RhinoGeometryAdapter<RhinoCurve>? Convert(CivilAlignment wrapperType)
+    protected override RhinoGeometryAdapter<RhinoCurve>? ConvertToRhino(CivilAlignment wrapperType)
     {
         var curve = wrapperType.ToRhinoCurve();
         return curve != null ? new RhinoGeometryAdapter<RhinoCurve>(curve) : null;

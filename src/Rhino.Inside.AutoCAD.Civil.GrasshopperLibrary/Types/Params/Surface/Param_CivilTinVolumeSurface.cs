@@ -18,7 +18,7 @@ public class Param_CivilTinVolumeSurface : Param_AutocadObjectBase<GH_CivilTinVo
     public override Guid ComponentGuid => new Guid("A7E4B8D2-5C3F-4A9E-B1D6-8F2C9A7E3B5D");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilTinVolumeSurface;
 
     /// <inheritdoc />
     protected override string SingularPromptMessage => "Select a Civil3d Volume Surface";
@@ -30,7 +30,7 @@ public class Param_CivilTinVolumeSurface : Param_AutocadObjectBase<GH_CivilTinVo
     /// Initializes a new instance of the <see cref="Param_CivilTinVolumeSurface"/> class.
     /// </summary>
     public Param_CivilTinVolumeSurface()
-        : base("Civil3d Volume Surface", "CVL-VolSrf",
+        : base("Civil3d TIN Volume Surface", "CVL-VolSrf",
             "A TIN Volume Surface in Civil3d", "Params", "Civil3d")
     { }
 

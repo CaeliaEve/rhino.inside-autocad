@@ -15,6 +15,9 @@ public class CivilSurfaceContourComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilSurfaceContour;
 
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilSurfaceContourComponent"/> class.
     /// </summary>
@@ -59,7 +62,7 @@ public class CivilSurfaceContourComponent : RhinoInsideAutocad_ComponentBase
         var contour = contourGoo.Value;
 
         // Output contour type as string
-        DA.SetData(0, contour.ContourType.ToString());
+        DA.SetData(0, contour.CivilContourType.ToString());
 
         // Output curve
         if (contour.Curve != null && contour.Curve.IsValid)

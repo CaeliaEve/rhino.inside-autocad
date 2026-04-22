@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilCorridor = Autodesk.Civil.DatabaseServices.Corridor;
@@ -17,7 +18,7 @@ public class Param_CivilCorridor : Param_AutocadObjectBase<GH_CivilCorridor, Civ
     public override Guid ComponentGuid => new Guid("33A15D0A-6665-4D71-B3CA-9EF9DD6D1E8E");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.Param_CivilCorridor;
 
     /// <inheritdoc />
     protected override string SingularPromptMessage => "Select a Civil3d Corridor";

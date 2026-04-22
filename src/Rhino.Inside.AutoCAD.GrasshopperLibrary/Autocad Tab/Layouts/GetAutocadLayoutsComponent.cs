@@ -59,26 +59,20 @@ public class GetAutocadLayoutsComponent : RhinoInsideAutocad_ComponentBase, IRef
 
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         DA.GetData(1, ref repopulate);
 
         if (repopulate)
-            autocadDocument.LayoutRegister.Update();
+            document.LayoutRegister.Update();
 
-        var layoutsRegister = autocadDocument.LayoutRegister;
+        var layoutsRegister = document.LayoutRegister;
 
         var gooLayouts = layoutsRegister
             .Select(layout => new GH_AutocadLayout(layout))

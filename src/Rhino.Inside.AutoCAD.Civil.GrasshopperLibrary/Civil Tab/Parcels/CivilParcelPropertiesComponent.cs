@@ -13,7 +13,10 @@ public class CivilParcelPropertiesComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("A7B8C9D0-E1F2-3456-0123-789012345678");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilParcelPropertiesComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilParcelPropertiesComponent"/> class.
@@ -21,7 +24,7 @@ public class CivilParcelPropertiesComponent : RhinoInsideAutocad_ComponentBase
     public CivilParcelPropertiesComponent()
         : base("Civil3d Parcel Properties", "CVL-ParcelProps",
             "Extracts individual values from Civil 3D Parcel Properties",
-            "Civil3d", "Parcels")
+            "Civil3d", "Site/Parcels")
     {
     }
 
@@ -64,6 +67,9 @@ public class CivilParcelPropertiesComponent : RhinoInsideAutocad_ComponentBase
 
         pManager.AddBooleanParameter("Is Closed", "Closed",
             "Whether the parcel boundary is closed.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this parcel as a NamedId.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -85,5 +91,6 @@ public class CivilParcelPropertiesComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(7, props.SiteName);
         DA.SetData(8, props.SegmentCount);
         DA.SetData(9, props.IsClosed);
+        DA.SetData(10, new GH_NamedId(props.Style));
     }
 }

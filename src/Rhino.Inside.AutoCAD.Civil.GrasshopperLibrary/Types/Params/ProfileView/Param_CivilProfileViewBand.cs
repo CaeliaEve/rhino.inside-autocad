@@ -18,7 +18,7 @@ public class Param_CivilProfileViewBand : GH_Param<GH_CivilProfileViewBand>
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilProfileViewBand;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilProfileViewBand"/> class with the

@@ -2,7 +2,6 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using CivilFeatureLabel = Autodesk.Civil.DatabaseServices.FeatureLabel;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
@@ -14,7 +13,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// This Goo wraps a Civil 3D FeatureLabel and converts its text components to Rhino TextEntities
 /// for display in both the Rhino viewport and AutoCAD preview.
 /// </remarks>
-public class GH_CivilFeatureLabel : GH_AutocadGeometricGoo<CivilFeatureLabel, FeatureLabelAdapter>
+public class GH_CivilFeatureLabel : GH_CivilOneWayGoo<CivilFeatureLabel, FeatureLabelAdapter>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_CivilFeatureLabel"/> class with no value.
@@ -50,26 +49,19 @@ public class GH_CivilFeatureLabel : GH_AutocadGeometricGoo<CivilFeatureLabel, Fe
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilFeatureLabel, FeatureLabelAdapter> CreateClonedInstance(CivilFeatureLabel entity)
+    protected override GH_CivilOneWayGoo<CivilFeatureLabel, FeatureLabelAdapter> CreateClonedInstance(CivilFeatureLabel entity)
     {
         return new GH_CivilFeatureLabel(entity.Clone() as CivilFeatureLabel, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<CivilFeatureLabel, FeatureLabelAdapter> CreateInstance(CivilFeatureLabel entity)
+    protected override GH_CivilOneWayGoo<CivilFeatureLabel, FeatureLabelAdapter> CreateInstance(CivilFeatureLabel entity)
     {
         return new GH_CivilFeatureLabel(entity);
     }
 
     /// <inheritdoc />
-    protected override CivilFeatureLabel? Convert(FeatureLabelAdapter rhinoType)
-    {
-        // Converting from Rhino TextEntities back to Civil 3D Feature Label is not supported
-        return null;
-    }
-
-    /// <inheritdoc />
-    protected override FeatureLabelAdapter? Convert(CivilFeatureLabel wrapperType)
+    protected override FeatureLabelAdapter? ConvertToRhino(CivilFeatureLabel wrapperType)
     {
         if (wrapperType == null)
             return null;

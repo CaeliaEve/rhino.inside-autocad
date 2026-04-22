@@ -13,7 +13,10 @@ public class CivilParcelSegmentComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("B8C9D0E1-F2A3-4567-0123-890123456789");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilParcelSegmentComponent;
+
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilParcelSegmentComponent"/> class.
@@ -21,7 +24,7 @@ public class CivilParcelSegmentComponent : RhinoInsideAutocad_ComponentBase
     public CivilParcelSegmentComponent()
         : base("Civil3d Parcel Segment", "CVL-ParcelSeg",
             "Extracts individual values from a Civil 3D Parcel Segment",
-            "Civil3d", "Parcels")
+            "Civil3d", "Site/Parcels")
     {
     }
 

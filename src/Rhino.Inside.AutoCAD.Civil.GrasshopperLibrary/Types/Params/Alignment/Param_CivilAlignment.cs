@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilAlignment = Autodesk.Civil.DatabaseServices.Alignment;
@@ -17,7 +18,7 @@ public class Param_CivilAlignment : Param_AutocadObjectBase<GH_CivilAlignment, C
     public override Guid ComponentGuid => new Guid("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.Param_CivilAlignment;
 
     /// <inheritdoc />
     protected override string SingularPromptMessage => "Select a Civil3d Alignment";
@@ -39,6 +40,6 @@ public class Param_CivilAlignment : Param_AutocadObjectBase<GH_CivilAlignment, C
     /// <inheritdoc />
     protected override GH_CivilAlignment WrapEntity(CivilAlignment entity)
     {
-    return new GH_CivilAlignment(entity);
+        return new GH_CivilAlignment(entity);
     }
 }

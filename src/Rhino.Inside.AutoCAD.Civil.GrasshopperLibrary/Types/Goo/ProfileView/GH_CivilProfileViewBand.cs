@@ -34,7 +34,7 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBand>
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilProfileViewBand(GH_CivilProfileViewBand other) : base(other.Value?.Duplicate())
+    public GH_CivilProfileViewBand(GH_CivilProfileViewBand other) : base(other.Value?.ShallowClone())
     {
     }
 
@@ -47,14 +47,14 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBand>
     }
 
     /// <inheritdoc />
-    public override bool IsValid => Value != null;
+    public override bool IsValid => this.Value != null;
 
     /// <inheritdoc />
     public override string IsValidWhyNot
     {
         get
         {
-            if (Value == null)
+            if (this.Value == null)
                 return "No ProfileView band data";
             return string.Empty;
         }
@@ -77,20 +77,20 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBand>
     {
         if (source is GH_CivilProfileViewBand goo)
         {
-            Value = goo.Value?.Duplicate();
+            this.Value = goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilProfileViewBand wrapper)
         {
-            Value = wrapper.Duplicate();
+            this.Value = wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilProfileViewBand band)
         {
-            Value = (band as CivilProfileViewBand)?.Duplicate();
-            return Value != null;
+            this.Value = (band as CivilProfileViewBand)?.ShallowClone();
+            return this.Value != null;
         }
 
         return false;
@@ -101,7 +101,7 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBand>
     {
         if (typeof(Q).IsAssignableFrom(typeof(CivilProfileViewBand)))
         {
-            target = (Q)(object)Value!;
+            target = (Q)(object)this.Value!;
             return true;
         }
 
@@ -117,9 +117,9 @@ public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBand>
     /// <inheritdoc />
     public override string ToString()
     {
-        if (Value == null)
+        if (this.Value == null)
             return "Null Civil3d ProfileView Band";
 
-        return Value.ToString();
+        return this.Value.ToString();
     }
 }

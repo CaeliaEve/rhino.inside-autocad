@@ -15,6 +15,9 @@ public class CivilSurfaceBreaklineComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.CivilSurfaceBreakline;
 
+    /// <inheritdoc />
+    public override GH_Exposure Exposure => GH_Exposure.tertiary;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilSurfaceBreaklineComponent"/> class.
     /// </summary>

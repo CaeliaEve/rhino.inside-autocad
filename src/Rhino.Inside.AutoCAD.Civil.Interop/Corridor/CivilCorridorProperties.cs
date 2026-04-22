@@ -1,5 +1,6 @@
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -10,81 +11,44 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// This is a simple data wrapper class that holds extracted corridor property information.
 /// The data is captured at construction time from a <see cref="Corridor"/>.
 /// </remarks>
-public record CivilCorridorProperties : ICivilCorridorProperties
+public class CivilCorridorProperties : ICivilCorridorProperties
 {
-    /// <summary>
-    /// Constructs a new instance of <see cref="CivilCorridorProperties"/> by extracting
-    /// data from a given <see cref="Corridor"/>.
-    /// </summary>
-    public static CivilCorridorProperties CreateFromCorridor(Corridor corridor)
-    {
-        // Calculate corridor extents from baselines
-        var minStation = double.MaxValue;
-        var maxStation = double.MinValue;
-
-        foreach (var baseline in corridor.Baselines)
-        {
-            if (baseline.StartStation < minStation)
-                minStation = baseline.StartStation;
-            if (baseline.EndStation > maxStation)
-                maxStation = baseline.EndStation;
-        }
-
-        var startStation = minStation == double.MaxValue ? 0.0 : minStation;
-        var endStation = maxStation == double.MinValue ? 0.0 : maxStation;
-
-        return new CivilCorridorProperties()
-        {
-            Name = corridor.Name,
-            Description = corridor.Description ?? string.Empty,
-            StartStation = startStation,
-            EndStation = endStation,
-            Length = endStation - startStation,
-
-        };
-    }
+    /// <inheritdoc />
+    public string Name { get; }
 
     /// <inheritdoc />
-    public string Name { get; init; } = string.Empty;
+    public string Description { get; }
 
     /// <inheritdoc />
-    public string Description { get; init; } = string.Empty;
+    public INamedId Code { get; }
 
     /// <inheritdoc />
-    public double StartStation { get; init; }
+    public double StartParam { get; }
 
     /// <inheritdoc />
-    public double EndStation { get; init; }
+    public double EndParam { get; }
 
     /// <inheritdoc />
-    public double Length { get; init; }
+    public INamedId Style { get; }
 
     /// <summary>
-    /// Initializes a new private empty instance of <see cref="CivilCorridorProperties"/>
+    /// Initializes a new instance of the <see cref="CivilCorridorProperties"/> class
+    /// by extracting data from a given <see cref="Corridor"/>.
     /// </summary>
-    private CivilCorridorProperties()
+    /// <param name="corridor">The Civil 3D corridor to extract properties from.</param>
+    public CivilCorridorProperties(Corridor corridor)
     {
-    }
-
-    /// <summary>
-    /// Creates a duplicate of this corridor properties wrapper.
-    /// </summary>
-    /// <returns>A new instance with copied data.</returns>
-    public CivilCorridorProperties Duplicate()
-    {
-        return new CivilCorridorProperties()
-        {
-            Name = this.Name,
-            Description = this.Description,
-            StartStation = this.StartStation,
-            EndStation = this.EndStation,
-            Length = this.Length,
-        };
+        this.Name = corridor.Name;
+        this.Description = corridor.Description ?? string.Empty;
+        this.Code = new NamedId(corridor.CodeSetStyleName, corridor.CodeSetStyleId);
+        this.StartParam = corridor.StartParam;
+        this.EndParam = corridor.EndParam;
+        this.Style = new NamedId(corridor.StyleName, corridor.StyleId);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"Corridor Properties: {this.Name} (Sta: {this.StartStation:F2} - {this.EndStation:F2}, Length: {this.Length:F2})";
+        return $"Corridor Properties: {this.Name} (Param: {this.StartParam:F2} - {this.EndParam:F2})";
     }
 }

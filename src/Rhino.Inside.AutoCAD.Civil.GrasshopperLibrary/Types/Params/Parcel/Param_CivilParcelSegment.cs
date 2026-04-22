@@ -18,7 +18,7 @@ public class Param_CivilParcelSegment : GH_Param<GH_CivilParcelSegment>
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilParcelSegment;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilParcelSegment"/> class with the

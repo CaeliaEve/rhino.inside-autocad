@@ -13,7 +13,7 @@ public class CivilProfileViewPropertiesComponent : RhinoInsideAutocad_ComponentB
     public override Guid ComponentGuid => new("E5F6A7B8-C9D0-1234-EF56-789012345678");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilProfileViewPropertiesComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilProfileViewPropertiesComponent"/> class.
@@ -41,26 +41,14 @@ public class CivilProfileViewPropertiesComponent : RhinoInsideAutocad_ComponentB
         pManager.AddTextParameter("Description", "Desc",
             "The description of the ProfileView.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Station Start", "StaSt",
-            "The starting station of the ProfileView display range.", GH_ParamAccess.item);
+        pManager.AddPlaneParameter("Plane", "Loc",
+            "The insertion Plane of the ProfileView.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Station End", "StaEnd",
-            "The ending station of the ProfileView display range.", GH_ParamAccess.item);
+        pManager.AddIntervalParameter("Station Range", "StaRng",
+            "The station range (start to end) displayed.", GH_ParamAccess.item);
 
-        pManager.AddNumberParameter("Elevation Min", "ElevMin",
-            "The minimum elevation of the ProfileView display range.", GH_ParamAccess.item);
-
-        pManager.AddNumberParameter("Elevation Max", "ElevMax",
-            "The maximum elevation of the ProfileView display range.", GH_ParamAccess.item);
-
-        pManager.AddTextParameter("Alignment Name", "AlignName",
-            "The name of the parent alignment.", GH_ParamAccess.item);
-
-        pManager.AddIntegerParameter("Profile Count", "ProfCnt",
-            "The number of profiles displayed in this ProfileView.", GH_ParamAccess.item);
-
-        pManager.AddIntegerParameter("Band Count", "BandCnt",
-            "The number of bands (top and bottom) in this ProfileView.", GH_ParamAccess.item);
+        pManager.AddIntervalParameter("Elevation Range", "ElevRng",
+            "The elevation range (min to max) displayed.", GH_ParamAccess.item);
 
         pManager.AddNumberParameter("Horizontal Scale", "HScale",
             "The horizontal scale of the ProfileView.", GH_ParamAccess.item);
@@ -70,6 +58,9 @@ public class CivilProfileViewPropertiesComponent : RhinoInsideAutocad_ComponentB
 
         pManager.AddNumberParameter("Vertical Exaggeration", "VExag",
             "The vertical exaggeration factor of the ProfileView.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this profile view as a NamedId.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -79,19 +70,27 @@ public class CivilProfileViewPropertiesComponent : RhinoInsideAutocad_ComponentB
 
         if (!DA.GetData(0, ref propsGoo) || propsGoo?.Value is null) return;
 
-        var props = propsGoo.Value;
+        var properties = propsGoo.Value;
 
-        DA.SetData(0, props.Name);
-        DA.SetData(1, props.Description);
-        DA.SetData(2, props.StationStart);
-        DA.SetData(3, props.StationEnd);
-        DA.SetData(4, props.ElevationMin);
-        DA.SetData(5, props.ElevationMax);
-        DA.SetData(6, props.AlignmentName);
-        DA.SetData(7, props.ProfileCount);
-        DA.SetData(8, props.BandCount);
-        DA.SetData(9, props.HorizontalScale);
-        DA.SetData(10, props.VerticalScale);
-        DA.SetData(11, props.VerticalExaggeration);
+        var document = this.GetDocumentForObjectId(properties.ProfileViewId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
+
+        var transactionManager = document.CreateTransactionManager();
+
+        var coordinateSystem = transactionManager.PerformTask(() => properties.GetCoordinateSystem(transactionManager));
+
+        DA.SetData(0, properties.Name);
+        DA.SetData(1, properties.Description);
+        DA.SetData(2, coordinateSystem.Plane);
+        DA.SetData(3, properties.StationRange);
+        DA.SetData(4, properties.ElevationRange);
+        DA.SetData(5, coordinateSystem.HorizontalScale);
+        DA.SetData(6, coordinateSystem.VerticalScale);
+        DA.SetData(7, coordinateSystem.VerticalExaggeration);
+        DA.SetData(8, new GH_NamedId(properties.Style));
     }
 }

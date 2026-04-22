@@ -27,7 +27,7 @@ public class CivilProfileLabelGroupComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("C3D4E5F6-A7B8-9012-CDEF-345678901234");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilProfileLabelGroupComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CivilProfileLabelGroupComponent"/> class.
@@ -260,8 +260,12 @@ public class CivilProfileLabelGroupComponent : RhinoInsideAutocad_ComponentBase
 
         if (cadLabelGroup == null) return;
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(new AutocadObjectIdWrapper(cadLabelGroup.Id));
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManager = document.CreateTransactionManager();
 

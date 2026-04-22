@@ -1,7 +1,10 @@
-﻿using GH_IO.Serialization;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using GH_IO.Serialization;
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -19,7 +22,7 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     /// </summary>
     protected IComponentVersion Version { get; private set; }
 
-#if DEBUG
+#if DEBUG || DEBUGNET8
     /// <summary>
     /// Adds versioning information to the instance description in debug builds.
     /// </summary>
@@ -118,5 +121,42 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
         this.Version.Write(writer);
 
         return true;
+    }
+
+    /// <summary>
+    /// Returns the provided AutoCAD document or, if null, attempts to retrieve the active document from the AutoCAD application.
+    /// </summary>
+    protected IAutocadDocument? GetDocumentOrDefault(AutocadDocument? autocadDocument = null)
+    {
+        return autocadDocument ?? this.GetActiveDocumentFallback();
+    }
+
+    /// <summary>
+    /// Gets the document that owns the specified ObjectId, falling back to the active document
+    /// if the ObjectId is null, invalid, or if no matching document is found.
+    /// </summary>
+    protected IAutocadDocument? GetDocumentForObjectId(IObjectId? objectId)
+    {
+        if (objectId is null)
+            return this.GetActiveDocumentFallback();
+
+        var nativeObjectId = objectId.Unwrap();
+
+        if (nativeObjectId == ObjectId.Null)
+            return this.GetActiveDocumentFallback();
+
+        var database = nativeObjectId.Database;
+        if (database is null)
+            return this.GetActiveDocumentFallback();
+
+        var autoCadInstance = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance;
+        var document = autoCadInstance?.FindDocumentByFingerprintGuid(database.FingerprintGuid);
+
+        return document ?? this.GetActiveDocumentFallback();
+    }
+
+    private IAutocadDocument? GetActiveDocumentFallback()
+    {
+        return RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
     }
 }

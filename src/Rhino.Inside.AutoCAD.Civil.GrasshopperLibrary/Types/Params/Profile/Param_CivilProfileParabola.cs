@@ -18,7 +18,7 @@ public class Param_CivilProfileParabola : GH_Param<GH_CivilProfileParabola>
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilProfileParabola;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Param_CivilProfileParabola"/> class with the

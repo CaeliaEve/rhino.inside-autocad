@@ -13,7 +13,7 @@ public class TINSurfacePropertiesComponent : RhinoInsideAutocad_ComponentBase
     public override Guid ComponentGuid => new("D4E5F6A7-B8C9-0123-DEF0-345678901BCD");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CivilDefault;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.TINSurfacePropertiesComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TINSurfacePropertiesComponent"/> class.
@@ -55,6 +55,9 @@ public class TINSurfacePropertiesComponent : RhinoInsideAutocad_ComponentBase
 
         pManager.AddNumberParameter("Maximum Y", "MaxY",
             "The maximum Y coordinate of the surface extent.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_NamedId(GH_ParamAccess.item), "Style",
+            "Style", "The style applied to this TIN surface as a NamedId.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -67,11 +70,12 @@ public class TINSurfacePropertiesComponent : RhinoInsideAutocad_ComponentBase
         var props = tinPropsGoo.Value;
 
         DA.SetData(0, props.Name);
-        DA.SetData(1, props.MinimumElevation);
-        DA.SetData(2, props.MaximumElevation);
-        DA.SetData(3, props.MinimumX);
-        DA.SetData(4, props.MaximumX);
-        DA.SetData(5, props.MinimumY);
-        DA.SetData(6, props.MaximumY);
+        DA.SetData(1, props.MinimumPoint.Elevation);
+        DA.SetData(2, props.MaximumPoint.Elevation);
+        DA.SetData(3, props.MinimumPoint.X);
+        DA.SetData(4, props.MaximumPoint.X);
+        DA.SetData(5, props.MinimumPoint.Y);
+        DA.SetData(6, props.MaximumPoint.Y);
+        DA.SetData(7, new GH_NamedId(props.Style));
     }
 }
