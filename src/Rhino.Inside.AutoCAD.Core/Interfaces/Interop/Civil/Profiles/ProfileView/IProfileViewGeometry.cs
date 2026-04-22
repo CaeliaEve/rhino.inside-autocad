@@ -13,11 +13,21 @@ public interface IProfileViewGeometry
     /// <summary>
     /// The list of curves that make up the profile view geometry.
     /// </summary>
-    List<RhinoCurve> Curves { get; }
+    List<RhinoCurve> GraphCurves { get; }
+
+    /// <summary>
+    /// The list of curves that make up the profile view geometry.
+    /// </summary>
+    List<RhinoCurve> ProfileCurves { get; }
 
     /// <summary>
     /// The list of text entities that are part of the profile
     /// view geometry, such as labels and annotations.
     /// </summary>
     List<RhinoTextEntity> TextEntities { get; }
+
+    /// <summary>
+    /// Returns a list of all the curves both graph and profile
+    /// </summary>
+    List<RhinoCurve> GetAllCurves();
 }

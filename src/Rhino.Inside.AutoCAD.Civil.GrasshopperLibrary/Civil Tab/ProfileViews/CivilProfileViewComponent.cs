@@ -1,6 +1,8 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -56,6 +58,9 @@ public class CivilProfileViewComponent : RhinoInsideAutocad_ComponentBase
 
         pManager.AddParameter(new Param_CivilFeatureLabel(GH_ParamAccess.list), "Label Groups", "LG",
             "The label groups in this ProfileView.", GH_ParamAccess.list);
+
+        pManager.AddGeometryParameter("Geometry", "Geo",
+            "The geometry on the view converted to Rhino", GH_ParamAccess.tree);
     }
 
     /// <inheritdoc />
@@ -111,8 +116,23 @@ public class CivilProfileViewComponent : RhinoInsideAutocad_ComponentBase
             var labelGroupsGoo = labelGroups.Select(civilProfileViewLabelGroup =>
                 new GH_CivilFeatureLabel(civilProfileViewLabelGroup)).ToList();
 
+            var geometry = profileView.ToRhinoGeometry();
+
+            var structure = new GH_Structure<IGH_GeometricGoo>();
+            structure.AppendRange(
+                geometry.GraphCurves.Select(c => (IGH_GeometricGoo)new GH_Curve(c)),
+                new GH_Path(0));
+
+            structure.AppendRange(
+                geometry.TextEntities.Select(GH_Convert.ToGeometricGoo),
+                new GH_Path(1));
+
+            structure.AppendRange(
+                geometry.ProfileCurves.Select(c => (IGH_GeometricGoo)new GH_Curve(c)),
+                new GH_Path(2));
+
             return new ProfileViewGooResult(propertiesGoo, profileDataGoo, alignmentGoo, bandsGoo,
-                labelGroupsGoo);
+                labelGroupsGoo, structure);
         });
 
         if (result.IsSuccess == false)
@@ -132,6 +152,8 @@ public class CivilProfileViewComponent : RhinoInsideAutocad_ComponentBase
         DA.SetDataList(4, result.BandsGoo);
 
         DA.SetDataList(5, result.LabelGroupsGoo);
+
+        DA.SetDataTree(6, result.Geoemtry);
 
     }
 }

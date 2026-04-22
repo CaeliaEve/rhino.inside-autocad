@@ -7,8 +7,20 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 public class ProfileViewGeometry : IProfileViewGeometry
 {
     /// <inheritdoc />
-    public List<RhinoCurve> Curves { get; } = new();
+    public List<RhinoCurve> GraphCurves { get; } = new();
 
-    /// <inheritdoc />s
+    /// <inheritdoc />
     public List<RhinoTextEntity> TextEntities { get; } = new();
+
+    /// <inheritdoc />
+    public List<RhinoCurve> ProfileCurves { get; } = new();
+
+    /// <inheritdoc />
+    public List<RhinoCurve> GetAllCurves()
+    {
+        var allCurves = new List<RhinoCurve>();
+        allCurves.AddRange(this.GraphCurves);
+        allCurves.AddRange(this.ProfileCurves);
+        return allCurves;
+    }
 }

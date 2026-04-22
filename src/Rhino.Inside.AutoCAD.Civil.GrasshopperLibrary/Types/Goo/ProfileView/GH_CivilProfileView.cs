@@ -1,3 +1,4 @@
+using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
@@ -49,9 +50,10 @@ public class GH_CivilProfileView : GH_CivilOneWayGoo<CivilProfileView, RhinoGrap
     /// <inheritdoc />
     protected override RhinoGraphAdapter? ConvertToRhino(CivilProfileView wrapperType)
     {
-        var profileViewGeometry = wrapperType.ToRhinoCurves();
+       
+        var profileViewGeometry = wrapperType.ToRhinoGeometry();
 
-        return new RhinoGraphAdapter(profileViewGeometry.Curves, profileViewGeometry.TextEntities);
+        return new RhinoGraphAdapter(profileViewGeometry.GetAllCurves(), profileViewGeometry.TextEntities);
     }
 
     /// <inheritdoc />

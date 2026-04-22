@@ -1,3 +1,6 @@
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
+
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
@@ -13,10 +16,11 @@ public record ProfileViewGooResult(
     List<GH_CivilProfile>? ProfileDataGoo,
     GH_CivilAlignment? AlignmentGoo,
     List<GH_CivilProfileViewBand>? BandsGoo,
-    List<GH_CivilFeatureLabel>? LabelGroupsGoo) : GooResultBase
+    List<GH_CivilFeatureLabel>? LabelGroupsGoo,
+    GH_Structure<IGH_GeometricGoo> Geoemtry) : GooResultBase
 {
     /// <summary>
     /// Gets a failed result instance.
     /// </summary>
-    public static ProfileViewGooResult Failed => new(null, null, null, null, null) { IsSuccess = false };
+    public static ProfileViewGooResult Failed => new(null, null, null, null, null, null) { IsSuccess = false };
 }
