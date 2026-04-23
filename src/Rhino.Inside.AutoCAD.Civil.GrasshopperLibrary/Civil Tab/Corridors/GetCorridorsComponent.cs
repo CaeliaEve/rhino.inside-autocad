@@ -1,6 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilDocument = Autodesk.Civil.ApplicationServices.CivilDocument;
@@ -11,7 +12,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// A Grasshopper component that gets all Corridors from the current Civil 3D document.
 /// </summary>
 [ComponentVersion(introduced: "1.2.19")]
-public class GetCorridorsComponent : RhinoInsideAutocad_ComponentBase
+public class GetCorridorsComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("C5D6E7F8-A9B0-1234-5678-901234567012");
@@ -100,5 +101,24 @@ public class GetCorridorsComponent : RhinoInsideAutocad_ComponentBase
         }
 
         DA.SetDataList(0, corridors);
+    }
+
+    /// <inheritdoc />
+    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    {
+        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
+        {
+            if (ghParam.NeedsToBeExpired(change)) return true;
+        }
+
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is Corridor)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

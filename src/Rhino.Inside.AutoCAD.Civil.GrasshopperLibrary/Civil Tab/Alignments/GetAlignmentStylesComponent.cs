@@ -1,6 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.Civil.DatabaseServices;
+using Autodesk.Civil.DatabaseServices.Styles;
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -9,24 +10,24 @@ using CivilDocument = Autodesk.Civil.ApplicationServices.CivilDocument;
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
 /// <summary>
-/// A Grasshopper component that gets all Assemblies from the current Civil 3D document.
+/// A Grasshopper component that gets all Alignment Styles from the current Civil 3D document.
 /// </summary>
 [ComponentVersion(introduced: "1.2.19")]
-public class GetAssembliesComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+public class GetAlignmentStylesComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
 {
     /// <inheritdoc />
-    public override Guid ComponentGuid => new("D4E5F6A7-B8C9-0123-DEF0-456789012345");
+    public override Guid ComponentGuid => new("8b7c6d5e-4f3a-2b1c-0d9e-8f7a6b5c4d3e");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.GetAssembliesComponent;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_CivilAlignmentStyle;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GetAssembliesComponent"/> class.
+    /// Initializes a new instance of the <see cref="GetAlignmentStylesComponent"/> class.
     /// </summary>
-    public GetAssembliesComponent()
-        : base("Get Civil3d Assemblies", "CVL-GetAsms",
-            "Gets all Assemblies from the current Civil 3D document",
-            "Civil3d", "Assemblies")
+    public GetAlignmentStylesComponent()
+        : base("Get Civil3d Alignment Styles", "CVL-GetAlnStyles",
+            "Gets all Alignment Styles from the current Civil 3D document",
+            "Civil3d", "Alignments")
     {
     }
 
@@ -41,8 +42,8 @@ public class GetAssembliesComponent : RhinoInsideAutocad_ComponentBase, IReferen
     /// <inheritdoc />
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddParameter(new Param_CivilAssembly(), "Assemblies", "Asms",
-            "All Assemblies in the current document.", GH_ParamAccess.list);
+        pManager.AddParameter(new Param_CivilAlignmentStyle(GH_ParamAccess.list), "Styles", "S",
+            "All Alignment Styles in the document.", GH_ParamAccess.list);
     }
 
     /// <inheritdoc />
@@ -62,27 +63,27 @@ public class GetAssembliesComponent : RhinoInsideAutocad_ComponentBase, IReferen
 
         var transactionManager = document.CreateTransactionManager();
 
-        var assemblies = transactionManager.PerformTask(() =>
+        var styles = transactionManager.PerformTask(() =>
         {
-            var result = new List<GH_CivilAssembly>();
+            var result = new List<GH_CivilAlignmentStyle>();
 
             try
             {
                 var civilDoc = CivilDocument.GetCivilDocument(document.Unwrap().Database);
 
-                var assemblyIds = civilDoc.AssemblyCollection;
+                var alignmentStyles = civilDoc.Styles.AlignmentStyles;
 
-                foreach (var assemblyId in assemblyIds)
+                foreach (ObjectId styleId in alignmentStyles)
                 {
-                    if (assemblyId.IsNull || assemblyId.IsErased)
+                    if (styleId.IsNull || styleId.IsErased)
                         continue;
 
-                    var assembly = transactionManager.Unwrap()
-                        .GetObject(assemblyId, OpenMode.ForRead) as Assembly;
+                    var style = transactionManager.Unwrap()
+                        .GetObject(styleId, OpenMode.ForRead) as AlignmentStyle;
 
-                    if (assembly != null)
+                    if (style != null)
                     {
-                        result.Add(new GH_CivilAssembly(assembly));
+                        result.Add(new GH_CivilAlignmentStyle(new CivilAlignmentStyleWrapper(style)));
                     }
                 }
             }
@@ -94,13 +95,13 @@ public class GetAssembliesComponent : RhinoInsideAutocad_ComponentBase, IReferen
             return result;
         });
 
-        if (assemblies.Count == 0)
+        if (styles.Count == 0)
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No assemblies found in the document");
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No alignment styles found in the document");
             return;
         }
 
-        DA.SetDataList(0, assemblies);
+        DA.SetDataList(0, styles);
     }
 
     /// <inheritdoc />
@@ -113,7 +114,7 @@ public class GetAssembliesComponent : RhinoInsideAutocad_ComponentBase, IReferen
 
         foreach (var changedObject in change)
         {
-            if (changedObject.UnwrapObject() is Assembly)
+            if (changedObject.UnwrapObject() is AlignmentStyle)
             {
                 return true;
             }

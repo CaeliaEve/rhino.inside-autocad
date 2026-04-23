@@ -153,7 +153,7 @@ public class CivilProfileViewComponent : RhinoInsideAutocad_ComponentBase
 
         DA.SetDataList(5, result.LabelGroupsGoo);
 
-        DA.SetDataTree(6, result.Geoemtry);
+        DA.SetDataTree(6, result.Geometry);
 
     }
 }

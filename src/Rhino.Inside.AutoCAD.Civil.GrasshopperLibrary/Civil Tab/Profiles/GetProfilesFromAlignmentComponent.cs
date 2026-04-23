@@ -2,6 +2,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -11,7 +12,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// A Grasshopper component that gets all Profiles from a Civil 3D Alignment.
 /// </summary>
 [ComponentVersion(introduced: "1.0.19")]
-public class GetProfilesFromAlignmentComponent : RhinoInsideAutocad_ComponentBase
+public class GetProfilesFromAlignmentComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("A0B1C2D3-E4F5-6789-A890-123456789DEF");
@@ -96,5 +97,24 @@ public class GetProfilesFromAlignmentComponent : RhinoInsideAutocad_ComponentBas
         }
 
         DA.SetDataList(0, profiles);
+    }
+
+    /// <inheritdoc />
+    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    {
+        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
+        {
+            if (ghParam.NeedsToBeExpired(change)) return true;
+        }
+
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is Profile)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

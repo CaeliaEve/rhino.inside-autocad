@@ -13,7 +13,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// A Grasshopper component that creates a Civil 3D TIN Surface from a Rhino Mesh.
 /// </summary>
 [ComponentVersion(introduced: "1.2.19")]
-public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
+public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_CreateComponentBase
 {
     private string _errorMessage = string.Empty;
     private const string _ghPrefix = CivilConstants.GhPrefix;
@@ -157,6 +157,9 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_ComponentBase
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to create TIN Surface");
             return;
         }
+
+        // Track the created object for potential replacement
+        this.TrackCreatedObject(objectId, document);
 
         // Set outputs
         DA.SetData(0, new GH_CivilTinSurface(tinSurface));

@@ -1,4 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
@@ -93,7 +93,7 @@ public class CivilTinSurfaceWrapper : AutocadEntityWrapper, ICivilTinSurfaceWrap
     /// </summary>
     private RhinoPolyCurve? ExtractOuterBorder(IAutocadTransactionManager transactionWrapper)
     {
-        var borderIds = _surface.ExtractBorder(SurfaceExtractionSettingsType.Model);
+        var borderIds = _surface.ExtractBorder(SurfaceExtractionSettingsType.Plan);
 
         if (borderIds == null || borderIds.Count == 0)
             return null;

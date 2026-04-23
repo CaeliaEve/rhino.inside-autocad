@@ -17,7 +17,7 @@ public record ProfileViewGooResult(
     GH_CivilAlignment? AlignmentGoo,
     List<GH_CivilProfileViewBand>? BandsGoo,
     List<GH_CivilFeatureLabel>? LabelGroupsGoo,
-    GH_Structure<IGH_GeometricGoo> Geoemtry) : GooResultBase
+    GH_Structure<IGH_GeometricGoo>? Geometry) : GooResultBase
 {
     /// <summary>
     /// Gets a failed result instance.

@@ -13,7 +13,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// A Grasshopper component that creates a Civil 3D TIN Volume Surface from two TIN Surfaces.
 /// </summary>
 [ComponentVersion(introduced: "1.2.19")]
-public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
+public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_CreateComponentBase
 {
     private string _errorMessage = string.Empty;
     private const string _ghPrefix = CivilConstants.GhVolumeSurfacePrefix;
@@ -186,6 +186,9 @@ public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_Component
             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Failed to create TIN Volume Surface");
             return;
         }
+
+        // Track the created object for potential replacement
+        this.TrackCreatedObject(objectId, document);
 
         // Set outputs
         DA.SetData(0, new GH_CivilTinVolumeSurface(volumeSrf));

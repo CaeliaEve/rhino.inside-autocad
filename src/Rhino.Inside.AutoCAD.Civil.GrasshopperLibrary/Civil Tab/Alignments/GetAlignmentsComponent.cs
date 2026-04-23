@@ -1,6 +1,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilDocument = Autodesk.Civil.ApplicationServices.CivilDocument;
@@ -11,7 +12,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// A Grasshopper component that gets all Alignments from the current Civil 3D document.
 /// </summary>
 [ComponentVersion(introduced: "1.2.19")]
-public class GetAlignmentsComponent : RhinoInsideAutocad_ComponentBase
+public class GetAlignmentsComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("f4a11a81-3f5e-4a38-8612-0e35e08ad1d9");
@@ -100,5 +101,24 @@ public class GetAlignmentsComponent : RhinoInsideAutocad_ComponentBase
         }
 
         DA.SetDataList(0, alignments);
+    }
+
+    /// <inheritdoc />
+    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    {
+        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
+        {
+            if (ghParam.NeedsToBeExpired(change)) return true;
+        }
+
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is Alignment)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -40,7 +40,7 @@ public static class AlignmentCreator
                 {
                     entities.AddFixedCurve(entities.Count,
                         arcCurve.PointAtStart.ToAutocadPoint3d(),
-                        arcCurve.PointAt(0.5).ToAutocadPoint3d(),
+                        arcCurve.PointAtNormalizedLength(GeometryConstants.NormalizedMidLength).ToAutocadPoint3d(),
                         arcCurve.PointAtEnd.ToAutocadPoint3d());
                     break;
                 }
