@@ -6,10 +6,10 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Represents a Grasshopper parameter for Civil 3D Subassembly properties.
 /// </summary>
 /// <remarks>
-/// This parameter type wraps <see cref="GH_CivilSubassemblyProperties"/> objects which
+/// This parameter type wraps <see cref="GH_CivilSubassembly"/> objects which
 /// contain properties from Subassemblies.
 /// </remarks>
-public class Param_CivilSubassemblyProperties : GH_Param<GH_CivilSubassemblyProperties>
+public class Param_CivilSubassemblyProperties : GH_Param<GH_CivilSubassembly>
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new Guid("C3D4E5F6-A7B8-9012-CDEF-123456789012");

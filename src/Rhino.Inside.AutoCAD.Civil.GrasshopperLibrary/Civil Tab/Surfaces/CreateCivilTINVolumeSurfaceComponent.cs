@@ -86,6 +86,8 @@ public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_CreateCom
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+        if (ShouldSkipSolve()) return;
+
         AutocadDocument? autocadDocument = null;
         GH_CivilTinSurface? baseSurfaceGoo = null;
         GH_CivilTinSurface? comparisonSurfaceGoo = null;

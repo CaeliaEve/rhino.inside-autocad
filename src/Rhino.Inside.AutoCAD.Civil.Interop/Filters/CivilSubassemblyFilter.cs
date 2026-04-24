@@ -1,8 +1,8 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
-using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using CivilSubassembly = Autodesk.Civil.DatabaseServices.Subassembly;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -16,7 +16,7 @@ public class CivilSubassemblyFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(Subassembly)).DxfName)
+            new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(CivilSubassembly)).DxfName)
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);

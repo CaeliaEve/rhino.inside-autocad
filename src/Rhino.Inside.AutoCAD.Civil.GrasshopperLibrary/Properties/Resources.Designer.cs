@@ -173,16 +173,6 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CivilAssemblyPropertiesComponent {
-            get {
-                object obj = ResourceManager.GetObject("CivilAssemblyPropertiesComponent", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap CivilBoundedVolume {
             get {
                 object obj = ResourceManager.GetObject("CivilBoundedVolume", resourceCulture);
@@ -419,7 +409,17 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CivilSideValueList {
+            get {
+                object obj = ResourceManager.GetObject("CivilSideValueList", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -499,7 +499,17 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap CreateCivilSubassemblyComponent {
+            get {
+                object obj = ResourceManager.GetObject("CreateCivilSubassemblyComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -686,16 +696,6 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.Properties {
         internal static System.Drawing.Bitmap Param_CivilAssembly {
             get {
                 object obj = ResourceManager.GetObject("Param_CivilAssembly", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Param_CivilAssemblyProperties {
-            get {
-                object obj = ResourceManager.GetObject("Param_CivilAssemblyProperties", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

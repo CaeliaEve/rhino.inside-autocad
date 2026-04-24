@@ -13,6 +13,43 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// and automatically deletes them before creating new ones when the solver re-runs.
 /// Supports multi-input components where SolveInstance is called N times for N inputs.
 /// </summary>
+/// <remarks>
+/// <para><b>Rhino Undo/Redo Protection</b></para>
+/// <para>
+/// This class implements protection against a crash that occurs when Civil 3D objects
+/// are created immediately after a Rhino undo/redo operation. The issue manifests as an
+/// <see cref="System.AccessViolationException"/> inside <c>AeccDbMgd.dll</c> (Civil 3D's
+/// managed database layer) when calling <c>Alignment.Create()</c> or similar Civil 3D
+/// object creation methods.
+/// </para>
+/// <para><b>Root Cause</b></para>
+/// <para>
+/// When the user performs an undo in Rhino (e.g., undoing a curve move), the Grasshopper
+/// solver is triggered to re-run. The solver receives the <c>IsEndUndo</c> event and runs
+/// immediately after, but Civil 3D's internal state is still unstable at this point.
+/// Even though our transaction state appears clean (0 active transactions, successful
+/// document lock), Civil 3D's native layer crashes when attempting to create new objects.
+/// </para>
+/// <para><b>Solution</b></para>
+/// <para>
+/// The fix is to defer object creation by one solve cycle after undo/redo completes:
+/// <list type="number">
+///   <item><description><c>IsBeginUndo</c> fires → Set <c>_undoInProgress = true</c></description></item>
+///   <item><description><c>IsEndUndo</c> fires → Set <c>_justFinishedUndo = true</c></description></item>
+///   <item><description><c>BeforeSolveInstance</c> runs → Detect <c>_justFinishedUndo</c>, skip this solve, schedule re-solve in 100ms</description></item>
+///   <item><description>Re-solve runs → Civil 3D is now stable, object creation succeeds</description></item>
+/// </list>
+/// </para>
+/// <para>
+/// Tracked objects are preserved during skip because Civil 3D objects are not affected by
+/// Rhino undo - they remain valid and should be deleted when the deferred solve runs (if
+/// Replace mode is enabled).
+/// </para>
+/// <para>
+/// Derived classes must call <see cref="ShouldSkipSolve"/> at the start of their
+/// <c>SolveInstance</c> method and return early if it returns <c>true</c>.
+/// </para>
+/// </remarks>
 public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutocad_ComponentBase
 {
     // Serialization keys
@@ -24,8 +61,12 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     private bool _deletionPerformedThisCycle = false;
     private bool _isSubscribedToUndo = false;
 
-    // Static flag shared across all instances - undo affects all components
+    // Static flags shared across all instances - undo affects all components
     private static bool _undoInProgress = false;
+    private static bool _justFinishedUndo = false;
+
+    // Per-instance state for current solve cycle
+    private bool _skipThisSolve = false;
 
     /// <summary>
     /// Constructs a new instance of the <see cref="RhinoInsideAutocad_CreateComponentBase"/> class.
@@ -77,13 +118,14 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         {
             // Set flag BEFORE solver runs
             _undoInProgress = true;
-            // Clear tracked objects - they may be in corrupted state
-            _lastCreatedObjectIds.Clear();
+            // DON'T clear tracked objects - Civil 3D objects are not affected by Rhino undo
         }
         else if (e.IsEndUndo || e.IsEndRedo)
         {
-            // Clear flag after undo completes
+            // Clear undo-in-progress flag, but mark that we just finished
+            // This tells BeforeSolveInstance to skip and schedule a deferred re-solve
             _undoInProgress = false;
+            _justFinishedUndo = true;
         }
     }
 
@@ -120,27 +162,52 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
     /// <summary>
     /// Called before the solve cycle starts. Deletes all previously tracked objects
-    /// when Replace mode is enabled. Skips deletion if an undo/redo operation is in progress
-    /// to prevent AccessViolationException when deleting objects during Rhino undo.
+    /// when Replace mode is enabled. Skips the entire solve cycle if an undo/redo
+    /// operation just completed (to prevent AccessViolationException in Civil 3D),
+    /// and subscribes to AutoCAD Idle event for deferred re-solve when stable.
     /// </summary>
     protected override void BeforeSolveInstance()
     {
         base.BeforeSolveInstance();
         _deletionPerformedThisCycle = false;
+        _skipThisSolve = false;
 
-        // Skip deletion if undo is in progress - objects may be in corrupted state
+        // If undo is currently in progress, skip this solve entirely
         if (_undoInProgress)
         {
-            _lastCreatedObjectIds.Clear();
+            _skipThisSolve = true;
+            // DON'T clear tracked objects - keep them for deferred solve
             return;
         }
 
+        // If undo just finished, skip this solve and schedule a deferred re-solve
+        // Civil 3D's internal state is unstable immediately after undo completes
+        if (_justFinishedUndo)
+        {
+            _justFinishedUndo = false;
+            _skipThisSolve = true;
+            // DON'T clear tracked objects - keep them for deferred solve
+
+            // Schedule re-solve after Civil 3D stabilizes (100ms delay)
+            this.OnPingDocument()?.ScheduleSolution(100, d => this.ExpireSolution(false));
+            return;
+        }
+
+        // Normal execution - delete tracked objects if replace mode enabled
         if (_replaceEnabled && !_deletionPerformedThisCycle)
         {
             this.DeleteAllTrackedObjects();
             _deletionPerformedThisCycle = true;
         }
     }
+
+    /// <summary>
+    /// Returns true if this solve cycle should be skipped (post-undo deferral).
+    /// Derived classes must check this at the start of their SolveInstance method
+    /// and return early if it returns true.
+    /// </summary>
+    /// <returns>True if the solve should be skipped; otherwise false.</returns>
+    protected bool ShouldSkipSolve() => _skipThisSolve;
 
     /// <summary>
     /// Deletes all tracked objects in batched transactions (one per document).

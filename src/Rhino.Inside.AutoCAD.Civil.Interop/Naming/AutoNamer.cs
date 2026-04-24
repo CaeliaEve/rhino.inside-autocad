@@ -4,6 +4,8 @@ using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
+using Assembly = Autodesk.Civil.DatabaseServices.Assembly;
+using CivilSubassembly = Autodesk.Civil.DatabaseServices.Subassembly;
 using Surface = Autodesk.Civil.DatabaseServices.Surface;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop.Naming;
@@ -60,9 +62,33 @@ public static class AutoNamer
     }
 
     /// <summary>
+    /// Generates a unique subassembly name by checking existing subassemblies in the assembly.
+    /// </summary>
+    /// <param name="transactionManager">The transaction manager for database access.</param>
+    /// <param name="assemblyId">The ObjectId of the assembly to check for existing subassembly names.</param>
+    /// <param name="prefix">The prefix to use for the subassembly name.</param>
+    /// <returns>A unique subassembly name in the format "{prefix}Subassembly_NNN".</returns>
+    public static string GenerateUniqueSubassemblyName(IAutocadTransactionManager transactionManager, ObjectId assemblyId, string prefix)
+    {
+        var existingNames = GetAllSubassemblyNames(transactionManager, assemblyId);
+
+        var baseName = $"{prefix}Subassembly";
+        var counter = 1;
+        string candidateName;
+
+        do
+        {
+            candidateName = $"{baseName}_{counter:D3}";
+            counter++;
+        } while (existingNames.Contains(candidateName));
+
+        return candidateName;
+    }
+
+    /// <summary>
     /// Generates a unique alignment name by checking existing alignments in the document.
     /// </summary>
-    /// <param name="civilDoc">The Civil 3D document to check for existing alignment names.</param>
+    /// <param name="autocadTransactionManager">The transaction manager for database access.</param>
     /// <param name="prefix">The prefix to use for the alignment name.</param>
     /// <returns>A unique alignment name in the format "{prefix}Alignment_NNN".</returns>
     public static string GenerateUniqueAlignmentName(IAutocadTransactionManager autocadTransactionManager, string prefix)
@@ -147,7 +173,6 @@ public static class AutoNamer
         {
             var alignmentIds = civilDoc.GetAlignmentIds();
 
-
             using var transaction = database.TransactionManager.StartTransaction();
             foreach (ObjectId alignmentId in alignmentIds)
             {
@@ -161,6 +186,53 @@ public static class AutoNamer
                 }
             }
             transaction.Commit();
+        }
+        catch (System.Exception)
+        {
+            // Handle disposal during iteration - return whatever names we collected
+        }
+
+        return existingNames;
+    }
+
+    /// <summary>
+    /// Gets all existing subassembly names from the specified assembly.
+    /// </summary>
+    /// <param name="transactionManager">The transaction manager for database access.</param>
+    /// <param name="assemblyId">The ObjectId of the assembly to check.</param>
+    /// <returns>A set of all existing subassembly names in the assembly.</returns>
+    private static HashSet<string> GetAllSubassemblyNames(IAutocadTransactionManager transactionManager, ObjectId assemblyId)
+    {
+        var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (ApplicationState.IsShuttingDown)
+            return existingNames;
+
+        if (assemblyId.IsNull || !assemblyId.IsValid || assemblyId.IsErased)
+            return existingNames;
+
+        try
+        {
+            var transaction = transactionManager.Unwrap();
+            var assembly = transaction.GetObject(assemblyId, OpenMode.ForRead) as Assembly;
+
+            if (assembly == null)
+                return existingNames;
+
+            foreach (var group in assembly.Groups)
+            {
+                foreach (ObjectId subassemblyId in group.GetSubassemblyIds())
+                {
+                    if (subassemblyId.IsValid && !subassemblyId.IsNull && !subassemblyId.IsErased)
+                    {
+                        var subassembly = transaction.GetObject(subassemblyId, OpenMode.ForRead) as CivilSubassembly;
+                        if (subassembly != null)
+                        {
+                            existingNames.Add(subassembly.Name);
+                        }
+                    }
+                }
+            }
         }
         catch (System.Exception)
         {

@@ -211,9 +211,6 @@
   <data name="CivilAssemblyComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\CivilAssemblyComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="CivilAssemblyPropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\CivilAssemblyPropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="GetCorridorsComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\GetCorridorsComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -349,9 +346,6 @@
   <data name="Param_CivilSubassemblyProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Param_CivilSubassemblyProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Param_CivilAssemblyProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Param_CivilAssemblyProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="Param_CivilCorridor" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Param_CivilCorridor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -434,6 +428,12 @@
     <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Param_CivilSurfaceBreakline" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilSideValueList" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CreateCivilSubassemblyComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

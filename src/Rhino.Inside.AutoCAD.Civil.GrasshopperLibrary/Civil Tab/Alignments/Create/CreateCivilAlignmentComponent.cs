@@ -94,6 +94,8 @@ public class CreateCivilAlignmentComponent : RhinoInsideAutocad_CreateComponentB
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+        if (ShouldSkipSolve()) return;
+
         AutocadDocument? autocadDocument = null;
         RhinoCurve? curve = null;
         var alignmentName = string.Empty;

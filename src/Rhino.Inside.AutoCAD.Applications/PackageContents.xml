@@ -61,6 +61,10 @@
 						AppDescription="Grasshopper Component Dependency"
 						AppType="Managed"/>
 
+		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
+						ModuleName="./1.0.19/Win64/NET48/Rhino.Inside.Autocad.Civil.Assemblies.dll"
+						AppDescription="Civil 3D Subassembly Library"
+						AppType="Managed"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
 					  ModuleName="./Toolbar/RhinoInsideAutocad_Toolbar_NET48.cuix"
@@ -115,6 +119,10 @@
 						AppDescription="Grasshopper Component Dependency"
 						AppType="Managed"/>
 
+		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
+						ModuleName="./1.0.19/Win64/NET8/Rhino.Inside.Autocad.Civil.Assemblies.dll"
+						AppDescription="Civil 3D Subassembly Library"
+						AppType="Managed"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
 					  ModuleName="./Toolbar/RhinoInsideAutocad_Toolbar_NET8.cuix"

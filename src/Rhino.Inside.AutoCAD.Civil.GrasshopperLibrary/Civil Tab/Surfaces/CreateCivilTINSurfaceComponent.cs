@@ -71,6 +71,8 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_CreateComponent
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+        if (ShouldSkipSolve()) return;
+
         AutocadDocument? autocadDocument = null;
         RhinoMesh? mesh = null;
         var surfaceName = string.Empty;

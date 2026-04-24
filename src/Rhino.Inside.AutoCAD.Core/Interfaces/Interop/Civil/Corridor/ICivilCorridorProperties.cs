@@ -44,4 +44,21 @@ public interface ICivilCorridorProperties
     /// Provides both the style name and ObjectId reference.
     /// </remarks>
     INamedId Style { get; }
+
+    /// <summary>
+    /// Gets the object id of the corridor.
+    /// </summary>
+    IObjectId CorridorId { get; }
+
+    /// <summary>
+    /// Updates the corridor with new properties and returns a new
+    /// Corridor properties object.
+    /// </summary>
+    /// <param name="transactionManager">The transaction manager to use for the update.</param>
+    /// <param name="newName">The new name for the corridor.</param>
+    /// <param name="newDescription">The new description for the corridor.</param>
+    /// <param name="newCode">The new code set style name for the corridor.</param>
+    /// <returns>A new <see cref="ICivilCorridorProperties"/> instance with updated values.</returns>
+    ICivilCorridorProperties Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription, string newCode);
 }

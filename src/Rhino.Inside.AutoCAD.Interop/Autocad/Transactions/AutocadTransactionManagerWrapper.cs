@@ -91,19 +91,15 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperBase<TransactionMa
     public T PerformTask<T>(Func<T> function, bool abort = false)
     {
         using var documentLock = _document.LockDocument();
-
         using var transaction = _wrappedAutocadObject.StartTransaction();
 
         var result = function.Invoke();
 
         if (abort)
-        {
             transaction.Abort();
-        }
         else
-        {
             transaction.Commit();
-        }
+
         return result;
     }
 }

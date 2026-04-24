@@ -11,37 +11,37 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// This Goo wraps a <see cref="CivilSubassemblyWrapper"/> containing
 /// properties from a Subassembly.
 /// </remarks>
-public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyWrapper>
+public class GH_CivilSubassembly : GH_Goo<CivilSubassemblyWrapper>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="GH_CivilSubassemblyProperties"/> class with no value.
+    /// Initializes a new instance of the <see cref="GH_CivilSubassembly"/> class with no value.
     /// </summary>
-    public GH_CivilSubassemblyProperties()
+    public GH_CivilSubassembly()
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GH_CivilSubassemblyProperties"/> class with the
+    /// Initializes a new instance of the <see cref="GH_CivilSubassembly"/> class with the
     /// specified subassembly properties wrapper.
     /// </summary>
     /// <param name="subassemblyWrapper">The Civil 3D subassembly properties wrapper.</param>
-    public GH_CivilSubassemblyProperties(CivilSubassemblyWrapper subassemblyWrapper) : base(subassemblyWrapper)
+    public GH_CivilSubassembly(CivilSubassemblyWrapper subassemblyWrapper) : base(subassemblyWrapper)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GH_CivilSubassemblyProperties"/> class by copying
+    /// Initializes a new instance of the <see cref="GH_CivilSubassembly"/> class by copying
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilSubassemblyProperties(GH_CivilSubassemblyProperties other) : base(other.Value?.ShallowClone())
+    public GH_CivilSubassembly(GH_CivilSubassembly other) : base(other.Value?.ShallowClone())
     {
     }
 
     /// <summary>
-    /// Constructs a new <see cref="GH_CivilSubassemblyProperties"/> via the interface.
+    /// Constructs a new <see cref="GH_CivilSubassembly"/> via the interface.
     /// </summary>
-    public GH_CivilSubassemblyProperties(ICivilSubassembly subassemblyProperties)
+    public GH_CivilSubassembly(ICivilSubassembly subassemblyProperties)
         : base((subassemblyProperties as CivilSubassemblyWrapper)!)
     {
     }
@@ -69,13 +69,13 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyWrapper>
     /// <inheritdoc />
     public override IGH_Goo Duplicate()
     {
-        return new GH_CivilSubassemblyProperties(this);
+        return new GH_CivilSubassembly(this);
     }
 
     /// <inheritdoc />
     public override bool CastFrom(object source)
     {
-        if (source is GH_CivilSubassemblyProperties goo)
+        if (source is GH_CivilSubassembly goo)
         {
             Value = goo.Value?.ShallowClone();
             return true;
@@ -105,9 +105,9 @@ public class GH_CivilSubassemblyProperties : GH_Goo<CivilSubassemblyWrapper>
             return true;
         }
 
-        if (typeof(Q).IsAssignableFrom(typeof(GH_CivilSubassemblyProperties)))
+        if (typeof(Q).IsAssignableFrom(typeof(GH_CivilSubassembly)))
         {
-            target = (Q)(object)new GH_CivilSubassemblyProperties(this);
+            target = (Q)(object)new GH_CivilSubassembly(this);
             return true;
         }
 

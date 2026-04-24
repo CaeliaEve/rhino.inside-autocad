@@ -101,7 +101,6 @@ public static class AlignmentCreator
         ObjectId labelSetId,
         CivilAlignmentType alignmentType)
     {
-
         var database = transactionManager.AutocadDatabase.Unwrap();
         var civilDoc = CivilDocument.GetCivilDocument(database);
 
@@ -125,7 +124,6 @@ public static class AlignmentCreator
         if (alignment == null)
         {
             throw new Exception($"Failed to access created alignment: {alignmentName}");
-
         }
 
         // Add geometry from the curve

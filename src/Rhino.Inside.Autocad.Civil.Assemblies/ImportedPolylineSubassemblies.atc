@@ -1,0 +1,41 @@
+<Palette>
+	<ItemID idValue="{B1M0RPH1-C1V1-4SSM-8LY1-P0LYL1N31MPT}"/>
+	<Properties>
+		<ItemName>Rhino Inside Subassemblies</ItemName>
+		<Images/>
+		<Time createdUniversalDateTime="2026-04-23T00:00:00" modifiedUniversalDateTime="2026-04-23T00:00:00"/>
+	</Properties>
+	<Source/>
+	<Tools>
+		<Tool>
+			<ItemID idValue="{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"/>
+			<Properties>
+				<ItemName>Imported Polyline Subassembly</ItemName>
+				<Images/>
+				<Description>Imports polyline geometry from a CSV file</Description>
+				<Keywords>_importedpolyline subassembly rhino grasshopper</Keywords>
+				<Time createdUniversalDateTime="2026-04-23T00:00:00" modifiedUniversalDateTime="2026-04-23T00:00:00"/>
+			</Properties>
+			<Source/>
+			<StockToolRef idValue="{7F55AAC0-0256-48D7-BFA5-914702663FDE}"/>
+			<Data>
+				<AeccDbSubassembly>
+					<GeometryGenerateMode>UseDotNet</GeometryGenerateMode>
+					<DotNetClass Assembly="Rhino.Inside.Autocad.Civil.Assemblies.dll">Subassembly.ImportedPolylineSubassemblies</DotNetClass>
+					<Params>
+						<CsvPath DataType="String" DisplayName="CSV File Path" Description="Path to the CSV file containing offset,elevation pairs"></CsvPath>
+						<PointCode DataType="String" DisplayName="Point Code" Description="Code to assign to all points">Shape</PointCode>
+						<LinkCode DataType="String" DisplayName="Link Code" Description="Code to assign to all links">Top</LinkCode>
+						<Closed DataType="Long" DisplayName="Close Shape" Description="Set to 1 to close the shape">0
+							<Enum>
+								<No DisplayName="No">0</No>
+								<Yes DisplayName="Yes">1</Yes>
+							</Enum>
+						</Closed>
+					</Params>
+				</AeccDbSubassembly>
+				<Units>foot</Units>
+			</Data>
+		</Tool>
+	</Tools>
+</Palette>

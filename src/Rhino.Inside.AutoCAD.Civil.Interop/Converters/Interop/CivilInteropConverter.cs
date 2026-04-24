@@ -2,6 +2,7 @@ using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CadDbObject = Autodesk.AutoCAD.DatabaseServices.DBObject;
+using CivilSubassembly = Autodesk.Civil.DatabaseServices.Subassembly;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -178,5 +179,15 @@ public static class CivilInteropConverter
         var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)profile;
 
         return (Profile)wrapper.AutocadObject;
+    }
+
+    /// <summary>
+    /// Unwraps an <see cref="ICivilSubassembly"/> to its underlying Civil 3D <see cref="Subassembly"/>.
+    /// </summary>
+    public static CivilSubassembly Unwrap(this CivilSubassemblyWrapper subassembly)
+    {
+        var wrapper = (AutocadWrapperDisposableBase<CadDbObject>)subassembly;
+
+        return (CivilSubassembly)wrapper.AutocadObject;
     }
 }

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Subassembly xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             Name="ImportedPolylineSubassemblies"
+             Description="Imports polyline geometry from a CSV file"
+             Version="1.0.0"
+             Author="Bimorph Digital Engineering"
+             ClassName="Subassembly.ImportedPolylineSubassemblies"
+             AssemblyName="ImportedPolylineSubassemblies.dll">
+  <Parameters>
+    <Parameter Name="CsvPath"
+               DisplayName="CSV File Path"
+               Description="Path to the CSV file containing offset,elevation pairs"
+               Type="String"
+               DefaultValue="" />
+    <Parameter Name="PointCode"
+               DisplayName="Point Code"
+               Description="Code to assign to all points"
+               Type="String"
+               DefaultValue="Shape" />
+    <Parameter Name="LinkCode"
+               DisplayName="Link Code"
+               Description="Code to assign to all links"
+               Type="String"
+               DefaultValue="Top" />
+    <Parameter Name="Closed"
+               DisplayName="Close Shape"
+               Description="Set to 1 to close the shape"
+               Type="Long"
+               DefaultValue="0" />
+  </Parameters>
+  <Codes>
+    <PointCodes>
+      <Code Name="Shape" Description="Shape point" />
+    </PointCodes>
+    <LinkCodes>
+      <Code Name="Top" Description="Top link" />
+    </LinkCodes>
+  </Codes>
+</Subassembly>

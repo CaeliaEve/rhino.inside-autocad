@@ -1,8 +1,10 @@
-using Autodesk.Civil.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
+using CivilSubassembly = Autodesk.Civil.DatabaseServices.Subassembly;
+using RhinoCurve = Rhino.Geometry.Curve;
 
 namespace Rhino.Inside.AutoCAD.Civil.Interop;
 
@@ -15,7 +17,7 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </remarks>
 public class CivilSubassemblyWrapper : AutocadEntityWrapper, ICivilSubassembly
 {
-    private readonly Subassembly _subassembly;
+    private readonly CivilSubassembly _subassembly;
 
     /// <inheritdoc />
     public string Name { get; }
@@ -30,12 +32,15 @@ public class CivilSubassemblyWrapper : AutocadEntityWrapper, ICivilSubassembly
     public Point3d Origin { get; }
 
     /// <inheritdoc />
-    public IReadOnlyList<Curve> Geometry { get; }
+    public IReadOnlyList<RhinoCurve> Geometry { get; }
+
+    /// <inheritdoc />
+    public IObjectId SubassemblyId => new AutocadObjectIdWrapper(_subassembly.Id);
 
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilSubassemblyWrapper"/>
     /// </summary>
-    public CivilSubassemblyWrapper(Subassembly subassembly) : base(subassembly)
+    public CivilSubassemblyWrapper(CivilSubassembly subassembly) : base(subassembly)
     {
         _subassembly = subassembly;
         this.Name = subassembly.Name;
@@ -48,9 +53,9 @@ public class CivilSubassemblyWrapper : AutocadEntityWrapper, ICivilSubassembly
     /// <summary>
     /// Extracts geometry from a subassembly's links.
     /// </summary>
-    private List<Curve> ExtractGeometry(Subassembly subassembly)
+    private List<RhinoCurve> ExtractGeometry(CivilSubassembly subassembly)
     {
-        var curves = new List<Curve>();
+        var curves = new List<RhinoCurve>();
 
         var links = subassembly.Links;
 
@@ -82,6 +87,24 @@ public class CivilSubassemblyWrapper : AutocadEntityWrapper, ICivilSubassembly
     public CivilSubassemblyWrapper ShallowClone()
     {
         return new CivilSubassemblyWrapper(_subassembly);
+    }
+
+    /// <inheritdoc />
+    public ICivilSubassembly Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription, CivilSide newSide)
+    {
+        var subassembly = transactionManager.Unwrap().GetObject(_subassembly.Id, OpenMode.ForWrite) as CivilSubassembly;
+
+        if (subassembly == null)
+        {
+            return this;
+        }
+
+        subassembly.Name = newName;
+        subassembly.Description = newDescription;
+        subassembly.Side = newSide.ToCivilSide();
+
+        return new CivilSubassemblyWrapper(subassembly);
     }
 
     /// <inheritdoc />

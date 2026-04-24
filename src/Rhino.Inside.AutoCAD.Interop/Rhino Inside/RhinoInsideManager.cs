@@ -229,6 +229,21 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// <inheritdoc />
     public void Shutdown()
     {
+        this.GrasshopperInstance.PreviewExpired -= this.OnUpdateGrasshopperPreview;
+        this.GrasshopperInstance.ObjectRemoved -= this.OnGrasshopperObjectRemoved;
+        this.GrasshopperInstance.ComponentSelectionChanged -=
+            this.OnGrasshopperSelectionChanged;
+
+        this.RhinoInstance.DocumentCreated -= this.UpdateUnitSystem;
+        this.RhinoInstance.UnitsChanged -= this.UpdateUnitSystem;
+        this.RhinoInstance.ObjectModifiedOrAppended -= this.RhinoObjectModifiedOrAppended;
+        this.RhinoInstance.ObjectRemoved -= this.RhinoObjectRemoved;
+        this.RhinoInstance.DeselectAll -= this.DeselectAllRhinoPreview;
+
+        this.AutoCadInstance.DocumentCreated -= this.AutocadDocumentSwitched;
+        this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
+        this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
+
         // Clear preview servers first to prevent access to disposed resources
         try
         {
@@ -237,22 +252,8 @@ public class RhinoInsideManager : IRhinoInsideManager
         }
         catch { }
 
-        this.GrasshopperInstance.PreviewExpired -= this.OnUpdateGrasshopperPreview;
-        this.GrasshopperInstance.ObjectRemoved -= this.OnGrasshopperObjectRemoved;
-        this.GrasshopperInstance.ComponentSelectionChanged -=
-            this.OnGrasshopperSelectionChanged;
         this.GrasshopperInstance.Shutdown();
-
-        this.RhinoInstance.DocumentCreated -= this.UpdateUnitSystem;
-        this.RhinoInstance.UnitsChanged -= this.UpdateUnitSystem;
-        this.RhinoInstance.ObjectModifiedOrAppended -= this.RhinoObjectModifiedOrAppended;
-        this.RhinoInstance.ObjectRemoved -= this.RhinoObjectRemoved;
-        this.RhinoInstance.DeselectAll -= this.DeselectAllRhinoPreview;
         this.RhinoInstance.Shutdown();
-
-        this.AutoCadInstance.DocumentCreated -= this.AutocadDocumentSwitched;
-        this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
-        this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
         this.AutoCadInstance.Shutdown();
 
     }

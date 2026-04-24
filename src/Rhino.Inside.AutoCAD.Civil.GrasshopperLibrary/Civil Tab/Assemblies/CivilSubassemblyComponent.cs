@@ -1,4 +1,6 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
@@ -33,6 +35,18 @@ public class CivilSubassemblyComponent : RhinoInsideAutocad_ComponentBase
     {
         pManager.AddParameter(new Param_CivilSubassemblyProperties(GH_ParamAccess.item), "Subassembly",
             "Sub", "A Subassembly from a Civil3d Assembly", GH_ParamAccess.item);
+
+        pManager.AddTextParameter("Name", "N",
+            "The name of the subassembly. When set this will update the name of the subassembly.", GH_ParamAccess.item);
+        pManager[1].Optional = true;
+
+        pManager.AddTextParameter("Description", "Desc",
+            "The description of the subassembly. When set this will update the description of the subassembly.", GH_ParamAccess.item);
+        pManager[2].Optional = true;
+
+        pManager.AddIntegerParameter("Side", "S",
+            "The side of the subassembly (0=None, 1=Left, 2=Right). When set this will update the side of the subassembly.", GH_ParamAccess.item);
+        pManager[3].Optional = true;
     }
 
     /// <inheritdoc />
@@ -57,16 +71,41 @@ public class CivilSubassemblyComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        GH_CivilSubassemblyProperties? propsGoo = null;
+        GH_CivilSubassembly? civilSubassemblyGoo = null;
 
-        if (!DA.GetData(0, ref propsGoo) || propsGoo?.Value is null) return;
+        if (!DA.GetData(0, ref civilSubassemblyGoo) || civilSubassemblyGoo?.Value is null) return;
 
-        var props = propsGoo.Value;
+        ICivilSubassembly subassembly = civilSubassemblyGoo.Value;
 
-        DA.SetData(0, props.Name);
-        DA.SetData(1, props.Description);
-        DA.SetData(2, props.Side);
-        DA.SetData(3, props.Origin);
-        DA.SetDataList(4, props.Geometry);
+        var newName = subassembly.Name;
+        var newDescription = subassembly.Description;
+        var newSide = (int)subassembly.Side;
+
+        var updateFlag = false;
+
+        if (DA.GetData(1, ref newName) && newName != subassembly.Name) updateFlag = true;
+        if (DA.GetData(2, ref newDescription) && newDescription != subassembly.Description) updateFlag = true;
+        if (DA.GetData(3, ref newSide) && (CivilSide)newSide != subassembly.Side) updateFlag = true;
+
+        var document = this.GetDocumentForObjectId(subassembly.SubassemblyId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
+
+        var transactionManager = document.CreateTransactionManager();
+
+        if (updateFlag)
+        {
+            subassembly = transactionManager.PerformTask(() =>
+                subassembly.Update(transactionManager, newName, newDescription, (CivilSide)newSide));
+        }
+
+        DA.SetData(0, subassembly.Name);
+        DA.SetData(1, subassembly.Description);
+        DA.SetData(2, subassembly.Side);
+        DA.SetData(3, subassembly.Origin);
+        DA.SetDataList(4, subassembly.Geometry);
     }
 }
