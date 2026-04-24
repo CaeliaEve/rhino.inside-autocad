@@ -6,7 +6,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that deconstructs a Civil 3D surface boundary into its properties.
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class CivilSurfaceBoundaryComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />

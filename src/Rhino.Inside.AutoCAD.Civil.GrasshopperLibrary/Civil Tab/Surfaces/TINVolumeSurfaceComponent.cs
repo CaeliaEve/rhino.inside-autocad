@@ -10,7 +10,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that extracts information from a Civil 3D TIN Volume Surface.
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class TINVolumeSurfaceComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />

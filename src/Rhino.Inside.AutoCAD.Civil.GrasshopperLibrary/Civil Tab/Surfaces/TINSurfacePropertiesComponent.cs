@@ -6,7 +6,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that extracts individual values from Civil 3D TIN Surface Properties.
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class TINSurfacePropertiesComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />

@@ -18,10 +18,10 @@ public record CivilProfileProperties : ICivilProfileProperties
     private readonly Profile _profile;
 
     /// <inheritdoc />
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; private set; } = string.Empty;
 
     /// <inheritdoc />
-    public string Description { get; init; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
 
     /// <inheritdoc />
     public ICivilStationPoint Start { get; }
@@ -30,19 +30,19 @@ public record CivilProfileProperties : ICivilProfileProperties
     public ICivilStationPoint End { get; }
 
     /// <inheritdoc />
-    public double MinElevation { get; init; }
+    public double MinElevation { get; private set; }
 
     /// <inheritdoc />
-    public double MaxElevation { get; init; }
+    public double MaxElevation { get; private set; }
 
     /// <inheritdoc />
-    public CivilProfileType ProfileType { get; init; }
+    public CivilProfileType ProfileType { get; private set; }
 
     /// <inheritdoc />
     public IObjectId ParentAlignmentId { get; }
 
     /// <inheritdoc />
-    public INamedId Style { get; init; } = NamedId.Empty;
+    public INamedId Style { get; private set; } = NamedId.Empty;
 
     /// <inheritdoc />
     public IObjectId ProfileId { get; }

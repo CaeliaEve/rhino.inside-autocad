@@ -12,7 +12,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that creates a Civil 3D TIN Volume Surface from two TIN Surfaces.
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class CreateCivilTINVolumeSurfaceComponent : RhinoInsideAutocad_CreateComponentBase
 {
     private string _errorMessage = string.Empty;

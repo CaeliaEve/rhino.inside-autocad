@@ -55,7 +55,7 @@ public class CivilProfileCircularArcWrapper : CivilProfileEntityWrapper, ICivilP
     /// Creates a duplicate of this profile circular arc wrapper.
     /// </summary>
     /// <returns>A new instance with copied data.</returns>
-    public override CivilProfileCircularArcWrapper ShallowClone()
+    public override CivilProfileEntityWrapper ShallowClone()
     {
         return new CivilProfileCircularArcWrapper(_profile, this.EntityIndex);
     }

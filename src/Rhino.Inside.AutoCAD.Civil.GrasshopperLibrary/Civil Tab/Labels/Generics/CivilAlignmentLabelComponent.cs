@@ -13,7 +13,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// Generic deconstructor component for Civil 3D Alignment labels.
 /// Works with any label type (Curve, Spiral, Tangent, PI, IndexedPI).
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class CivilAlignmentLabelComponent : RhinoInsideAutocad_ComponentBase
 {
     private readonly GooTypeRegistry _gooConverterRegister = GooTypeRegistry.Instance!;

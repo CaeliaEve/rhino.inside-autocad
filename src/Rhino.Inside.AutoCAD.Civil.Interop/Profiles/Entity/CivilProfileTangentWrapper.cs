@@ -33,7 +33,7 @@ public class CivilProfileTangentWrapper : CivilProfileEntityWrapper, ICivilProfi
     /// Creates a duplicate of this profile tangent wrapper.
     /// </summary>
     /// <returns>A new instance with copied data.</returns>
-    public override CivilProfileTangentWrapper ShallowClone()
+    public override CivilProfileEntityWrapper ShallowClone()
     {
         return new CivilProfileTangentWrapper(_tangent, this.EntityIndex);
     }

@@ -13,7 +13,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// A Grasshopper component that calculates cut/fill volumes within a custom polygon boundary
 /// on a Civil 3D TIN Volume Surface.
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class CivilBoundedVolumeComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />

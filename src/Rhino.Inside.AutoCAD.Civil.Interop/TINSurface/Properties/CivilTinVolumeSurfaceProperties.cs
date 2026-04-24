@@ -36,31 +36,31 @@ public record CivilTinVolumeSurfaceProperties : ICivilTinVolumeSurfaceProperties
     }
 
     /// <inheritdoc />
-    public double UnadjustedCutVolume { get; init; }
+    public double UnadjustedCutVolume { get; private set; }
 
     /// <inheritdoc />
-    public double UnadjustedFillVolume { get; init; }
+    public double UnadjustedFillVolume { get; private set; }
 
     /// <inheritdoc />
-    public double UnadjustedNetVolume { get; init; }
+    public double UnadjustedNetVolume { get; private set; }
 
     /// <inheritdoc />
-    public double CutFactor { get; init; }
+    public double CutFactor { get; private set; }
 
     /// <inheritdoc />
-    public double FillFactor { get; init; }
+    public double FillFactor { get; private set; }
 
     /// <inheritdoc />
-    public double AdjustedCutVolume { get; init; }
+    public double AdjustedCutVolume { get; private set; }
 
     /// <inheritdoc />
-    public double AdjustedFillVolume { get; init; }
+    public double AdjustedFillVolume { get; private set; }
 
     /// <inheritdoc />
-    public double AdjustedNetVolume { get; init; }
+    public double AdjustedNetVolume { get; private set; }
 
     /// <inheritdoc />
-    public INamedId Style { get; init; } = NamedId.Empty;
+    public INamedId Style { get; private set; } = NamedId.Empty;
 
     /// <summary>
     /// Initializes a new private empty instance of <see cref="CivilTinVolumeSurfaceProperties"/>

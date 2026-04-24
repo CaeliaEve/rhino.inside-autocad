@@ -30,7 +30,7 @@ public class CivilCorridorWrapper : AutocadEntityWrapper, ICivilCorridorWrapper
     /// </summary>
     /// <returns>A new <see cref="CivilCorridorWrapper"/> instance that references the same underlying corridor as the current
     /// instance.</returns>
-    public override CivilCorridorWrapper ShallowClone()
+    public override IDbObject ShallowClone()
     {
         return new CivilCorridorWrapper(_corridor);
     }

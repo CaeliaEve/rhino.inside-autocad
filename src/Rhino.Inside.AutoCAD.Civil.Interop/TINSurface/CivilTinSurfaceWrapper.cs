@@ -118,7 +118,7 @@ public class CivilTinSurfaceWrapper : AutocadEntityWrapper, ICivilTinSurfaceWrap
     }
 
     /// <inheritdoc/>
-    public override CivilTinSurfaceWrapper ShallowClone()
+    public override IDbObject ShallowClone()
     {
         return new CivilTinSurfaceWrapper(_surface);
     }

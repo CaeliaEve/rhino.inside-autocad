@@ -3,7 +3,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -37,7 +36,7 @@ public class GH_CivilProfileTangent : GH_GeometricGoo<CivilProfileTangentWrapper
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilProfileTangent(GH_CivilProfileTangent other) : base(other.Value?.ShallowClone())
+    public GH_CivilProfileTangent(GH_CivilProfileTangent other) : base((CivilProfileTangentWrapper)other.Value?.ShallowClone())
     {
     }
 
@@ -139,19 +138,19 @@ public class GH_CivilProfileTangent : GH_GeometricGoo<CivilProfileTangentWrapper
     {
         if (source is GH_CivilProfileTangent goo)
         {
-            this.Value = goo.Value?.ShallowClone();
+            this.Value = (CivilProfileTangentWrapper)goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilProfileTangentWrapper wrapper)
         {
-            this.Value = wrapper.ShallowClone();
+            this.Value = (CivilProfileTangentWrapper)wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilProfileTangent tangent)
         {
-            this.Value = (tangent as CivilProfileTangentWrapper)?.ShallowClone();
+            this.Value = (CivilProfileTangentWrapper)(tangent as CivilProfileTangentWrapper)?.ShallowClone();
             return this.Value != null;
         }
 

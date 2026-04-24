@@ -89,7 +89,9 @@ public class GH_AutocadObjectId : GH_Goo<AutocadObjectIdWrapper>
         {
             var intSource = int.Parse(stringSource.Value);
 
-            var cadId = new CadObjectId(intSource);
+            var handle = new IntPtr(intSource);
+
+            var cadId = new CadObjectId(handle);
 
             this.Value = new AutocadObjectIdWrapper(cadId);
         }

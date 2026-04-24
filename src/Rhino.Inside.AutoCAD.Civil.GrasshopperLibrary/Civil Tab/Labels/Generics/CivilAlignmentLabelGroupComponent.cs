@@ -20,7 +20,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// GeometryPoint, StationEquation, Superelevation, VerticalGeometryPoint) and exposes
 /// their common properties.
 /// </remarks>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class CivilAlignmentLabelGroupComponent : RhinoInsideAutocad_ComponentBase
 {
     private readonly GooTypeRegistry _gooConverterRegister = GooTypeRegistry.Instance!;

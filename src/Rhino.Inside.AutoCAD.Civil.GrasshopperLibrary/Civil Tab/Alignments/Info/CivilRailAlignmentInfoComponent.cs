@@ -7,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that extracts values from Civil 3D rail alignment information.
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class CivilRailAlignmentInfoComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />

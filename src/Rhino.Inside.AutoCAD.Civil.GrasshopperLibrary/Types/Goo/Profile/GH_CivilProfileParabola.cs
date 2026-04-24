@@ -3,7 +3,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -37,7 +36,7 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileSymmetricalPa
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilProfileParabola(GH_CivilProfileParabola other) : base(other.Value?.ShallowClone())
+    public GH_CivilProfileParabola(GH_CivilProfileParabola other) : base((CivilProfileSymmetricalParabolaWrapper)other.Value?.ShallowClone())
     {
     }
 
@@ -139,19 +138,19 @@ public class GH_CivilProfileParabola : GH_GeometricGoo<CivilProfileSymmetricalPa
     {
         if (source is GH_CivilProfileParabola goo)
         {
-            this.Value = goo.Value?.ShallowClone();
+            this.Value = (CivilProfileSymmetricalParabolaWrapper)goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilProfileSymmetricalParabolaWrapper wrapper)
         {
-            this.Value = wrapper.ShallowClone();
+            this.Value = (CivilProfileSymmetricalParabolaWrapper)wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilProfileSymmetricalParabola parabola)
         {
-            this.Value = (parabola as CivilProfileSymmetricalParabolaWrapper)?.ShallowClone();
+            this.Value = (CivilProfileSymmetricalParabolaWrapper)(parabola as CivilProfileSymmetricalParabolaWrapper)?.ShallowClone();
             return this.Value != null;
         }
 

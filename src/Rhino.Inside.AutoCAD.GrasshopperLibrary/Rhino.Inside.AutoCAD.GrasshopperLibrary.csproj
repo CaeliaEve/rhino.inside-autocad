@@ -13,7 +13,7 @@
 		<Copyright>$(BimorphCopyright)</Copyright>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-
+		<UseWindowsForms>true</UseWindowsForms>
 		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 

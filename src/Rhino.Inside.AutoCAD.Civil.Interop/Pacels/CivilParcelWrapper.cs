@@ -110,7 +110,7 @@ public class CivilParcelWrapper : AutocadEntityWrapper, ICivilParcel
     /// Creates a duplicate of this parcel segment wrapper.
     /// </summary>
     /// <returns>A new instance with copied data.</returns>
-    public override CivilParcelWrapper ShallowClone()
+    public override IDbObject ShallowClone()
     {
         return new CivilParcelWrapper(_parcel);
     }

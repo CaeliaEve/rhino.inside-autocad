@@ -83,7 +83,7 @@ public class CivilProfileWrapper : AutocadEntityWrapper, ICivilProfile
     }
 
     /// <inheritdoc />
-    public override CivilProfileWrapper ShallowClone()
+    public override IDbObject ShallowClone()
     {
         return new CivilProfileWrapper(_profile);
     }

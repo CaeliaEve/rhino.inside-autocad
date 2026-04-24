@@ -189,7 +189,7 @@ public class CivilProfileViewWrapper : AutocadEntityWrapper, ICivilProfileViewWr
     /// Creates a duplicate of this ProfileView properties wrapper.
     /// </summary>
     /// <returns>A new instance with copied data.</returns>
-    public override CivilProfileViewWrapper ShallowClone()
+    public override IDbObject ShallowClone()
     {
         return new CivilProfileViewWrapper(_profileView);
     }

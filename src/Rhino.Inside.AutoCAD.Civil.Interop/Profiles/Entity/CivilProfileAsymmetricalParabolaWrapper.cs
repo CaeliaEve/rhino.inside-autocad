@@ -90,7 +90,7 @@ public class CivilProfileAsymmetricalParabolaWrapper : CivilProfileEntityWrapper
     /// Creates a duplicate of this profile parabola wrapper.
     /// </summary>
     /// <returns>A new instance with copied data.</returns>
-    public override CivilProfileAsymmetricalParabolaWrapper ShallowClone()
+    public override CivilProfileEntityWrapper ShallowClone()
     {
         return new CivilProfileAsymmetricalParabolaWrapper(_parabola, this.EntityIndex);
     }

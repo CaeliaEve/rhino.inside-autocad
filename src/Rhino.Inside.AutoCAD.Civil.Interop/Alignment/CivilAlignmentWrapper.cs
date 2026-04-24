@@ -139,7 +139,7 @@ public class CivilAlignmentWrapper : AutocadEntityWrapper, ICivilAlignment
     }
 
     /// <inheritdoc />
-    public override CivilAlignmentWrapper ShallowClone()
+    public override IDbObject ShallowClone()
     {
         return new CivilAlignmentWrapper(_alignment);
     }

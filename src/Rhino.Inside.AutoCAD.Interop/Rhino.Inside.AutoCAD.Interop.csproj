@@ -22,6 +22,7 @@
 
 		<PackageReference Include="NaturalSort.Extension" />
 		<PackageReference Include="MaterialDesignThemes" />
+		<PackageReference Include="Microsoft.Bcl.HashCode" />
 		<PackageReference Include="AutoCAD.NET.Model">
 		<ExcludeAssets>runtime</ExcludeAssets>
 	</PackageReference>
@@ -42,6 +43,7 @@
 			<PrivateAssets></PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+	
 
 	</ItemGroup>
 

@@ -3,7 +3,6 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -37,7 +36,7 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     /// another instance.
     /// </summary>
     /// <param name="other">The instance to copy.</param>
-    public GH_CivilProfileCircularArc(GH_CivilProfileCircularArc other) : base(other.Value?.ShallowClone())
+    public GH_CivilProfileCircularArc(GH_CivilProfileCircularArc other) : base((CivilProfileCircularArcWrapper)other.Value?.ShallowClone())
     {
     }
 
@@ -139,19 +138,19 @@ public class GH_CivilProfileCircularArc : GH_GeometricGoo<CivilProfileCircularAr
     {
         if (source is GH_CivilProfileCircularArc goo)
         {
-            this.Value = goo.Value?.ShallowClone();
+            this.Value = (CivilProfileCircularArcWrapper)goo.Value?.ShallowClone();
             return true;
         }
 
         if (source is CivilProfileCircularArcWrapper wrapper)
         {
-            this.Value = wrapper.ShallowClone();
+            this.Value = (CivilProfileCircularArcWrapper)wrapper.ShallowClone();
             return true;
         }
 
         if (source is ICivilProfileCircularArc arc)
         {
-            this.Value = (arc as CivilProfileCircularArcWrapper)?.ShallowClone();
+            this.Value = (CivilProfileCircularArcWrapper)(arc as CivilProfileCircularArcWrapper)?.ShallowClone();
             return this.Value != null;
         }
 

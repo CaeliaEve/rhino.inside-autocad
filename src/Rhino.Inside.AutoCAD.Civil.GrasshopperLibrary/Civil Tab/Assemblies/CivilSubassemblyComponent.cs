@@ -8,7 +8,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that extracts individual values from a Civil 3D Subassembly.
 /// </summary>
-[ComponentVersion(introduced: "1.2.19")]
+[ComponentVersion(introduced: "1.1.19")]
 public class CivilSubassemblyComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />

@@ -43,37 +43,37 @@ public record CivilParcelProperties : ICivilParcelProperties
     }
 
     /// <inheritdoc />
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; private set; } = string.Empty;
 
     /// <inheritdoc />
-    public string Description { get; init; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
 
     /// <inheritdoc />
-    public double Area { get; init; }
+    public double Area { get; private set; }
 
     /// <inheritdoc />
-    public double Perimeter { get; init; }
+    public double Perimeter { get; private set; }
 
     /// <inheritdoc />
-    public int Number { get; init; }
+    public int Number { get; private set; }
 
     /// <inheritdoc />
-    public int TaxId { get; init; }
+    public int TaxId { get; private set; }
 
     /// <inheritdoc />
-    public string Address { get; init; } = string.Empty;
+    public string Address { get; private set; } = string.Empty;
 
     /// <inheritdoc />
-    public string SiteName { get; init; } = string.Empty;
+    public string SiteName { get; private set; } = string.Empty;
 
     /// <inheritdoc />
-    public int SegmentCount { get; init; }
+    public int SegmentCount { get; private set; }
 
     /// <inheritdoc />
-    public bool IsClosed { get; init; }
+    public bool IsClosed { get; private set; }
 
     /// <inheritdoc />
-    public INamedId Style { get; init; } = NamedId.Empty;
+    public INamedId Style { get; private set; } = NamedId.Empty;
 
     /// <inheritdoc />
     public IObjectId ParcelId { get; }
@@ -84,7 +84,7 @@ public record CivilParcelProperties : ICivilParcelProperties
     private CivilParcelProperties(Parcel parcel)
     {
         _parcel = parcel;
-        ParcelId = new AutocadObjectIdWrapper(parcel.Id);
+        this.ParcelId = new AutocadObjectIdWrapper(parcel.Id);
     }
 
     /// <summary>
