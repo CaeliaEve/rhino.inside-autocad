@@ -2,6 +2,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Civil.Interop;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -34,6 +35,14 @@ public class CivilSiteComponent : RhinoInsideAutocad_ComponentBase
     {
         pManager.AddParameter(new Param_CivilSite(GH_ParamAccess.item), "Site",
             "Site", "A Civil3d Site", GH_ParamAccess.item);
+
+        pManager.AddTextParameter("Name", "N",
+            "The name of the site. When set this will update the name of the site.", GH_ParamAccess.item);
+        pManager[1].Optional = true;
+
+        pManager.AddTextParameter("Description", "Desc",
+            "The description of the site. When set this will update the description of the site.", GH_ParamAccess.item);
+        pManager[2].Optional = true;
     }
 
     /// <inheritdoc />
@@ -68,13 +77,15 @@ public class CivilSiteComponent : RhinoInsideAutocad_ComponentBase
 
         if (!DA.GetData(0, ref siteGoo) || siteGoo?.Value is null) return;
 
-        var site = siteGoo.Value;
+        ICivilSite site = siteGoo.Value;
 
-        DA.SetData(0, new GH_AutocadObjectId(site.Id));
-        DA.SetData(1, site.Name);
-        DA.SetData(2, site.Description);
-        DA.SetData(3, site.ParcelCount);
-        DA.SetData(4, site.AlignmentCount);
+        var newName = site.Name;
+        var newDescription = site.Description;
+
+        var updateFlag = false;
+
+        if (DA.GetData(1, ref newName) && newName != site.Name) updateFlag = true;
+        if (DA.GetData(2, ref newDescription) && newDescription != site.Description) updateFlag = true;
 
         // Get parcels from the site
         var document = this.GetDocumentForObjectId(site.Id);
@@ -85,6 +96,18 @@ public class CivilSiteComponent : RhinoInsideAutocad_ComponentBase
         }
 
         var transactionManager = document.CreateTransactionManager();
+
+        if (updateFlag)
+        {
+            site = transactionManager.PerformTask(() =>
+                site.Update(transactionManager, newName, newDescription));
+        }
+
+        DA.SetData(0, new GH_AutocadObjectId(site.Id));
+        DA.SetData(1, site.Name);
+        DA.SetData(2, site.Description);
+        DA.SetData(3, site.ParcelCount);
+        DA.SetData(4, site.AlignmentCount);
 
         var parcels = transactionManager.PerformTask(() =>
         {

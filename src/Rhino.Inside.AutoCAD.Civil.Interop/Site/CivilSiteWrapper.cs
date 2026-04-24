@@ -96,6 +96,24 @@ public class CivilSiteWrapper : AutocadEntityWrapper, ICivilSite
     }
 
     /// <inheritdoc />
+    public ICivilSite Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription)
+    {
+        var site = transactionManager.Unwrap()
+            .GetObject(_site.Id, OpenMode.ForWrite) as Site;
+
+        if (site == null)
+        {
+            return this;
+        }
+
+        site.Name = newName;
+        site.Description = newDescription;
+
+        return new CivilSiteWrapper(site);
+    }
+
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"Site: {this.Name} (Parcels: {this.ParcelCount}, Alignments: {this.AlignmentCount})";

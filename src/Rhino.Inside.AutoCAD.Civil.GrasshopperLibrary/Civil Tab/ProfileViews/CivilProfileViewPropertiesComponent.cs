@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
@@ -30,6 +31,14 @@ public class CivilProfileViewPropertiesComponent : RhinoInsideAutocad_ComponentB
     {
         pManager.AddParameter(new Param_CivilProfileViewProperties(GH_ParamAccess.item), "Properties",
             "Props", "ProfileView properties from a Civil3d ProfileView", GH_ParamAccess.item);
+
+        pManager.AddTextParameter("Name", "N",
+            "The name of the profile view. When set this will update the name of the profile view.", GH_ParamAccess.item);
+        pManager[1].Optional = true;
+
+        pManager.AddTextParameter("Description", "Desc",
+            "The description of the profile view. When set this will update the description of the profile view.", GH_ParamAccess.item);
+        pManager[2].Optional = true;
     }
 
     /// <inheritdoc />
@@ -70,7 +79,15 @@ public class CivilProfileViewPropertiesComponent : RhinoInsideAutocad_ComponentB
 
         if (!DA.GetData(0, ref propsGoo) || propsGoo?.Value is null) return;
 
-        var properties = propsGoo.Value;
+        ICivilProfileViewProperties properties = propsGoo.Value;
+
+        var newName = properties.Name;
+        var newDescription = properties.Description;
+
+        var updateFlag = false;
+
+        if (DA.GetData(1, ref newName) && newName != properties.Name) updateFlag = true;
+        if (DA.GetData(2, ref newDescription) && newDescription != properties.Description) updateFlag = true;
 
         var document = this.GetDocumentForObjectId(properties.ProfileViewId);
         if (document is null)
@@ -80,6 +97,12 @@ public class CivilProfileViewPropertiesComponent : RhinoInsideAutocad_ComponentB
         }
 
         var transactionManager = document.CreateTransactionManager();
+
+        if (updateFlag)
+        {
+            properties = transactionManager.PerformTask(() =>
+                properties.Update(transactionManager, newName, newDescription));
+        }
 
         var coordinateSystem = transactionManager.PerformTask(() => properties.GetCoordinateSystem(transactionManager));
 

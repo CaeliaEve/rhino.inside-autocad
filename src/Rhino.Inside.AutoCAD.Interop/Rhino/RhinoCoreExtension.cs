@@ -191,22 +191,35 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     /// </summary>
     public void Shutdown()
     {
+        System.Diagnostics.Debug.WriteLine("=== RhinoCoreExtension.Shutdown() START ===");
+
         RhinoApp.Closing -= this.OnClosing;
 
         try
         {
             this.WindowManager.BringToFront();
-
-            _rhinoCore?.Dispose();
-            _rhinoCore = null;
-
-            RhinoDoc.ActiveDoc?.Dispose();
-
-            Grasshopper.Instances.ActiveDocument?.Dispose();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-
+            System.Diagnostics.Debug.WriteLine($"WindowManager.BringToFront failed: {ex.Message}");
         }
+
+        try
+        {
+            _rhinoCore?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"RhinoCore disposal failed: {ex.Message}");
+        }
+        finally
+        {
+            _rhinoCore = null;
+        }
+
+        // Note: RhinoDoc.ActiveDoc and Grasshopper.Instances.ActiveDocument
+        // are disposed by _rhinoCore.Dispose() - do NOT dispose them again
+
+        System.Diagnostics.Debug.WriteLine("=== RhinoCoreExtension.Shutdown() END ===");
     }
 }

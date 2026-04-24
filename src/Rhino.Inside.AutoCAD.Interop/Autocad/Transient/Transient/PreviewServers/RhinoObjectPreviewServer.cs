@@ -75,11 +75,11 @@ public class RhinoObjectPreviewServer : IRhinoObjectPreviewServer
     }
 
     /// <summary>
-    /// Clears all preview objects from the server.
+    /// Clears all preview objects from the server and disposes entities.
     /// Used during application shutdown to ensure clean disposal.
     /// </summary>
     public void ClearAll()
     {
-        _previewServer.ClearServer();
+        _previewServer.ClearAndDisposeAll();
     }
 }

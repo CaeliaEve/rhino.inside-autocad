@@ -50,4 +50,10 @@ public interface ICivilProfileViewProperties
     IProfileViewCoordinateSystem GetCoordinateSystem(
         IAutocadTransactionManager transactionManager);
 
+    /// <summary>
+    /// Updates the profile view with new properties and returns a new
+    /// ProfileView properties object.
+    /// </summary>
+    ICivilProfileViewProperties Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription);
 }

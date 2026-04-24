@@ -1,6 +1,7 @@
 ﻿using Grasshopper;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using System.Reflection;
 
@@ -366,11 +367,97 @@ public class GrasshopperInstance : IGrasshopperInstance
     }
 
     /// <summary>
+    /// Disposes all Civil 3D database objects held by Goo types in all open Grasshopper documents.
+    /// This prevents "Forgot to call Dispose?" warnings and potential access violations.
+    /// </summary>
+    private void DisposeAllCivilGooObjects()
+    {
+        System.Diagnostics.Debug.WriteLine("GrasshopperInstance: Disposing Civil 3D Goo objects...");
+
+        try
+        {
+            var documentCount = Grasshopper.Instances.DocumentServer.DocumentCount;
+            System.Diagnostics.Debug.WriteLine($"  DocumentServer has {documentCount} document(s)");
+
+            foreach (GH_Document document in Grasshopper.Instances.DocumentServer)
+            {
+                var objectCount = document.ObjectCount;
+                System.Diagnostics.Debug.WriteLine($"  Document '{document.DisplayName}' has {objectCount} object(s)");
+
+                foreach (var ghObject in document.Objects)
+                {
+                    // Components have output parameters that hold the data
+                    if (ghObject is IGH_Component component)
+                    {
+                        foreach (var param in component.Params.Output)
+                        {
+                            this.DisposeParamData(param);
+                        }
+                    }
+                    // Also check standalone params
+                    else if (ghObject is IGH_Param param)
+                    {
+                        this.DisposeParamData(param);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"DisposeAllCivilGooObjects failed: {ex.Message}");
+        }
+
+        System.Diagnostics.Debug.WriteLine("GrasshopperInstance: Civil 3D Goo objects disposed.");
+    }
+
+    /// <summary>
+    /// Disposes all IDisposable objects held in a parameter's volatile data.
+    /// </summary>
+    private void DisposeParamData(IGH_Param param)
+    {
+        var dataCount = param.VolatileDataCount;
+        if (dataCount > 0)
+        {
+            System.Diagnostics.Debug.WriteLine($"    Param '{param.Name}' has {dataCount} data item(s)");
+        }
+
+        foreach (var data in param.VolatileData.AllData(true))
+        {
+            if (data == null) continue;
+
+            // Try to get the underlying value from the Goo
+            object? valueToDispose = null;
+
+            if (data is IGH_Goo goo)
+            {
+                valueToDispose = goo.ScriptVariable();
+            }
+
+            if (valueToDispose is IDisposable disposable)
+            {
+                try
+                {
+                    disposable.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to dispose {valueToDispose.GetType().Name}: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Shuts down the Grasshopper instance, releasing resources and removing
     /// subscriptions.
     /// </summary>
     public void Shutdown()
     {
+        System.Diagnostics.Debug.WriteLine("=== GrasshopperInstance.Shutdown() START ===");
+
+        // Dispose Civil 3D objects BEFORE removing document subscriptions
+        this.DisposeAllCivilGooObjects();
+
         this.RemoveDocumentSubscriptions();
 
         if (_activeCanvas != null)
@@ -380,6 +467,8 @@ public class GrasshopperInstance : IGrasshopperInstance
         }
 
         Grasshopper.Instances.CanvasCreated -= this.OnCanvasCreated;
+
+        System.Diagnostics.Debug.WriteLine("=== GrasshopperInstance.Shutdown() END ===");
     }
 }
 

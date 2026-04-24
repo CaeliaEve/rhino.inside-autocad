@@ -61,9 +61,6 @@
 			<Private>False</Private>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
-		<ProjectReference Include="..\Rhino.Inside.Autocad.Civil.Assemblies\Rhino.Inside.Autocad.Civil.Assemblies.vbproj">
-			<Private>True</Private>
-		</ProjectReference>
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">

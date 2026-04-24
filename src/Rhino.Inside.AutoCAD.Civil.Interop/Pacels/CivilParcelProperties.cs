@@ -16,6 +16,8 @@ namespace Rhino.Inside.AutoCAD.Civil.Interop;
 /// </remarks>
 public record CivilParcelProperties : ICivilParcelProperties
 {
+    private readonly Parcel _parcel;
+
     /// <summary>
     /// Constructs a new instance of <see cref="CivilParcelProperties"/> by extracting
     /// data from a given <see cref="Parcel"/>.
@@ -24,7 +26,7 @@ public record CivilParcelProperties : ICivilParcelProperties
     {
         var baseCurve = parcel.BaseCurve;
 
-        return new CivilParcelProperties()
+        return new CivilParcelProperties(parcel)
         {
             Name = parcel.Name,
             Description = parcel.Description ?? string.Empty,
@@ -73,11 +75,16 @@ public record CivilParcelProperties : ICivilParcelProperties
     /// <inheritdoc />
     public INamedId Style { get; init; } = NamedId.Empty;
 
+    /// <inheritdoc />
+    public IObjectId ParcelId { get; }
+
     /// <summary>
-    /// Initializes a new private empty instance of <see cref="CivilParcelProperties"/>
+    /// Initializes a new private instance of <see cref="CivilParcelProperties"/>
     /// </summary>
-    private CivilParcelProperties()
+    private CivilParcelProperties(Parcel parcel)
     {
+        _parcel = parcel;
+        ParcelId = new AutocadObjectIdWrapper(parcel.Id);
     }
 
     /// <summary>
@@ -86,20 +93,25 @@ public record CivilParcelProperties : ICivilParcelProperties
     /// <returns>A new instance with copied data.</returns>
     public CivilParcelProperties Duplicate()
     {
-        return new CivilParcelProperties()
+        return CreateFromParcel(_parcel);
+    }
+
+    /// <inheritdoc />
+    public ICivilParcelProperties Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription)
+    {
+        var parcel = transactionManager.Unwrap()
+            .GetObject(_parcel.Id, OpenMode.ForWrite) as Parcel;
+
+        if (parcel == null)
         {
-            Name = this.Name,
-            Description = this.Description,
-            Area = this.Area,
-            Perimeter = this.Perimeter,
-            Number = this.Number,
-            TaxId = this.TaxId,
-            Address = this.Address,
-            SiteName = this.SiteName,
-            SegmentCount = this.SegmentCount,
-            IsClosed = this.IsClosed,
-            Style = this.Style.ShallowClone() as NamedId ?? NamedId.Empty,
-        };
+            return this;
+        }
+
+        parcel.Name = newName;
+        parcel.Description = newDescription;
+
+        return CreateFromParcel(parcel);
     }
 
     /// <inheritdoc />

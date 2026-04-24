@@ -229,6 +229,8 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// <inheritdoc />
     public void Shutdown()
     {
+        System.Diagnostics.Debug.WriteLine("=== RhinoInsideManager.Shutdown() START ===");
+
         this.GrasshopperInstance.PreviewExpired -= this.OnUpdateGrasshopperPreview;
         this.GrasshopperInstance.ObjectRemoved -= this.OnGrasshopperObjectRemoved;
         this.GrasshopperInstance.ComponentSelectionChanged -=
@@ -244,17 +246,53 @@ public class RhinoInsideManager : IRhinoInsideManager
         this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
         this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
 
-        // Clear preview servers first to prevent access to disposed resources
+        // Clear preview servers with isolated exception handling
         try
         {
             (this.GrasshopperPreviewServer as GrasshopperObjectPreviewServer)?.ClearAll();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"GrasshopperPreviewServer cleanup failed: {ex.Message}");
+        }
+
+        try
+        {
             (this.RhinoPreviewServer as RhinoObjectPreviewServer)?.ClearAll();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"RhinoPreviewServer cleanup failed: {ex.Message}");
+        }
 
-        this.GrasshopperInstance.Shutdown();
-        this.RhinoInstance.Shutdown();
-        this.AutoCadInstance.Shutdown();
+        // Shutdown instances with isolated exception handling
+        try
+        {
+            this.GrasshopperInstance.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"GrasshopperInstance shutdown failed: {ex.Message}");
+        }
 
+        try
+        {
+            this.RhinoInstance.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"RhinoInstance shutdown failed: {ex.Message}");
+        }
+
+        try
+        {
+            this.AutoCadInstance.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"AutoCadInstance shutdown failed: {ex.Message}");
+        }
+
+        System.Diagnostics.Debug.WriteLine("=== RhinoInsideManager.Shutdown() END ===");
     }
 }

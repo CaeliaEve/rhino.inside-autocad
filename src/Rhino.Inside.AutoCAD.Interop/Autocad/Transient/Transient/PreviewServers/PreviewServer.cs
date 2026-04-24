@@ -41,6 +41,12 @@ public class PreviewServer : IPreviewServer
         {
             var autoCadEntity = entity.Unwrap();
 
+            // Guard clause: skip if entity is null or already disposed
+            if (autoCadEntity == null || autoCadEntity.IsDisposed)
+            {
+                continue;
+            }
+
             var transientManager = TransientManager.CurrentTransientManager;
 
             if (transientManager.AddTransient(autoCadEntity, _transientDrawingMode,
@@ -54,20 +60,52 @@ public class PreviewServer : IPreviewServer
     /// <summary>
     /// Removes the transient representation of an entity in AutoCAD.
     /// </summary>
-    private void RemoveTransientEntities(IEnumerable<IEntity> entities)
+    ///  <remarks>
+    /// TransientManager can throw if the entity was already erased or disposed, such
+    /// as during closing of the application when we try to clear and dispose all
+    /// entities. In those cases, so we still need to dispose the entities
+    /// if disposeEntities is true.
+    /// </remarks>
+    /// <param name="entities">The entities to remove from the transient manager.</param>
+    /// <param name="disposeEntities">If true, disposes the entities after removal.</param>
+    private void RemoveTransientEntities(IEnumerable<IEntity> entities,
+        bool disposeEntities = false)
     {
-        foreach (var entity in entities)
+        try
         {
-            var autoCadEntity = entity.Unwrap();
+            var transientManager =
+                TransientManager
+                    .CurrentTransientManager; //Throws here in Civil Application Shutdown
 
-            var transientManager = TransientManager.CurrentTransientManager;
+            foreach (var entity in entities)
+            {
+                var autoCadEntity = entity.Unwrap();
 
-            transientManager.EraseTransient(autoCadEntity, _emptyInterCollection);
+                transientManager.EraseTransient(autoCadEntity, _emptyInterCollection);
+
+                if (disposeEntities)
+                {
+                    autoCadEntity.Dispose();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            foreach (var entity in entities)
+            {
+                var autoCadEntity = entity.Unwrap();
+
+                if (disposeEntities)
+                {
+                    autoCadEntity.Dispose();
+                }
+            }
         }
     }
 
     /// <summary>
-    /// Updates the transient elements visibility based on the current state.
+    /// Removes transient elements from display but keeps them in the register for later re-use.
+    /// Used for visibility toggling (preview on/off).
     /// </summary>
     public void ClearServer()
     {
@@ -75,6 +113,22 @@ public class PreviewServer : IPreviewServer
         {
             this.RemoveTransientEntities(entities);
         }
+    }
+
+    /// <summary>
+    /// Removes all transient elements and disposes the underlying AutoCAD entities.
+    /// Used during application shutdown to ensure clean disposal.
+    /// </summary>
+    public void ClearAndDisposeAll()
+    {
+        System.Diagnostics.Debug.WriteLine("PreviewServer.ClearAndDisposeAll() - disposing entities");
+
+        foreach (var entities in this.ObjectRegister)
+        {
+            this.RemoveTransientEntities(entities, disposeEntities: true);
+        }
+
+        System.Diagnostics.Debug.WriteLine("PreviewServer.ClearAndDisposeAll() - complete");
     }
 
     /// <summary>
@@ -109,7 +163,7 @@ public class PreviewServer : IPreviewServer
         if (this.ObjectRegister.TryGetObject(rhinoObjectId, out var entities))
         {
             this.ObjectRegister.RemoveObject(rhinoObjectId);
-            this.RemoveTransientEntities(entities);
+            this.RemoveTransientEntities(entities, disposeEntities: true);
         }
     }
 

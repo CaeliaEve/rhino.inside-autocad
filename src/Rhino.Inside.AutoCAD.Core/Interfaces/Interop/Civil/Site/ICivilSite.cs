@@ -34,4 +34,11 @@ public interface ICivilSite : INamedDbObject
     /// Gets the alignment ObjectIds in the site.
     /// </summary>
     IReadOnlyList<IObjectId> AlignmentIds { get; }
+
+    /// <summary>
+    /// Updates the site with new properties and returns a new
+    /// Site wrapper object.
+    /// </summary>
+    ICivilSite Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription);
 }

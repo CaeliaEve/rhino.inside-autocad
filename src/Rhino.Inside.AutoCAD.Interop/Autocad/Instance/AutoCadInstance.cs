@@ -252,16 +252,30 @@ public class AutoCadInstance : IAutoCadInstance
     /// <inheritdoc/>
     public void Shutdown()
     {
-        _documentManager!.DocumentActivated -= this.OnDocumentActivated;
+        System.Diagnostics.Debug.WriteLine("=== AutoCadInstance.Shutdown() START ===");
 
-        if (this.Documents.Any())
+        try
         {
-            foreach (var autoCadDocument in this.Documents)
+            _documentManager!.DocumentActivated -= this.OnDocumentActivated;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to unsubscribe DocumentActivated: {ex.Message}");
+        }
+
+        foreach (var autoCadDocument in this.Documents.ToList())
+        {
+            try
             {
                 this.UnsubscribeToDocumentEvents(autoCadDocument);
-
                 autoCadDocument.CloseDocument();
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to close document: {ex.Message}");
+            }
         }
+
+        System.Diagnostics.Debug.WriteLine("=== AutoCadInstance.Shutdown() END ===");
     }
 }

@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
@@ -33,6 +34,14 @@ public class CivilParcelPropertiesComponent : RhinoInsideAutocad_ComponentBase
     {
         pManager.AddParameter(new Param_CivilParcelProperties(GH_ParamAccess.item), "Properties",
             "Props", "Parcel properties from a Civil3d Parcel", GH_ParamAccess.item);
+
+        pManager.AddTextParameter("Name", "N",
+            "The name of the parcel. When set this will update the name of the parcel.", GH_ParamAccess.item);
+        pManager[1].Optional = true;
+
+        pManager.AddTextParameter("Description", "Desc",
+            "The description of the parcel. When set this will update the description of the parcel.", GH_ParamAccess.item);
+        pManager[2].Optional = true;
     }
 
     /// <inheritdoc />
@@ -79,7 +88,29 @@ public class CivilParcelPropertiesComponent : RhinoInsideAutocad_ComponentBase
 
         if (!DA.GetData(0, ref propsGoo) || propsGoo?.Value is null) return;
 
-        var props = propsGoo.Value;
+        ICivilParcelProperties props = propsGoo.Value;
+
+        var newName = props.Name;
+        var newDescription = props.Description;
+
+        var updateFlag = false;
+
+        if (DA.GetData(1, ref newName) && newName != props.Name) updateFlag = true;
+        if (DA.GetData(2, ref newDescription) && newDescription != props.Description) updateFlag = true;
+
+        if (updateFlag)
+        {
+            var document = this.GetDocumentForObjectId(props.ParcelId);
+            if (document is null)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+                return;
+            }
+
+            var transactionManager = document.CreateTransactionManager();
+            props = transactionManager.PerformTask(() =>
+                props.Update(transactionManager, newName, newDescription));
+        }
 
         DA.SetData(0, props.Name);
         DA.SetData(1, props.Description);

@@ -56,4 +56,16 @@ public interface ICivilProfileProperties
     /// Provides both the style name and ObjectId reference.
     /// </remarks>
     INamedId Style { get; }
+
+    /// <summary>
+    /// Gets the Id of the profile in the Civil 3D database.
+    /// </summary>
+    IObjectId ProfileId { get; }
+
+    /// <summary>
+    /// Updates the profile with new properties and returns a new
+    /// Profile properties object.
+    /// </summary>
+    ICivilProfileProperties Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription);
 }

@@ -66,4 +66,16 @@ public interface ICivilParcelProperties
     /// Provides both the style name and ObjectId reference.
     /// </remarks>
     INamedId Style { get; }
+
+    /// <summary>
+    /// Gets the Id of the parcel in the Civil 3D database.
+    /// </summary>
+    IObjectId ParcelId { get; }
+
+    /// <summary>
+    /// Updates the parcel with new properties and returns a new
+    /// Parcel properties object.
+    /// </summary>
+    ICivilParcelProperties Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription);
 }

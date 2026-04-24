@@ -1,3 +1,4 @@
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
@@ -58,6 +59,24 @@ public record CivilProfileViewProperties : ICivilProfileViewProperties
     {
         return
               new ProfileViewCoordinateSystem(_profileView, transactionManager);
+    }
+
+    /// <inheritdoc />
+    public ICivilProfileViewProperties Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription)
+    {
+        var profileView = transactionManager.Unwrap()
+            .GetObject(_profileView.Id, OpenMode.ForWrite) as ProfileView;
+
+        if (profileView == null)
+        {
+            return this;
+        }
+
+        profileView.Name = newName;
+        profileView.Description = newDescription;
+
+        return new CivilProfileViewProperties(profileView);
     }
 
     /// <summary>

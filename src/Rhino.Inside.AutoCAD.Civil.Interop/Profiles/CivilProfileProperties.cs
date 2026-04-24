@@ -1,3 +1,4 @@
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
@@ -43,6 +44,9 @@ public record CivilProfileProperties : ICivilProfileProperties
     /// <inheritdoc />
     public INamedId Style { get; init; } = NamedId.Empty;
 
+    /// <inheritdoc />
+    public IObjectId ProfileId { get; }
+
     /// <summary>
     /// Initializes a instance of <see cref="CivilProfileProperties"/>
     /// </summary>
@@ -61,7 +65,7 @@ public record CivilProfileProperties : ICivilProfileProperties
         this.ProfileType = profile.ProfileType.ToRhinoInsideProfileType();
         this.Style = new NamedId(profile.StyleName, profile.StyleId);
         this.ParentAlignmentId = new AutocadObjectIdWrapper(profile.AlignmentId);
-
+        this.ProfileId = new AutocadObjectIdWrapper(profile.Id);
     }
 
     /// <summary>
@@ -71,6 +75,24 @@ public record CivilProfileProperties : ICivilProfileProperties
     public CivilProfileProperties Duplicate()
     {
         return new CivilProfileProperties(_profile);
+    }
+
+    /// <inheritdoc />
+    public ICivilProfileProperties Update(IAutocadTransactionManager transactionManager,
+        string newName, string newDescription)
+    {
+        var profile = transactionManager.Unwrap()
+            .GetObject(_profile.Id, OpenMode.ForWrite) as Profile;
+
+        if (profile == null)
+        {
+            return this;
+        }
+
+        profile.Name = newName;
+        profile.Description = newDescription;
+
+        return new CivilProfileProperties(profile);
     }
 
     /// <inheritdoc />

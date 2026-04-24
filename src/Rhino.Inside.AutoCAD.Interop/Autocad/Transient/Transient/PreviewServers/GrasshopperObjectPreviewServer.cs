@@ -90,12 +90,12 @@ public class GrasshopperObjectPreviewServer : IGrasshopperObjectPreviewServer
     }
 
     /// <summary>
-    /// Clears all preview objects from both shaded and wireframe servers.
+    /// Clears all preview objects from both shaded and wireframe servers and disposes entities.
     /// Used during application shutdown to ensure clean disposal.
     /// </summary>
     public void ClearAll()
     {
-        _shadedPreviewServer.ClearServer();
-        _wireframePreviewServer.ClearServer();
+        _shadedPreviewServer.ClearAndDisposeAll();
+        _wireframePreviewServer.ClearAndDisposeAll();
     }
 }
