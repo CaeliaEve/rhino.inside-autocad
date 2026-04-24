@@ -1,4 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Runtime.InProcess;
@@ -187,6 +189,66 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     }
 
     /// <summary>
+    /// Disposes all IDisposable objects held in a parameter's volatile data.
+    /// </summary>
+    private void DisposeParamData(IGH_Param param)
+    {
+        var dataCount = param.VolatileDataCount;
+        if (dataCount > 0)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"    Param '{param.Name}' has {dataCount} data item(s)");
+        }
+
+        foreach (var data in param.VolatileData.AllData(true))
+        {
+            if (data == null) continue;
+
+            // Try to get the underlying value from the Goo
+            object? valueToDispose = null;
+
+            if (data is IGH_Goo goo)
+            {
+                valueToDispose = goo.ScriptVariable();
+            }
+
+            if (valueToDispose is IDisposable disposable)
+            {
+                try
+                {
+                    disposable.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Failed to dispose {valueToDispose.GetType().Name}: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles the Grasshopper DocumentRemoved event.
+    /// </summary>
+    private void OnDocumentRemoved(object server, Grasshopper.Kernel.GH_Document document)
+    {
+        foreach (var ghObject in document.Objects)
+        {
+            if (ghObject is IGH_Component component)
+            {
+                foreach (var param in component.Params.Output)
+                {
+                    this.DisposeParamData(param);
+                }
+            }
+            else if (ghObject is IGH_Param param)
+            {
+                this.DisposeParamData(param);
+            }
+        }
+    }
+
+    /// <summary>
     /// The steps to take to shut down this rhino inside extension.
     /// </summary>
     public void Shutdown()
@@ -206,7 +268,11 @@ public class RhinoCoreExtension : IRhinoCoreExtension
 
         try
         {
+            Grasshopper.Instances.DocumentServer.DocumentRemoved += this.OnDocumentRemoved;
+
             _rhinoCore?.Dispose();
+
+            Grasshopper.Instances.DocumentServer.DocumentRemoved -= this.OnDocumentRemoved;
         }
         catch (Exception ex)
         {
