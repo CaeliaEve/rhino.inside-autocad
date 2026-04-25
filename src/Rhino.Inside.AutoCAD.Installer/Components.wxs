@@ -203,6 +203,8 @@
 				<File Id="Rhino.Inside.AutoCAD.Interop.dll" Source="$(var.AssembliesDirectoryNET48)Rhino.Inside.AutoCAD.Interop.dll" Vital="yes" />
 				<File Id="Rhino.Inside.AutoCAD.Services.dll" Source="$(var.AssembliesDirectoryNET48)Rhino.Inside.AutoCAD.Services.dll" Vital="yes" />
 				<File Id="Rhino.Inside.AutoCAD.UI.Resources.dll" Source="$(var.AssembliesDirectoryNET48)Rhino.Inside.AutoCAD.UI.Resources.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll" Source="$(var.AssembliesDirectoryNET48)Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.Civil.Interop.dll" Source="$(var.AssembliesDirectoryNET48)Rhino.Inside.AutoCAD.Civil.Interop.dll" Vital="yes" />
 
 
 			
@@ -272,6 +274,8 @@
 				<File Id="Rhino.Inside.AutoCAD.InteropNET8.dll" Source="$(var.AssembliesDirectoryNET8)Rhino.Inside.AutoCAD.Interop.dll" Vital="yes" />
 				<File Id="Rhino.Inside.AutoCAD.ServicesNET8.dll" Source="$(var.AssembliesDirectoryNET8)Rhino.Inside.AutoCAD.Services.dll" Vital="yes" />
 				<File Id="Rhino.Inside.AutoCAD.UI.ResourcesNET8.dll" Source="$(var.AssembliesDirectoryNET8)Rhino.Inside.AutoCAD.UI.Resources.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.Civil.GrasshopperLibraryNET8.dll" Source="$(var.AssembliesDirectoryNET8)Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.Civil.InteropNET8.dll" Source="$(var.AssembliesDirectoryNET8)Rhino.Inside.AutoCAD.Civil.Interop.dll" Vital="yes" />
 
 			</Component>
 		</DirectoryRef>

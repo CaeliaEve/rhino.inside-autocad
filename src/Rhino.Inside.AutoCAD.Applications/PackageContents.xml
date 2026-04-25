@@ -62,8 +62,13 @@
 						AppType="Managed"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.1.19/Win64/NET48/Rhino.Inside.Autocad.Civil.Assemblies.dll"
-						AppDescription="Civil 3D Subassembly Library"
+						ModuleName="./1.1.19/Win64/NET48/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
+						AppDescription="Civil 3D Grasshopper Components"
+						AppType="Managed"/>
+
+		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
+						ModuleName="./1.1.19/Win64/NET48/Rhino.Inside.AutoCAD.Civil.Interop.dll"
+						AppDescription="Civil 3D Interop Dependency"
 						AppType="Managed"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
@@ -120,8 +125,13 @@
 						AppType="Managed"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.1.19/Win64/NET8/Rhino.Inside.Autocad.Civil.Assemblies.dll"
-						AppDescription="Civil 3D Subassembly Library"
+						ModuleName="./1.1.19/Win64/NET8/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
+						AppDescription="Civil 3D Grasshopper Components"
+						AppType="Managed"/>
+
+		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
+						ModuleName="./1.1.19/Win64/NET8/Rhino.Inside.AutoCAD.Civil.Interop.dll"
+						AppDescription="Civil 3D Interop Dependency"
 						AppType="Managed"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
