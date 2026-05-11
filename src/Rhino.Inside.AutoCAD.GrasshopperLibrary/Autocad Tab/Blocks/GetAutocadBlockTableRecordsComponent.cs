@@ -45,6 +45,32 @@ public class GetAutocadBlockTableRecordsComponent : RhinoInsideAutocad_Component
             GH_ParamAccess.list);
     }
 
+    /// <summary>
+    /// Returns a list of all BlockTableRecords in the current AutoCAD document by accessing
+    /// the BlockTable through a transaction manager.
+    /// </summary>
+    private List<IAutocadBlockTableRecord> GetBlockTableRecords(IAutocadTransactionManager transactionManagerWrapper)
+    {
+        var autocadBlockTableRecords = new List<IAutocadBlockTableRecord>();
+
+        var blockTableId = transactionManagerWrapper.BlockTableId;
+
+        var transactionManager = transactionManagerWrapper.Unwrap();
+
+        var blockTable = (BlockTable)transactionManager.GetObject(blockTableId.Unwrap(), OpenMode.ForRead)!;
+
+        foreach (var objectId in blockTable)
+        {
+            var blockTableRecord = (BlockTableRecord)transactionManager.GetObject(objectId, OpenMode.ForRead)!;
+
+            var blockTableRecordWrapper = new AutocadBlockTableRecordWrapper(blockTableRecord);
+
+            autocadBlockTableRecords.Add(blockTableRecordWrapper);
+        }
+
+        return autocadBlockTableRecords;
+    }
+
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -65,7 +91,10 @@ public class GetAutocadBlockTableRecordsComponent : RhinoInsideAutocad_Component
         if (autocadDocument is null)
             return;
 
-        var blockTableRecordsRegister = autocadDocument.BlockTableRecordRegister;
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        var blockTableRecordsRegister =
+            transactionManager.PerformTask(() => this.GetBlockTableRecords(transactionManager));
 
         var gooBlockTableRecords = blockTableRecordsRegister
             .Select(autocadLayerTableRecord =>

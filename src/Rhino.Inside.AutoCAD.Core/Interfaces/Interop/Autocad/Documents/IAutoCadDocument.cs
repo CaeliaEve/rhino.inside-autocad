@@ -77,15 +77,6 @@ public interface IAutocadDocument
     ILayoutRegister LayoutRegister { get; }
 
     /// <summary>
-    /// Gets the <see cref="IBlockTableRecordRegister"/> for managing block definitions in this document.
-    /// </summary>
-    /// <remarks>
-    /// Used by Grasshopper block components such as GetAutocadBlockTableRecordsComponent
-    /// to query block table records.
-    /// </remarks>
-    IBlockTableRecordRegister BlockTableRecordRegister { get; }
-
-    /// <summary>
     /// Gets the <see cref="UnitSystem"/> representing the drawing units of this document.
     /// </summary>
     /// <remarks>

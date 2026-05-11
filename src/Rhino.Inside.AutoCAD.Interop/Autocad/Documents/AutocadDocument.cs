@@ -3,7 +3,6 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using System.Windows.Threading;
-using CadBlockTableRecord = Autodesk.AutoCAD.DatabaseServices.BlockTableRecord;
 using CadLayer = Autodesk.AutoCAD.DatabaseServices.LayerTableRecord;
 using CadLayout = Autodesk.AutoCAD.DatabaseServices.Layout;
 using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
@@ -39,9 +38,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
 
     /// <inheritdoc/>
     public ILayoutRegister LayoutRegister { get; }
-
-    /// <inheritdoc/>
-    public IBlockTableRecordRegister BlockTableRecordRegister { get; }
 
     /// <inheritdoc/>
     public IAutocadDocumentId DocumentId { get; }
@@ -92,8 +88,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         this.LineTypeRegister = new LineTypeRegister(this);
 
         this.LayoutRegister = new LayoutRegister(this);
-
-        this.BlockTableRecordRegister = new BlockTableRecordRegister(this);
 
         _documentChange = new AutocadDocumentChange(this);
 
@@ -163,11 +157,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         if (_documentChange.DoesEffectType(typeof(CadLineType)))
             this.LineTypeRegister.Update();
 
-        if (_documentChange.DoesEffectType(typeof(CadBlockTableRecord)))
-        {
-            this.BlockTableRecordRegister.Update();
-            this.Regenerate();
-        }
     }
 
     /// <summary>

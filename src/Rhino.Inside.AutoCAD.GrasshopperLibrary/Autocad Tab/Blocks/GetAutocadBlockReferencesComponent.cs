@@ -58,6 +58,38 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
             GH_ParamAccess.list);
     }
 
+    /// <summary>
+    /// Returns a list of all BlockTableRecords in the current AutoCAD document by accessing
+    /// the BlockTable through a transaction manager.
+    /// </summary>
+    private bool TryGetBlockTableRecordById(IAutocadTransactionManager transactionManagerWrapper,
+        IObjectId objectId, out IAutocadBlockTableRecord? blockTableRecord)
+    {
+        blockTableRecord = null;
+
+        var blockTableId = transactionManagerWrapper.BlockTableId;
+
+        var transactionManager = transactionManagerWrapper.Unwrap();
+
+        var blockTable = (BlockTable)transactionManager.GetObject(blockTableId.Unwrap(), OpenMode.ForRead)!;
+
+        var cadObjectId = objectId.Unwrap();
+
+        foreach (var blockObjectId in blockTable)
+        {
+            if (blockObjectId.OldIdPtr != cadObjectId.OldIdPtr) continue;
+
+            var cadBlockTableRecord = (BlockTableRecord)transactionManager.GetObject(blockObjectId, OpenMode.ForRead)!;
+
+            blockTableRecord = new AutocadBlockTableRecordWrapper(cadBlockTableRecord);
+
+            return true;
+
+        }
+
+        return false;
+    }
+
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -85,26 +117,24 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
             || blockTableRecordId is null) return;
         DA.GetData(2, ref directOnly);
 
-        var blockTableRecordsRegister = autocadDocument.BlockTableRecordRegister;
-
-        if (blockTableRecordsRegister.TryGetById(blockTableRecordId, out var blockTableRecord) == false)
-        {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No Block Table Found with that Id");
-            return;
-        }
-
-        var cadBlock = blockTableRecord.Unwrap();
-
-        var normalBlocks = cadBlock.GetBlockReferenceIds(directOnly, false);
-        var dynamicBlocks = cadBlock.GetAnonymousBlockIds();
+        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
 
         var normalReferences = new List<GH_AutocadBlockReference>();
         var dynamicReferences = new List<GH_AutocadBlockReference>();
 
-        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
-
-        _ = transactionManagerWrapper.PerformTask(() =>
+        var result = transactionManagerWrapper.PerformTask(() =>
         {
+            if (this.TryGetBlockTableRecordById(transactionManagerWrapper, blockTableRecordId, out var blockTableRecord) == false)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No Block Table Found with that Id");
+                return false;
+            }
+
+            var cadBlock = blockTableRecord.Unwrap();
+
+            var normalBlocks = cadBlock.GetBlockReferenceIds(directOnly, false);
+            var dynamicBlocks = cadBlock.GetAnonymousBlockIds();
+
             var transaction = transactionManagerWrapper.Unwrap();
 
             foreach (ObjectId normalId in normalBlocks)
@@ -126,7 +156,6 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
                     dynamicReferences.Add(
                         new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(block)));
             }
-
             return true;
         });
 
