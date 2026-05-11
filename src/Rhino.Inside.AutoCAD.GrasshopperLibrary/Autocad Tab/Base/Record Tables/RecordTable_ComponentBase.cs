@@ -11,7 +11,9 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// provides common methods to get records by name or id, and to get all records
 /// in the document. The specific type of record and the table they are stored
 /// in are defined by the derived classes, no object are stored in this base class,
-/// all the information is retrieved directly from the AutoCAD document when requested.
+/// all the information is retrieved directly from the AutoCAD document when requested
+/// removing the need to keep track of the records in the document and update them
+/// when changes are made, which was the cause of bugs with the BlockTableRecords.
 /// </summary>
 public abstract class RecordTable_ComponentBase<TWrapper, TCad> : RhinoInsideAutocad_ComponentBase, IReferenceComponent
     where TWrapper : INamedDbObject
