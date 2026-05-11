@@ -1,16 +1,14 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD linetypes currently in the AutoCAD document.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class GetAutocadLineTypesComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class GetAutocadLineTypesComponent : LineType_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("e7a8c0d1-4f5b-6a9c-1d3e-0d7f6c9a1e4f");
@@ -63,32 +61,19 @@ public class GetAutocadLineTypesComponent : RhinoInsideAutocad_ComponentBase, IR
         if (autocadDocument is null)
             return;
 
-        var lineTypesRegister = autocadDocument.LineTypeRegister;
+        var transactionManger = autocadDocument.CreateTransactionManager();
 
-        var gooLineTypes = lineTypesRegister
-            .Select(lineType => new GH_AutocadLineType(lineType))
-            .ToList();
-
-        DA.SetDataList(0, gooLineTypes);
-    }
-
-    /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
-    {
-        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
+        _ = transactionManger.PerformTask(() =>
         {
-            if (ghParam.NeedsToBeExpired(change)) return true;
-        }
+            var lineTypesRegister = this.GetAllRecords(transactionManger);
 
-        foreach (var changedObject in change)
-        {
-            if (changedObject.UnwrapObject() is CadLineType)
-            {
-                return true;
-            }
-        }
+            var gooLineTypes = lineTypesRegister
+                .Select(lineType => new GH_AutocadLineType(lineType))
+                .ToList();
 
-        return false;
+            DA.SetDataList(0, gooLineTypes);
 
+            return true;
+        });
     }
 }

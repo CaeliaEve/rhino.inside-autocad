@@ -24,6 +24,21 @@ public interface IAutocadTransactionManager : IDisposable
     IObjectId BlockTableId { get; }
 
     /// <summary>
+    /// Gets the <see cref="IObjectId"/> of the document's Layout Dictionary.
+    /// </summary>
+    IObjectId LayoutDictionaryId { get; }
+
+    /// <summary>
+    /// Gets the <see cref="IObjectId"/> of the document's Layer table.
+    /// </summary>
+    IObjectId LayerTableId { get; }
+
+    /// <summary>
+    /// Gets the <see cref="IObjectId"/> of the document's Line Type table.
+    /// </summary>
+    IObjectId LinetypeTableId { get; }
+
+    /// <summary>
     /// Gets the <see cref="IObjectId"/> of the document's app registration table.
     /// </summary>
     IObjectId RegAppTableId { get; }

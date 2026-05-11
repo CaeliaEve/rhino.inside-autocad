@@ -1,4 +1,5 @@
-﻿using Rhino.Inside.AutoCAD.Core.Interfaces;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using CadLayout = Autodesk.AutoCAD.DatabaseServices.Layout;
 
 namespace Rhino.Inside.AutoCAD.Interop;
@@ -45,5 +46,36 @@ public class AutocadLayoutWrapper : AutocadDbObjectWrapper, IAutocadLayout
     public override IDbObject ShallowClone()
     {
         return new AutocadLayoutWrapper(_layout);
+    }
+
+    /// <summary>
+    /// Creates a new layer in the active document and returns the <see cref="IAutocadLayout"/>.
+    /// </summary>
+    public static IAutocadLayout Create(IAutocadDocument document, string name)
+    {
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        var layoutWrapper = transactionManagerWrapper.PerformTask(() =>
+        {
+            var transactionManager = transactionManagerWrapper.Unwrap();
+
+            var layout = new CadLayout()
+            {
+                LayoutName = name
+            };
+
+            using var layoutDictionary = (DBDictionary)transactionManager.GetObject(
+                document.AutocadDatabase.LayoutDictionaryId.Unwrap(), OpenMode.ForWrite);
+
+            layoutDictionary[name] = layout;
+
+            transactionManager.AddNewlyCreatedDBObject(layout, true);
+
+            return new AutocadLayoutWrapper(layout);
+        });
+
+        document.Regenerate();
+
+        return layoutWrapper;
     }
 }

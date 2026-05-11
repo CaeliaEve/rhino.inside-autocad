@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -10,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// A Grasshopper component that returns the AutoCAD BlockTableRecords currently open in the AutoCAD session.
 /// </summary>
 [ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+public class GetAutocadBlockReferencesComponent : Block_BaseComponent
 {
     /// <inheritdoc />
     public override GH_Exposure Exposure => GH_Exposure.secondary;
@@ -58,38 +57,6 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
             GH_ParamAccess.list);
     }
 
-    /// <summary>
-    /// Returns a list of all BlockTableRecords in the current AutoCAD document by accessing
-    /// the BlockTable through a transaction manager.
-    /// </summary>
-    private bool TryGetBlockTableRecordById(IAutocadTransactionManager transactionManagerWrapper,
-        IObjectId objectId, out IAutocadBlockTableRecord? blockTableRecord)
-    {
-        blockTableRecord = null;
-
-        var blockTableId = transactionManagerWrapper.BlockTableId;
-
-        var transactionManager = transactionManagerWrapper.Unwrap();
-
-        var blockTable = (BlockTable)transactionManager.GetObject(blockTableId.Unwrap(), OpenMode.ForRead)!;
-
-        var cadObjectId = objectId.Unwrap();
-
-        foreach (var blockObjectId in blockTable)
-        {
-            if (blockObjectId.OldIdPtr != cadObjectId.OldIdPtr) continue;
-
-            var cadBlockTableRecord = (BlockTableRecord)transactionManager.GetObject(blockObjectId, OpenMode.ForRead)!;
-
-            blockTableRecord = new AutocadBlockTableRecordWrapper(cadBlockTableRecord);
-
-            return true;
-
-        }
-
-        return false;
-    }
-
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -122,64 +89,45 @@ public class GetAutocadBlockReferencesComponent : RhinoInsideAutocad_ComponentBa
         var normalReferences = new List<GH_AutocadBlockReference>();
         var dynamicReferences = new List<GH_AutocadBlockReference>();
 
-        var result = transactionManagerWrapper.PerformTask(() =>
-        {
-            if (this.TryGetBlockTableRecordById(transactionManagerWrapper, blockTableRecordId, out var blockTableRecord) == false)
+        _ = transactionManagerWrapper.PerformTask(() =>
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No Block Table Found with that Id");
-                return false;
-            }
+                if (this.TryGetById(transactionManagerWrapper, blockTableRecordId, out var blockTableRecord) == false)
+                {
+                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No Block Table Found with that Id");
+                    return false;
+                }
 
-            var cadBlock = blockTableRecord.Unwrap();
+                var cadBlock = blockTableRecord.Unwrap();
 
-            var normalBlocks = cadBlock.GetBlockReferenceIds(directOnly, false);
-            var dynamicBlocks = cadBlock.GetAnonymousBlockIds();
+                var normalBlocks = cadBlock.GetBlockReferenceIds(directOnly, false);
+                var dynamicBlocks = cadBlock.GetAnonymousBlockIds();
 
-            var transaction = transactionManagerWrapper.Unwrap();
+                var transaction = transactionManagerWrapper.Unwrap();
 
-            foreach (ObjectId normalId in normalBlocks)
-            {
-                var block =
-                    transaction.GetObject(normalId, OpenMode.ForRead) as BlockReference;
+                foreach (ObjectId normalId in normalBlocks)
+                {
+                    var block =
+                        transaction.GetObject(normalId, OpenMode.ForRead) as BlockReference;
 
-                if (block is not null)
-                    normalReferences.Add(
-                        new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(block)));
-            }
+                    if (block is not null)
+                        normalReferences.Add(
+                            new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(block)));
+                }
 
-            foreach (ObjectId dynamicId in dynamicBlocks)
-            {
-                var block =
-                    transaction.GetObject(dynamicId, OpenMode.ForRead) as BlockReference;
+                foreach (ObjectId dynamicId in dynamicBlocks)
+                {
+                    var block =
+                        transaction.GetObject(dynamicId, OpenMode.ForRead) as BlockReference;
 
-                if (block is not null)
-                    dynamicReferences.Add(
-                        new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(block)));
-            }
-            return true;
-        });
+                    if (block is not null)
+                        dynamicReferences.Add(
+                            new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(block)));
+                }
 
-        DA.SetDataList(0, normalReferences);
-        DA.SetDataList(0, dynamicReferences);
-    }
+                DA.SetDataList(0, normalReferences);
+                DA.SetDataList(1, dynamicReferences);
 
-    /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
-    {
-        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
-        {
-            if (ghParam.NeedsToBeExpired(change)) return true;
-        }
-
-        foreach (var changedObject in change)
-        {
-            if (changedObject.UnwrapObject() is BlockTableRecord)
-            {
                 return true;
-            }
-        }
-
-        return false;
-
+            });
     }
 }

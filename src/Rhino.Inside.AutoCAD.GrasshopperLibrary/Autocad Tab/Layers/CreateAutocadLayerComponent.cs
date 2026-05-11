@@ -9,8 +9,8 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD layers currently open in the AutoCAD session.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class CreateAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class CreateAutocadLayerComponent : Layer_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("e5b9283d-5312-4c6a-8a1f-a0504257c52b");
@@ -96,11 +96,20 @@ public class CreateAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
 
         var cadColor = new InternalColor(newColor);
 
-        if (autocadDocument.LayerRegister.TryAddLayer(cadColor, newName, out var autocadLayer) == false)
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        var autocadLayer = transactionManager.PerformTask(() =>
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Unable to create layer");
-            return;
-        }
+            if (this.TryGetByName(transactionManager, newName, out var existing))
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    "A Layer with this name already exists");
+
+                return existing;
+            }
+
+            return AutocadLayerTableRecordWrapper.Create(autocadDocument, cadColor, newName);
+        });
 
         var linePatten = autocadLayer.LineTypeId;
 

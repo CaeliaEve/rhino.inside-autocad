@@ -10,7 +10,6 @@
 /// AutocadBlockTableRecordComponent, GetAutocadBlockTableRecordsComponent, and
 /// AutocadExtractBlockGeometryComponent.
 /// </remarks>
-/// <seealso cref="IBlockTableRecordRegister"/>
 /// <seealso cref="IAutocadBlockReference"/>
 /// <seealso cref="INamedDbObject"/>
 public interface IAutocadBlockTableRecord : INamedDbObject

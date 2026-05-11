@@ -3,9 +3,6 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using System.Windows.Threading;
-using CadLayer = Autodesk.AutoCAD.DatabaseServices.LayerTableRecord;
-using CadLayout = Autodesk.AutoCAD.DatabaseServices.Layout;
-using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
 using Document = Autodesk.AutoCAD.ApplicationServices.Document;
 using Handle = Autodesk.AutoCAD.DatabaseServices.Handle;
 
@@ -29,15 +26,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
 
     /// <inheritdoc/>
     public event EventHandler<IAutocadDocumentChangeEventArgs>? DocumentChanged;
-
-    /// <inheritdoc/>
-    public ILayerRegister LayerRegister { get; }
-
-    /// <inheritdoc/>
-    public ILineTypeRegister LineTypeRegister { get; }
-
-    /// <inheritdoc/>
-    public ILayoutRegister LayoutRegister { get; }
 
     /// <inheritdoc/>
     public IAutocadDocumentId DocumentId { get; }
@@ -83,12 +71,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
 
         this.UnitSystem = documentUnits;
 
-        this.LayerRegister = new LayerRegister(this);
-
-        this.LineTypeRegister = new LineTypeRegister(this);
-
-        this.LayoutRegister = new LayoutRegister(this);
-
         _documentChange = new AutocadDocumentChange(this);
 
         this.DocumentId = new AutocadDocumentId(this);
@@ -132,31 +114,8 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         {
             this.CheckUnits();
 
-            this.CheckRepositories();
-
             this.TriggerDocumentChanged();
         }
-    }
-
-    /// <summary>
-    /// Repopulates affected repositories based on accumulated changes.
-    /// </summary>
-    /// <remarks>
-    /// Checks each register type against <see cref="_documentChange"/> and
-    /// refreshes those that contain modified object types. Block changes
-    /// additionally trigger a viewport regeneration.
-    /// </remarks>
-    private void CheckRepositories()
-    {
-        if (_documentChange.DoesEffectType(typeof(CadLayer)))
-            this.LayerRegister.Update();
-
-        if (_documentChange.DoesEffectType(typeof(CadLayout)))
-            this.LayoutRegister.Update();
-
-        if (_documentChange.DoesEffectType(typeof(CadLineType)))
-            this.LineTypeRegister.Update();
-
     }
 
     /// <summary>
@@ -279,6 +238,5 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         database.ObjectErased -= this.OnObjectErased;
 
         this.AutocadDatabase?.Dispose();
-        this.LayerRegister?.Dispose();
     }
 }

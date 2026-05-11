@@ -50,33 +50,6 @@ public interface IAutocadDocument
     IAutocadDocumentFileMetadata FileMetadata { get; }
 
     /// <summary>
-    /// Gets the <see cref="ILayerRegister"/> for managing layers in this document.
-    /// </summary>
-    /// <remarks>
-    /// Used by Grasshopper layer components such as GetAutocadLayersComponent and
-    /// CreateAutocadLayerComponent to query and create layers.
-    /// </remarks>
-    ILayerRegister LayerRegister { get; }
-
-    /// <summary>
-    /// Gets the <see cref="ILineTypeRegister"/> for managing line types in this document.
-    /// </summary>
-    /// <remarks>
-    /// Used by Grasshopper line type components such as GetAutocadLineTypesComponent and
-    /// CreateAutocadLineTypeComponent to query and create line types.
-    /// </remarks>
-    ILineTypeRegister LineTypeRegister { get; }
-
-    /// <summary>
-    /// Gets the <see cref="ILayoutRegister"/> for managing layouts in this document.
-    /// </summary>
-    /// <remarks>
-    /// Used by Grasshopper layout components such as GetAutocadLayoutsComponent and
-    /// CreateAutocadLayoutComponent to query and create layouts.
-    /// </remarks>
-    ILayoutRegister LayoutRegister { get; }
-
-    /// <summary>
     /// Gets the <see cref="UnitSystem"/> representing the drawing units of this document.
     /// </summary>
     /// <remarks>
