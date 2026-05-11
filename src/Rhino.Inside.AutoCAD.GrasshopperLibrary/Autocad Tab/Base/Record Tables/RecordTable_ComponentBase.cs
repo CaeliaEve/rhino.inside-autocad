@@ -6,7 +6,8 @@ using System.Collections;
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
-/// A base class for Grasshopper components which return AutoCAD records. This class
+/// A base class for Grasshopper components which return AutoCAD records. For example,
+/// BlockTableRecord, LayerTableRecords, Layouts, LineTypeTableRecords. This class
 /// provides common methods to get records by name or id, and to get all records
 /// in the document. The specific type of record and the table they are stored
 /// in are defined by the derived classes, no object are stored in this base class,
