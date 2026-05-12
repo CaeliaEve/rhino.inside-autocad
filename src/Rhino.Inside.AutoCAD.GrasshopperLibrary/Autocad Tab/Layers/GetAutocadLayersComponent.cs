@@ -1,16 +1,14 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadLayer = Autodesk.AutoCAD.DatabaseServices.LayerTableRecord;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD layers currently open in the AutoCAD session.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class GetAutocadLayersComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class GetAutocadLayersComponent : Layer_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("41c4ed14-3a97-4812-94bc-4950bca8be7d");
@@ -63,32 +61,20 @@ public class GetAutocadLayersComponent : RhinoInsideAutocad_ComponentBase, IRefe
         if (autocadDocument is null)
             return;
 
-        var layersRegister = autocadDocument.LayerRegister;
+        var transactionManager = autocadDocument.CreateTransactionManager();
 
-        var gooLayers = layersRegister
-            .Select(layer => new GH_AutocadLayer(layer))
-            .ToList();
-
-        DA.SetDataList(0, gooLayers);
-    }
-
-    /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
-    {
-        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
+        _ = transactionManager.PerformTask(() =>
         {
-            if (ghParam.NeedsToBeExpired(change)) return true;
-        }
+            var layersRegister = this.GetAllRecords(transactionManager);
 
-        foreach (var changedObject in change)
-        {
-            if (changedObject.UnwrapObject() is CadLayer)
-            {
-                return true;
-            }
-        }
+            var gooLayers = layersRegister
+                .Select(layer => new GH_AutocadLayer(layer))
+                .ToList();
 
-        return false;
+            DA.SetDataList(0, gooLayers);
+
+            return true;
+        });
 
     }
 }

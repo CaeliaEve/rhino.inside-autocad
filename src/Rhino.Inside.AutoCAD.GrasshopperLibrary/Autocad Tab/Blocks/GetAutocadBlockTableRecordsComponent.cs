@@ -1,7 +1,5 @@
-using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -10,7 +8,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// A Grasshopper component that returns the AutoCAD BlockTableRecords currently open in the AutoCAD session.
 /// </summary>
 [ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class GetAutocadBlockTableRecordsComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+public class GetAutocadBlockTableRecordsComponent : Block_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("feb2beb6-7414-43e5-941a-d50f26a57ab7");
@@ -65,7 +63,10 @@ public class GetAutocadBlockTableRecordsComponent : RhinoInsideAutocad_Component
         if (autocadDocument is null)
             return;
 
-        var blockTableRecordsRegister = autocadDocument.BlockTableRecordRegister;
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        var blockTableRecordsRegister =
+            transactionManager.PerformTask(() => this.GetAllRecords(transactionManager));
 
         var gooBlockTableRecords = blockTableRecordsRegister
             .Select(autocadLayerTableRecord =>
@@ -73,25 +74,5 @@ public class GetAutocadBlockTableRecordsComponent : RhinoInsideAutocad_Component
             .ToList();
 
         DA.SetDataList(0, gooBlockTableRecords);
-    }
-
-    /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
-    {
-        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
-        {
-            if (ghParam.NeedsToBeExpired(change)) return true;
-        }
-
-        foreach (var changedObject in change)
-        {
-            if (changedObject.UnwrapObject() is BlockTableRecord)
-            {
-                return true;
-            }
-        }
-
-        return false;
-
     }
 }

@@ -43,4 +43,13 @@ public class InternalColor : IColor
 
         this.Alpha = color.A;
     }
+
+    /// <inheritdoc/>
+    public bool IsEqualTo(IColor other)
+    {
+        return this.Red == other.Red
+               && this.Green == other.Green
+               && this.Blue == other.Blue
+               && this.Alpha == other.Alpha;
+    }
 }

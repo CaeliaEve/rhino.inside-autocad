@@ -7,8 +7,8 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that creates a new AutoCAD layout.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class CreateAutocadLayoutComponent : RhinoInsideAutocad_ComponentBase
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class CreateAutocadLayoutComponent : Layout_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("d6e8f0a3-7b9c-4d2e-8f3a-9c5b4e7d8a1f");
@@ -84,12 +84,20 @@ public class CreateAutocadLayoutComponent : RhinoInsideAutocad_ComponentBase
             return;
         }
 
-        if (!autocadDocument.LayoutRegister.TryAddLayout(name, out var layout) || layout is null)
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        var layout = transactionManager.PerformTask(() =>
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Layout already exists or could not be created");
-            // layout will be null if it already exists, per the register implementation
-            return;
-        }
+            if (this.TryGetByName(transactionManager, name, out var existing))
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    "A Layout with this name already exists");
+
+                return existing;
+            }
+
+            return AutocadLayoutWrapper.Create(autocadDocument, name);
+        });
 
         DA.SetData(0, layout.Name);
         DA.SetData(1, layout.Id);

@@ -19,4 +19,9 @@ public interface IAutocadScale
     /// The scale factor in the Z direction.
     /// </summary>
     double Z { get; }
+
+    /// <summary>
+    /// Determines if this scale is equal to another scale by comparing their X, Y, and Z components.
+    /// </summary>
+    bool IsEqualTo(IAutocadScale other);
 }

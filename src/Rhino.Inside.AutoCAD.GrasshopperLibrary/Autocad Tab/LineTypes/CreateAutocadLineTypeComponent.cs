@@ -8,14 +8,15 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that creates a new AutoCAD linetype.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class CreateAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class CreateAutocadLineTypeComponent : LineType_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("a8f5c3d2-4e7b-4a9c-8d1f-6e3b2c5a8f9d");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.CreateAutocadLineTypeComponent;
+    protected override System.Drawing.Bitmap Icon =>
+        Properties.Resources.CreateAutocadLineTypeComponent;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateAutocadLineTypeComponent"/> class.
@@ -31,7 +32,9 @@ public class CreateAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddParameter(new Param_AutocadDocument(GH_ParamAccess.item), "Document",
-            "Doc", "An AutoCAD Document. If not provided, the active document will be used.", GH_ParamAccess.item);
+            "Doc",
+            "An AutoCAD Document. If not provided, the active document will be used.",
+            GH_ParamAccess.item);
         pManager[0].Optional = true;
 
         pManager.AddTextParameter("Name", "Name",
@@ -79,12 +82,15 @@ public class CreateAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
 
         if (autocadDocument is null)
         {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager
+                ?.AutoCadInstance?.ActiveDocument;
             if (activeDoc is null)
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                    "No active AutoCAD document available");
                 return;
             }
+
             autocadDocument = activeDoc as AutocadDocument;
         }
 
@@ -104,21 +110,33 @@ public class CreateAutocadLineTypeComponent : RhinoInsideAutocad_ComponentBase
         // Validation
         if (patternLength < 0)
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "PatternLength must be positive or zero");
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                "PatternLength must be positive or zero");
             return;
         }
 
         if (numberOfDashes < 0)
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "NumberOfDashes must be non-negative");
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
+                "NumberOfDashes must be non-negative");
             return;
         }
 
-        if (!autocadDocument.LineTypeRegister.TryAddLineType(name, patternLength, numberOfDashes, scaleToFit, out var lineType))
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        var lineType = transactionManager.PerformTask(() =>
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "LineType already exists");
-            // Still output existing linetype info
-        }
+            if (this.TryGetByName(transactionManager, name, out var existing))
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    "LineType already exists");
+
+                return existing;
+            }
+
+            return AutocadLinetypeTableRecordWrapper.Create(
+                autocadDocument, name, patternLength, numberOfDashes, scaleToFit);
+        });
 
         DA.SetData(0, lineType.Name);
         DA.SetData(1, lineType.Id);

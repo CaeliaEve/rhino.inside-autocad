@@ -1,7 +1,6 @@
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -86,9 +85,6 @@ public class SetAutocadLayoutComponent : RhinoInsideAutocad_ComponentBase
             transaction.Commit();
 
             activeDocument.Editor.Regen();
-
-            //Renaming a layout does not trigger a modified event
-            RhinoInsideAutoCadExtension.Application.RhinoInsideManager.AutoCadInstance.ActiveDocument.LayoutRegister.Update();
 
             return new AutocadLayoutWrapper(cadLayout);
 

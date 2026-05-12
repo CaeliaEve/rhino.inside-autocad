@@ -1,5 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using CadColor = Autodesk.AutoCAD.Colors.Color;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -45,16 +46,40 @@ public class AutocadLayerTableRecordWrapper : AutocadDbObjectWrapper, IAutocadLa
     }
 
     /// <inheritdoc/>
-    public IAutocadLinetypeTableRecord GetLinePattern(ILineTypeRegister lineTypeRegister)
-    {
-        return lineTypeRegister.TryGetById(this.LineTypeId, out var lineType)
-            ? lineType!
-            : lineTypeRegister.GetDefault();
-    }
-
-    /// <inheritdoc/>
     public override IDbObject ShallowClone()
     {
         return new AutocadLayerTableRecordWrapper(_layerTableRecord);
+    }
+
+    /// <summary>
+    /// Creates a new layer in the active document and returns the <see cref="IAutocadLayerTableRecord"/>.
+    /// </summary>
+    public static IAutocadLayerTableRecord Create(IAutocadDocument document, IColor color, string name)
+    {
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        var layerWrapper = transactionManagerWrapper.PerformTask(() =>
+        {
+            var transactionManager = transactionManagerWrapper.Unwrap();
+
+            var newLayer = new LayerTableRecord
+            {
+                Name = name,
+                Color = CadColor.FromRgb(color.Red, color.Green, color.Blue)
+            };
+
+            using var layerTable = (LayerTable)transactionManager.GetObject(
+                document.AutocadDatabase.LayerTableId.Unwrap(), OpenMode.ForWrite);
+
+            layerTable.Add(newLayer);
+
+            transactionManager.AddNewlyCreatedDBObject(newLayer, true);
+
+            return new AutocadLayerTableRecordWrapper(newLayer);
+        });
+
+        document.Regenerate();
+
+        return layerWrapper;
     }
 }

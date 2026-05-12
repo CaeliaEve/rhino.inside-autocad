@@ -24,6 +24,15 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperDisposableBase<Tra
     public IObjectId BlockTableId { get; }
 
     /// <inheritdoc/>
+    public IObjectId LayoutDictionaryId { get; }
+
+    /// <inheritdoc/>
+    public IObjectId LayerTableId { get; }
+
+    /// <inheritdoc/>
+    public IObjectId LinetypeTableId { get; }
+
+    /// <inheritdoc/>
     public IObjectId RegAppTableId { get; }
 
     /// <summary>
@@ -45,7 +54,14 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperDisposableBase<Tra
         _database = database;
 
         this.BlockTableId = new AutocadObjectIdWrapper(database.BlockTableId);
+
         this.RegAppTableId = new AutocadObjectIdWrapper(database.RegAppTableId);
+
+        this.LayoutDictionaryId = new AutocadObjectIdWrapper(database.LayoutDictionaryId);
+
+        this.LayerTableId = new AutocadObjectIdWrapper(database.LayerTableId);
+
+        this.LinetypeTableId = new AutocadObjectIdWrapper(database.LinetypeTableId);
     }
 
     /// <summary>

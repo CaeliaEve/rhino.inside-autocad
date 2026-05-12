@@ -6,6 +6,7 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// <inheritdoc cref="IAutocadScale"/>
 public class AutocadScale : IAutocadScale
 {
+    private const double _tolerance = GeometryConstants.ZeroTolerance;
 
     /// <inheritdoc />
     public double X { get; }
@@ -44,6 +45,14 @@ public class AutocadScale : IAutocadScale
         this.X = x;
         this.Y = y;
         this.Z = z;
+    }
+
+    /// <inheritdoc />
+    public bool IsEqualTo(IAutocadScale other)
+    {
+        return Math.Abs(this.X - other.X) < _tolerance
+               && Math.Abs(this.Y - other.Y) < _tolerance
+               && Math.Abs(this.Z - other.Z) < _tolerance;
     }
 
     /// <inheritdoc />
