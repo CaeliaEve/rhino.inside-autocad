@@ -2,6 +2,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -9,7 +10,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that adds AutoCAD Block References to a document.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.16")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
 public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
 {
 
@@ -52,6 +53,18 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
         pManager.AddParameter(new Param_AutocadScale(GH_ParamAccess.item), "Scale", "Scale", "The Scale of the Block Reference. This will take either one uniform number or three numbers for a non uniform scale",
             GH_ParamAccess.item);
         pManager[4].Optional = true;
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LayerId", "Layer",
+            "The layer object ID for the Block Reference", GH_ParamAccess.item);
+        pManager[5].Optional = true;
+
+        pManager.AddColourParameter("Color", "Col",
+            "The color for the Block Reference", GH_ParamAccess.item);
+        pManager[6].Optional = true;
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LinetypeId", "LT",
+            "The linetype object ID for the Block Reference", GH_ParamAccess.item);
+        pManager[7].Optional = true;
     }
 
     /// <inheritdoc />
@@ -93,6 +106,14 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
         DA.GetData(3, ref rotation);
         DA.GetData(4, ref scale);
 
+        IObjectId? layerId = null;
+        IColor? color = null;
+        IObjectId? linetypeId = null;
+
+        DA.GetData(5, ref layerId);
+        DA.GetData(6, ref color);
+        DA.GetData(7, ref linetypeId);
+
         var blockReferences = new List<GH_AutocadBlockReference>();
 
         var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
@@ -109,6 +130,15 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
                     blockTableRecord.Id.Unwrap());
                 blockRef.Rotation = rotation;
                 blockRef.ScaleFactors = new Scale3d(scale.X, scale.Y, scale.Z);
+
+                if (layerId is not null)
+                    blockRef.LayerId = layerId.Unwrap();
+
+                if (color is not null)
+                    blockRef.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(color.Red, color.Green, color.Blue);
+
+                if (linetypeId is not null)
+                    blockRef.LinetypeId = linetypeId.Unwrap();
 
                 blockReferences.Add(
                     new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(blockRef)));
