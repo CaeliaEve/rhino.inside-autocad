@@ -161,4 +161,59 @@ public class AutocadLinetypeTableRecordWrapper : AutocadDbObjectWrapper, IAutoca
     {
         return new AutocadLinetypeTableRecordWrapper(_lineTypeTableRecord);
     }
+
+    /// <summary>
+    /// Sets a simple alternating dash pattern for the linetype.
+    /// </summary>
+    private static void SetSimpleDashPattern(LinetypeTableRecord record, double patternLength, int numberOfDashes)
+    {
+        if (numberOfDashes <= 0) return;
+
+        var segmentLength = patternLength / numberOfDashes;
+
+        for (var i = 0; i < numberOfDashes; i++)
+        {
+            // Alternate: dash (positive), space (negative)
+            var dashLength = (i % 2 == 0) ? segmentLength : -segmentLength;
+            record.SetDashLengthAt(i, dashLength);
+        }
+    }
+
+    /// <summary>
+    /// Creates a new linetype in the active document and returns the <see cref="IAutocadLinetypeTableRecord"/>.
+    /// </summary>
+    public static IAutocadLinetypeTableRecord Create(IAutocadDocument document,
+        string name, double patternLength, int numberOfDashes, bool scaleToFit)
+    {
+        var transactionManagerWrapper = document.CreateTransactionManager();
+
+        var lineTypeWrapper = transactionManagerWrapper.PerformTask(() =>
+        {
+            var transactionManager = transactionManagerWrapper.Unwrap();
+
+            var linetypeTableRecord = new LinetypeTableRecord()
+            {
+                Name = name,
+                PatternLength = patternLength,
+                NumDashes = numberOfDashes,
+                IsScaledToFit = scaleToFit,
+            };
+
+            // Set the dash pattern array
+            SetSimpleDashPattern(linetypeTableRecord, patternLength, numberOfDashes);
+
+            using var linetypeTable = (LinetypeTable)transactionManager.GetObject(
+                document.AutocadDatabase.LinetypeTableId.Unwrap(), OpenMode.ForWrite);
+
+            linetypeTable.Add(linetypeTableRecord);
+
+            transactionManager.AddNewlyCreatedDBObject(linetypeTableRecord, true);
+
+            return new AutocadLinetypeTableRecordWrapper(linetypeTableRecord);
+        });
+
+        document.Regenerate();
+
+        return lineTypeWrapper;
+    }
 }

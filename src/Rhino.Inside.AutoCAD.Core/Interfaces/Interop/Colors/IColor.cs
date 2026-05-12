@@ -34,4 +34,9 @@ public interface IColor
     /// AutoCAD entities typically use fully opaque colors.
     /// </remarks>
     byte Alpha { get; }
+
+    /// <summary>
+    /// Determines whether this color is equal to another color based on RGBA components.
+    /// </summary>
+    bool IsEqualTo(IColor other);
 }

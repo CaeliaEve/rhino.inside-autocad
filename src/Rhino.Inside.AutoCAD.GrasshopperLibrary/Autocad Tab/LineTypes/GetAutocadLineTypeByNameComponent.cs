@@ -1,16 +1,14 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD linetype which matches the name.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class GetAutocadLineTypeByNameComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class GetAutocadLineTypeByNameComponent : LineType_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("f8a9d1e2-5b6c-7a0d-2e4f-1c8d7d0a2f5e");
@@ -53,47 +51,38 @@ public class GetAutocadLineTypeByNameComponent : RhinoInsideAutocad_ComponentBas
 
         DA.GetData(0, ref autocadDocument);
 
-        var document = this.GetDocumentOrDefault(autocadDocument);
-
-        if (document is null)
+        if (autocadDocument is null)
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-            return;
+            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+            if (activeDoc is null)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+                return;
+            }
+            autocadDocument = activeDoc as AutocadDocument;
         }
+
+        if (autocadDocument is null)
+            return;
 
         DA.GetData(1, ref name);
 
-        var lineTypesRegister = document.LineTypeRegister;
+        var transactionManger = autocadDocument.CreateTransactionManager();
 
-        if (lineTypesRegister.TryGetByName(name, out var lineType) == false)
+        _ = transactionManger.PerformTask(() =>
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
-                $"No line type exists with name: {name}");
-            return;
-        }
-
-        var gooLineType = new GH_AutocadLineType(lineType);
-
-        DA.SetData(0, gooLineType);
-    }
-
-    /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
-    {
-        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
-        {
-            if (ghParam.NeedsToBeExpired(change)) return true;
-        }
-
-        foreach (var changedObject in change)
-        {
-            if (changedObject.UnwrapObject() is CadLineType)
+            if (this.TryGetByName(transactionManger, name, out var lineType) == false)
             {
-                return true;
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                    $"No layout exists with name: {name}");
+                return false;
             }
-        }
 
-        return false;
+            var gooLineType = new GH_AutocadLineType(lineType);
+
+            DA.SetData(0, gooLineType);
+            return true;
+        });
 
     }
 }

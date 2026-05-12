@@ -25,11 +25,6 @@ public interface IAutocadLayerTableRecord : INamedDbObject
     /// <summary>
     /// Gets the <see cref="IObjectId"/> of the line type assigned to this layer.
     /// </summary>
-    /// <remarks>
-    /// Entities with line type set to "ByLayer" will use this line type.
-    /// Use <see cref="GetLinePattern"/> to retrieve the full line type record.
-    /// </remarks>
-    /// <seealso cref="GetLinePattern"/>
     IObjectId LineTypeId { get; }
 
     /// <summary>
@@ -40,21 +35,4 @@ public interface IAutocadLayerTableRecord : INamedDbObject
     /// This is useful for protecting reference geometry while allowing it to remain visible.
     /// </remarks>
     bool IsLocked { get; }
-
-    /// <summary>
-    /// Retrieves the <see cref="IAutocadLinetypeTableRecord"/> assigned to this layer.
-    /// </summary>
-    /// <param name="lineTypeRegister">
-    /// The <see cref="ILineTypeRegister"/> used to look up the line type record.
-    /// </param>
-    /// <returns>
-    /// The line type record associated with this layer.
-    /// </returns>
-    /// <remarks>
-    /// This method resolves the <see cref="LineTypeId"/> to the full line type definition,
-    /// providing access to the line pattern's dash/gap sequence and other properties.
-    /// </remarks>
-    /// <seealso cref="LineTypeId"/>
-    /// <seealso cref="IAutocadLinetypeTableRecord"/>
-    IAutocadLinetypeTableRecord GetLinePattern(ILineTypeRegister lineTypeRegister);
 }

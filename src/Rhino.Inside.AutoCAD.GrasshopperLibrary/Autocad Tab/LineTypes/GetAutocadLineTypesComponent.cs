@@ -1,16 +1,14 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD linetypes currently in the AutoCAD document.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class GetAutocadLineTypesComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class GetAutocadLineTypesComponent : LineType_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("e7a8c0d1-4f5b-6a9c-1d3e-0d7f6c9a1e4f");
@@ -49,40 +47,33 @@ public class GetAutocadLineTypesComponent : RhinoInsideAutocad_ComponentBase, IR
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
-        var document = this.GetDocumentOrDefault(autocadDocument);
-
-        if (document is null)
+        if (autocadDocument is null)
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-            return;
-        }
-
-        var lineTypesRegister = document.LineTypeRegister;
-
-        var gooLineTypes = lineTypesRegister
-            .Select(lineType => new GH_AutocadLineType(lineType))
-            .ToList();
-
-        DA.SetDataList(0, gooLineTypes);
-    }
-
-    /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
-    {
-        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
-        {
-            if (ghParam.NeedsToBeExpired(change)) return true;
-        }
-
-        foreach (var changedObject in change)
-        {
-            if (changedObject.UnwrapObject() is CadLineType)
+            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+            if (activeDoc is null)
             {
-                return true;
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+                return;
             }
+            autocadDocument = activeDoc as AutocadDocument;
         }
 
-        return false;
+        if (autocadDocument is null)
+            return;
 
+        var transactionManger = autocadDocument.CreateTransactionManager();
+
+        _ = transactionManger.PerformTask(() =>
+        {
+            var lineTypesRegister = this.GetAllRecords(transactionManger);
+
+            var gooLineTypes = lineTypesRegister
+                .Select(lineType => new GH_AutocadLineType(lineType))
+                .ToList();
+
+            DA.SetDataList(0, gooLineTypes);
+
+            return true;
+        });
     }
 }

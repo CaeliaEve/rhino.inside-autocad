@@ -1,16 +1,14 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadLayout = Autodesk.AutoCAD.DatabaseServices.Layout;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD layouts currently in the AutoCAD document.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
-public class GetAutocadLayoutsComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+public class GetAutocadLayoutsComponent : Layout_BaseComponent
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new("c5f6a8b9-2d3e-4f7a-9b1c-8e5d4a7f9c2e");
@@ -35,13 +33,6 @@ public class GetAutocadLayoutsComponent : RhinoInsideAutocad_ComponentBase, IRef
             "Doc", "An AutoCAD Document. If not provided, the active document will be used.", GH_ParamAccess.item);
         pManager[0].Optional = true;
 
-        pManager.AddBooleanParameter("Repopulate", "Repop",
-            "There are some modifications to layouts (like renaming outside of grasshopper) which do not correctly trigger the object" +
-            " modification event in AutoCAD. If this is set to true, the internal cache of Layouts will be repopulated with" +
-            " the latest information from AutoCAD prior to getting the layouts. This guarantees the latest information by is " +
-            "potentially slow in complex definitions or files.", GH_ParamAccess.item, false);
-
-        pManager[1].Optional = true;
     }
 
     /// <inheritdoc />
@@ -55,49 +46,37 @@ public class GetAutocadLayoutsComponent : RhinoInsideAutocad_ComponentBase, IRef
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         AutocadDocument? autocadDocument = null;
-        var repopulate = false;
 
         DA.GetData(0, ref autocadDocument);
 
-        var document = this.GetDocumentOrDefault(autocadDocument);
-
-        if (document is null)
+        if (autocadDocument is null)
         {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-            return;
-        }
-
-        DA.GetData(1, ref repopulate);
-
-        if (repopulate)
-            document.LayoutRegister.Update();
-
-        var layoutsRegister = document.LayoutRegister;
-
-        var gooLayouts = layoutsRegister
-            .Select(layout => new GH_AutocadLayout(layout))
-            .ToList();
-
-        DA.SetDataList(0, gooLayouts);
-    }
-
-    /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
-    {
-        foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
-        {
-            if (ghParam.NeedsToBeExpired(change)) return true;
-        }
-
-        foreach (var changedObject in change)
-        {
-            if (changedObject.UnwrapObject() is CadLayout)
+            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+            if (activeDoc is null)
             {
-                return true;
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+                return;
             }
+            autocadDocument = activeDoc as AutocadDocument;
         }
 
-        return false;
+        if (autocadDocument is null)
+            return;
+
+        var transactionManager = autocadDocument.CreateTransactionManager();
+
+        _ = transactionManager.PerformTask(() =>
+        {
+            var layoutsRegister = this.GetAllRecords(transactionManager);
+
+            var gooLayouts = layoutsRegister
+                .Select(layout => new GH_AutocadLayout(layout))
+                .ToList();
+
+            DA.SetDataList(0, gooLayouts);
+
+            return true;
+        });
 
     }
 }

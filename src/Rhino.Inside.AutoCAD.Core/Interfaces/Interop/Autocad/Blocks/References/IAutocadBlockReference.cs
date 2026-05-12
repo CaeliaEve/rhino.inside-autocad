@@ -51,6 +51,21 @@ public interface IAutocadBlockReference : IEntity
     IObjectId BlockTableRecordId { get; }
 
     /// <summary>
+    /// Gets the color of the block reference.
+    /// </summary>
+    IColor Color { get; }
+
+    /// <summary>
+    /// Gets the <see cref="IObjectId"/> of the layer this block reference is on.
+    /// </summary>
+    IObjectId LayerId { get; }
+
+    /// <summary>
+    /// Gets the <see cref="IObjectId"/> of the linetype assigned to this block reference.
+    /// </summary>
+    IObjectId LinetypeId { get; }
+
+    /// <summary>
     /// Retrieves the dynamic properties for this block reference.
     /// </summary>
     /// <param name="autocadTransactionManager">

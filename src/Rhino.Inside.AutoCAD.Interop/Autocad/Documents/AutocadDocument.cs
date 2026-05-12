@@ -34,18 +34,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     public event EventHandler<IAutocadDocumentChangeEventArgs>? DocumentChanged;
 
     /// <inheritdoc/>
-    public ILayerRegister LayerRegister { get; }
-
-    /// <inheritdoc/>
-    public ILineTypeRegister LineTypeRegister { get; }
-
-    /// <inheritdoc/>
-    public ILayoutRegister LayoutRegister { get; }
-
-    /// <inheritdoc/>
-    public IBlockTableRecordRegister BlockTableRecordRegister { get; }
-
-    /// <inheritdoc/>
     public IAutocadDocumentId DocumentId { get; }
 
     /// <inheritdoc/>
@@ -88,14 +76,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         this.FileMetadata = new AutocadDocumentFileMetadata(document);
 
         this.UnitSystem = documentUnits;
-
-        this.LayerRegister = new LayerRegister(this);
-
-        this.LineTypeRegister = new LineTypeRegister(this);
-
-        this.LayoutRegister = new LayoutRegister(this);
-
-        this.BlockTableRecordRegister = new BlockTableRecordRegister(this);
 
         _documentChange = new AutocadDocumentChange(this);
 
@@ -140,35 +120,7 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         {
             this.CheckUnits();
 
-            this.CheckRepositories();
-
             this.TriggerDocumentChanged();
-        }
-    }
-
-    /// <summary>
-    /// Repopulates affected repositories based on accumulated changes.
-    /// </summary>
-    /// <remarks>
-    /// Checks each register type against <see cref="_documentChange"/> and
-    /// refreshes those that contain modified object types. Block changes
-    /// additionally trigger a viewport regeneration.
-    /// </remarks>
-    private void CheckRepositories()
-    {
-        if (_documentChange.DoesEffectType(typeof(CadLayer)))
-            this.LayerRegister.Update();
-
-        if (_documentChange.DoesEffectType(typeof(CadLayout)))
-            this.LayoutRegister.Update();
-
-        if (_documentChange.DoesEffectType(typeof(CadLineType)))
-            this.LineTypeRegister.Update();
-
-        if (_documentChange.DoesEffectType(typeof(CadBlockTableRecord)))
-        {
-            this.BlockTableRecordRegister.Update();
-            this.Regenerate();
         }
     }
 
@@ -292,6 +244,5 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         database.ObjectErased -= this.OnObjectErased;
 
         this.AutocadDatabase?.Dispose();
-        this.LayerRegister?.Dispose();
     }
 }
