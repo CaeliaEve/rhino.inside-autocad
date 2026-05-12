@@ -40,7 +40,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadBlockReference(), "BlockReference",
             "BlockReference", "An AutoCAD Block Reference", GH_ParamAccess.item);
 
-        pManager.AddPointParameter("Position", "Pos",
+        pManager.AddPointParameter("Origin", "Origin",
             "New insertion point for the Block Reference (Rhino units)", GH_ParamAccess.item);
         pManager[1].Optional = true;
 
