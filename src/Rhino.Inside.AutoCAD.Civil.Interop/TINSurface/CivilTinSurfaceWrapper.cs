@@ -1,10 +1,12 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil;
 using Autodesk.Civil.DatabaseServices;
+using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using CadCurve = Autodesk.AutoCAD.DatabaseServices.Curve;
+using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
 using RhinoCurve = Rhino.Geometry.Curve;
 using RhinoPolyCurve = Rhino.Geometry.PolyCurve;
 
@@ -55,8 +57,6 @@ public class CivilTinSurfaceWrapper : AutocadEntityWrapper, ICivilTinSurfaceWrap
                 var entity = transaction.Unwrap().GetObject(id, OpenMode.ForRead);
 
                 RhinoCurve? rhinoCurve = null;
-                var elevation = 0.0;
-
                 switch (entity)
                 {
                     case Polyline3d polyline3d:
@@ -64,6 +64,17 @@ public class CivilTinSurfaceWrapper : AutocadEntityWrapper, ICivilTinSurfaceWrap
                         break;
                     case Polyline polyline:
                         rhinoCurve = polyline.ToRhinoCurve();
+                        var elevation = polyline.Elevation;
+                        if (rhinoCurve != null)
+                        {
+                            if (rhinoCurve.Dimension < 3)
+                            {
+                                rhinoCurve.ChangeDimension(3);
+                            }
+
+                            var translation = Transform.Translation(0, 0, UnitConverter.ToRhinoLength(elevation));
+                            rhinoCurve.Transform(translation);
+                        }
                         break;
                     case CadCurve curve:
                         rhinoCurve = curve.ToRhinoCurve();
