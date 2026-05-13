@@ -6,6 +6,9 @@ using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces.Assemblies;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
+using Curve = Rhino.Geometry.Curve;
+using Point3d = Rhino.Geometry.Point3d;
+using Transform = Rhino.Geometry.Transform;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -161,8 +164,19 @@ public class CivilAssemblyComponent : RhinoInsideAutocad_ComponentBase
             var subAssembliesGoo = subassemblies
                 .Select(s => new GH_CivilSubassembly(s)).ToList();
 
-            var allGeometry = subassemblies.SelectMany(s => s.Geometry)
-                .ToList();
+            var allGeometry = new List<Curve>();
+            foreach (var civilSubassembly in subassemblies)
+            {
+                var geometry = civilSubassembly.Geometry;
+
+                var transform = Transform.Translation(civilSubassembly.Origin - Point3d.Origin);
+
+                foreach (var curve in geometry)
+                {
+                    curve.Transform(transform);
+                    allGeometry.Add(curve);
+                }
+            }
 
             return new AssemblyGooResult(
                 currentWrapper.Name,
