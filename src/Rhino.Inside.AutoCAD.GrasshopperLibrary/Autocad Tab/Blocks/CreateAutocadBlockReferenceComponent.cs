@@ -120,6 +120,13 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
 
         _ = transactionManagerWrapper.PerformTask(() =>
         {
+
+            var modelSpace = transactionManagerWrapper.GetModelSpace(openForWrite: true);
+
+            var modelSpaceRecord = modelSpace.Unwrap();
+
+            var transaction = transactionManagerWrapper.Unwrap();
+
             foreach (var rhinoPoint in insertionPoints)
             {
 
@@ -139,6 +146,10 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
 
                 if (linetypeId is not null)
                     blockRef.LinetypeId = linetypeId.Unwrap();
+
+                var objectId = modelSpaceRecord.AppendEntity(blockRef);
+
+                transaction.AddNewlyCreatedDBObject(blockRef, true);
 
                 blockReferences.Add(
                     new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(blockRef)));
