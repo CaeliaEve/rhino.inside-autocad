@@ -2,14 +2,13 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadColor = Autodesk.AutoCAD.Colors.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD block instances.
 /// </summary>
-public class GH_AutocadBlockReference : GH_AutocadObjectGoo<AutocadBlockReferenceWrapper>, IAutocadBakeable
+public class GH_AutocadBlockReference : GH_AutocadObjectGoo<AutocadBlockReferenceWrapper>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadBlockReference"/> class with no value.
@@ -54,50 +53,5 @@ public class GH_AutocadBlockReference : GH_AutocadObjectGoo<AutocadBlockReferenc
         var newWrapper = new AutocadBlockReferenceWrapper(unwrapped as BlockReference);
 
         return new GH_AutocadBlockReference(newWrapper);
-    }
-
-    /// <summary>
-    /// Applies the given settings to the block reference.
-    /// </summary>
-    private void ApplySettings(IBakeSettings? settings, BlockReference blockReference)
-    {
-        if (settings is null) return;
-
-        if (settings.Layer != null)
-            blockReference.LayerId = settings.Layer.Id.Unwrap();
-
-        if (settings?.LineType != null)
-            blockReference.LinetypeId = settings.LineType.Id.Unwrap();
-
-        if (settings?.Color != null)
-        {
-            var color = settings.Color;
-            blockReference.Color = CadColor.FromRgb(color.Red, color.Green, color.Blue);
-        }
-    }
-
-    /// <inheritdoc />
-    public List<IObjectId> BakeToAutocad(IAutocadTransactionManager autocadTransactionManager, IBakingComponent bakingComponent, IBakeSettings? settings = null)
-    {
-        if (this.Value == null)
-            throw new InvalidOperationException("Cannot bake a null block reference");
-
-        var transaction = autocadTransactionManager.Unwrap();
-
-        var modelSpace = autocadTransactionManager.GetModelSpace(openForWrite: true);
-
-        var modelSpaceRecord = modelSpace.Unwrap();
-
-        var sourceBlockRef = this.Value.Unwrap();
-
-        var blockReference = (BlockReference)sourceBlockRef.Clone();
-
-        this.ApplySettings(settings, blockReference);
-
-        var objectId = modelSpaceRecord.AppendEntity(blockReference);
-
-        transaction.AddNewlyCreatedDBObject(blockReference, true);
-
-        return [new AutocadObjectIdWrapper(objectId)];
     }
 }
