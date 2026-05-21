@@ -1,5 +1,6 @@
 ﻿using GH_IO.Serialization;
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 
@@ -118,5 +119,40 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
         this.Version.Write(writer);
 
         return true;
+    }
+
+    /// <summary>
+    /// Gets the document that contains the object with the specified ID.
+    /// Falls back to the active document if the object cannot be found.
+    /// </summary>
+    /// <param name="objectId">The object ID to locate.</param>
+    /// <returns>The document containing the object, or the active document as fallback.</returns>
+    protected IAutocadDocument? GetDocumentForObjectId(IObjectId? objectId)
+    {
+        if (objectId is null || !objectId.IsValid)
+            return this.GetActiveDocumentFallback();
+
+        var autoCadInstance = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance;
+        if (autoCadInstance is null)
+            return this.GetActiveDocumentFallback();
+
+        // Find document containing object with this handle
+        foreach (var document in autoCadInstance.Documents)
+        {
+            var dbObject = document.GetObjectByHandle(objectId.Value);
+            if (dbObject is not null)
+                return document;
+        }
+
+        return this.GetActiveDocumentFallback();
+    }
+
+    /// <summary>
+    /// Gets the currently active AutoCAD document as a fallback.
+    /// </summary>
+    /// <returns>The active AutoCAD document, or null if unavailable.</returns>
+    protected IAutocadDocument? GetActiveDocumentFallback()
+    {
+        return RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
     }
 }

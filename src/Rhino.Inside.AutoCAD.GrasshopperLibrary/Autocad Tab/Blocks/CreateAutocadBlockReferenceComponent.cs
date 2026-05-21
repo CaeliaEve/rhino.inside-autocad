@@ -10,8 +10,8 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that adds AutoCAD Block References to a document.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
-public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
+[ComponentVersion(introduced: "1.0.0", updated: "1.0.21")]
+public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateComponentBase
 {
 
     /// <inheritdoc />
@@ -78,6 +78,10 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+        // Skip solve if undo/redo deferral is active (see base class documentation)
+        if (this.ShouldSkipSolve())
+            return;
+
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
@@ -150,6 +154,9 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_Component
                 var objectId = modelSpaceRecord.AppendEntity(blockRef);
 
                 transaction.AddNewlyCreatedDBObject(blockRef, true);
+
+                // Track created object for replace-on-recompute functionality
+                this.TrackCreatedObject(objectId, autocadDocument);
 
                 blockReferences.Add(
                     new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(blockRef)));

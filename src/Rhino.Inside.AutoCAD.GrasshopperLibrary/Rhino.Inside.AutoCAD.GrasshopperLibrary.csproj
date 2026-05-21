@@ -20,6 +20,10 @@
 	</PropertyGroup>
 
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+		<Reference Include="System.Windows.Forms" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="NaturalSort.Extension" />
 		<PackageReference Include="MaterialDesignThemes" />
