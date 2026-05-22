@@ -152,7 +152,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
 
         var newPosition = blockReferenceWrapper.Position;
         var newRotation = blockReferenceWrapper.Rotation;
-        var newScale = blockReferenceWrapper.Scale as AutocadScale ?? new AutocadScale(1);
+        var newScale = blockReferenceWrapper.Scale;
         var newLayerId = blockReferenceWrapper.LayerId;
         var newColor = blockReferenceWrapper.Color;
         var newLinetypeId = blockReferenceWrapper.LinetypeId;

@@ -136,30 +136,53 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
 
                 var insertionPoint = rhinoPoint.ToAutocadPoint3d();
 
-                var blockRef = new BlockReference(
+                var blockReference = new BlockReference(
                     insertionPoint,
                     blockTableRecord.Id.Unwrap());
-                blockRef.Rotation = rotation;
-                blockRef.ScaleFactors = new Scale3d(scale.X, scale.Y, scale.Z);
+                blockReference.Rotation = rotation;
+                blockReference.ScaleFactors = new Scale3d(scale.X, scale.Y, scale.Z);
 
                 if (layerId is not null)
-                    blockRef.LayerId = layerId.Unwrap();
+                    blockReference.LayerId = layerId.Unwrap();
 
                 if (color is not null)
-                    blockRef.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(color.Red, color.Green, color.Blue);
+                    blockReference.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(color.Red, color.Green, color.Blue);
 
                 if (linetypeId is not null)
-                    blockRef.LinetypeId = linetypeId.Unwrap();
+                    blockReference.LinetypeId = linetypeId.Unwrap();
 
-                var objectId = modelSpaceRecord.AppendEntity(blockRef);
+                var objectId = modelSpaceRecord.AppendEntity(blockReference);
 
-                transaction.AddNewlyCreatedDBObject(blockRef, true);
+                transaction.AddNewlyCreatedDBObject(blockReference, true);
 
                 // Track created object for replace-on-recompute functionality
                 this.TrackCreatedObject(objectId, autocadDocument);
 
+                var cadBlockDefinition = blockTableRecord.Unwrap();
+
+                if (cadBlockDefinition.HasAttributeDefinitions)
+                {
+                    foreach (var id in cadBlockDefinition)
+                    {
+                        var dbObject = transaction.GetObject(id, OpenMode.ForRead);
+                        if (dbObject is AttributeDefinition attDef)
+                        {
+                            using (var attributeReference = new AttributeReference())
+                            {
+                                attributeReference.SetAttributeFromBlock(attDef, blockReference.BlockTransform);
+                                blockReference.AttributeCollection.AppendAttribute(attributeReference);
+                                transaction.AddNewlyCreatedDBObject(attributeReference, true);
+
+                                attributeReference.RecordGraphicsModified(true);
+                            }
+                        }
+                    }
+
+                    blockReference.RecordGraphicsModified(true);
+                }
+
                 blockReferences.Add(
-                    new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(blockRef)));
+                    new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(blockReference)));
             }
 
             return true;

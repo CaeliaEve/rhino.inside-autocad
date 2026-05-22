@@ -95,6 +95,8 @@ public class SetAutocadBlockAttributesReferenceComponent : RhinoInsideAutocad_Co
             cadAttributeReference.TextString = value;
         }
 
+        cadAttributeReference.RecordGraphicsModified(true);
+
         transaction.Commit();
 
         var newWrapper = new AttributeWrapper(cadAttributeReference);

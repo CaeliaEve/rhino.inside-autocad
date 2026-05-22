@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Windows.Forms;
 using Autodesk.AutoCAD.DatabaseServices;
 using GH_IO.Serialization;
@@ -55,10 +56,14 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 {
     // Serialization keys
     private const string ReplaceEnabledKey = "ReplaceEnabled";
+    private const string SaveConnectionEnabledKey = "SaveConnectionEnabled";
+    private const string TrackedObjectHandlesKey = "TrackedObjectHandles";
 
     // State tracking
     private bool _replaceEnabled = true;
+    private bool _saveConnectionEnabled = true;
     private readonly List<IObjectId> _lastCreatedObjectIds = new();
+    private readonly List<long> _pendingHandleValues = new();
     private bool _deletionPerformedThisCycle = false;
     private bool _isSubscribedToUndo = false;
 
@@ -146,6 +151,25 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
             _replaceEnabled
         );
         replaceItem.ToolTipText = "When enabled, previously created objects will be deleted before creating new ones.";
+
+        var saveConnectionItem = Menu_AppendItem(
+            menu,
+            "Save Connection Between Sessions",
+            this.OnSaveConnectionMenuClick,
+            true,
+            _saveConnectionEnabled
+        );
+        saveConnectionItem.ToolTipText = "When enabled, object connections persist when saving/loading the Grasshopper file.";
+
+        Menu_AppendSeparator(menu);
+
+        var clearConnectionItem = Menu_AppendItem(
+            menu,
+            "Clear Connection",
+            this.OnClearConnectionMenuClick,
+            _lastCreatedObjectIds.Count > 0 || _pendingHandleValues.Count > 0
+        );
+        clearConnectionItem.ToolTipText = "Clears all tracked object connections without deleting the objects.";
     }
 
     /// <summary>
@@ -157,7 +181,26 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         if (!_replaceEnabled)
         {
             _lastCreatedObjectIds.Clear();
+            _pendingHandleValues.Clear();
         }
+        this.ExpireSolution(true);
+    }
+
+    /// <summary>
+    /// Handles the click event for the Save Connection menu item.
+    /// </summary>
+    private void OnSaveConnectionMenuClick(object? sender, EventArgs e)
+    {
+        _saveConnectionEnabled = !_saveConnectionEnabled;
+    }
+
+    /// <summary>
+    /// Handles the click event for the Clear Connection menu item.
+    /// </summary>
+    private void OnClearConnectionMenuClick(object? sender, EventArgs e)
+    {
+        _lastCreatedObjectIds.Clear();
+        _pendingHandleValues.Clear();
         this.ExpireSolution(true);
     }
 
@@ -216,6 +259,9 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     /// </summary>
     private void DeleteAllTrackedObjects()
     {
+        // Resolve any pending handles from a loaded file
+        ResolvePendingHandles();
+
         if (_lastCreatedObjectIds.Count == 0)
             return;
 
@@ -299,6 +345,33 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     }
 
     /// <summary>
+    /// Resolves pending handle values that were loaded from a saved file into IObjectId wrappers.
+    /// Handles are resolved lazily because we need access to a document/database to create the ObjectIds.
+    /// </summary>
+    private void ResolvePendingHandles()
+    {
+        if (_pendingHandleValues.Count == 0)
+            return;
+
+        var document = this.GetActiveDocumentFallback();
+        if (document == null)
+            return;
+
+        var database = document.AutocadDatabase.Unwrap();
+
+        foreach (var handleValue in _pendingHandleValues)
+        {
+            var handle = new Handle(handleValue);
+            if (database.TryGetObjectId(handle, out var objectId) && !objectId.IsNull)
+            {
+                _lastCreatedObjectIds.Add(new AutocadObjectIdWrapper(objectId));
+            }
+        }
+
+        _pendingHandleValues.Clear();
+    }
+
+    /// <summary>
     /// Tracks a created object for potential future deletion.
     /// Called during SolveInstance for each created object.
     /// </summary>
@@ -316,6 +389,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     protected void ClearTrackedObjects()
     {
         _lastCreatedObjectIds.Clear();
+        _pendingHandleValues.Clear();
     }
 
     /// <inheritdoc />
@@ -326,7 +400,29 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
         _replaceEnabled = true;
         reader.TryGetBoolean(ReplaceEnabledKey, ref _replaceEnabled);
-        _lastCreatedObjectIds.Clear();  // Don't restore object IDs across sessions
+
+        _saveConnectionEnabled = true;
+        reader.TryGetBoolean(SaveConnectionEnabledKey, ref _saveConnectionEnabled);
+
+        _lastCreatedObjectIds.Clear();
+        _pendingHandleValues.Clear();
+
+        // Restore tracked object handles if save connection is enabled
+        if (_saveConnectionEnabled && reader.ItemExists(TrackedObjectHandlesKey))
+        {
+            var serializedHandles = reader.GetString(TrackedObjectHandlesKey);
+            if (!string.IsNullOrEmpty(serializedHandles))
+            {
+                var handleStrings = serializedHandles.Split(',');
+                foreach (var handleString in handleStrings)
+                {
+                    if (long.TryParse(handleString, out var handleValue))
+                    {
+                        _pendingHandleValues.Add(handleValue);
+                    }
+                }
+            }
+        }
 
         return true;
     }
@@ -338,7 +434,14 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
             return false;
 
         writer.SetBoolean(ReplaceEnabledKey, _replaceEnabled);
-        // Don't serialize object IDs - they're not valid across sessions
+        writer.SetBoolean(SaveConnectionEnabledKey, _saveConnectionEnabled);
+
+        // Serialize tracked object handles if save connection is enabled
+        if (_saveConnectionEnabled && _lastCreatedObjectIds.Count > 0)
+        {
+            var serializedHandles = string.Join(",", _lastCreatedObjectIds.Select(id => id.Value));
+            writer.SetString(TrackedObjectHandlesKey, serializedHandles);
+        }
 
         return true;
     }

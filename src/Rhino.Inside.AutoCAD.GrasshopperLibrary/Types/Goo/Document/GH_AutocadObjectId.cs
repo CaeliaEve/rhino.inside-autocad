@@ -56,6 +56,8 @@ public class GH_AutocadObjectId : GH_Goo<AutocadObjectIdWrapper>
     /// <inheritdoc />
     public override IGH_Goo Duplicate()
     {
+        if (this.Value == null) return new GH_AutocadObjectId();
+
         var clone = this.Value.ShallowClone();
 
         return new GH_AutocadObjectId(clone);
