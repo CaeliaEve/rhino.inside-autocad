@@ -1,4 +1,3 @@
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
@@ -79,50 +78,6 @@ public class SetAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
 
     }
 
-    /// <summary>
-    /// Updates the properties of an AutoCAD Layer, Return a new Wrapper with updated values.
-    /// If the update fails, the original layer is returned and an error message is added
-    /// to the component.
-    /// </summary>
-    private AutocadLayerTableRecordWrapper UpdateLayout(AutocadLayerTableRecordWrapper autocadLayer, string newName,
-       IObjectId newPattenId, IColor newColor, bool newIsLocked)
-    {
-        try
-        {
-            var cadLayerId = autocadLayer.Id.Unwrap();
-
-            var activeDocument = Application.DocumentManager.MdiActiveDocument;
-
-            using var documentLock = activeDocument.LockDocument();
-
-            var database = activeDocument.Database;
-
-            using var transaction = database.TransactionManager.StartTransaction();
-
-            var cadLayer =
-                transaction.GetObject(cadLayerId, OpenMode.ForWrite) as LayerTableRecord;
-
-            cadLayer!.Name = newName;
-            cadLayer.LinetypeObjectId = newPattenId.Unwrap();
-            cadLayer.Color =
-                Autodesk.AutoCAD.Colors.Color.FromRgb(newColor.Red, newColor.Green,
-                    newColor.Blue);
-            cadLayer.IsLocked = newIsLocked;
-
-            transaction.Commit();
-
-            activeDocument.Editor.Regen();
-
-            return new AutocadLayerTableRecordWrapper(cadLayer);
-
-        }
-        catch (Exception e)
-        {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, e.Message);
-            return autocadLayer;
-        }
-    }
-
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
@@ -148,7 +103,31 @@ public class SetAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
 
         if (change)
         {
-            autocadLayer = this.UpdateLayout(autocadLayer, newName, newPattenId, newColor, newIsLocked);
+            var document = this.GetDocumentForObjectId(autocadLayer.Id);
+            if (document is null)
+            {
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+                return;
+            }
+
+            var transactionManager = document.CreateTransactionManager();
+
+            autocadLayer = transactionManager.PerformTask(() =>
+            {
+                var transaction = transactionManager.Unwrap();
+
+                var cadLayer =
+                    transaction.GetObject(autocadLayer.Id.Unwrap(), OpenMode.ForWrite) as LayerTableRecord;
+
+                cadLayer!.Name = newName;
+                cadLayer.LinetypeObjectId = newPattenId.Unwrap();
+                cadLayer.Color =
+                    Autodesk.AutoCAD.Colors.Color.FromRgb(newColor.Red, newColor.Green,
+                        newColor.Blue);
+                cadLayer.IsLocked = newIsLocked;
+
+                return new AutocadLayerTableRecordWrapper(cadLayer);
+            });
         }
 
         var linePatten = autocadLayer.LineTypeId;

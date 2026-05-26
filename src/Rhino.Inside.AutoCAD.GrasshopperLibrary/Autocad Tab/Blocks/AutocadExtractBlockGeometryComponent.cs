@@ -50,10 +50,16 @@ public class AutocadExtractBlockGeometryComponent : RhinoInsideAutocad_Component
     /// <summary>
     /// Loads the geometry from a Block Table Record or Block Reference.
     /// </summary>
-    private IEnumerable<IGH_GeometricGoo> LoadBlockObjects(Func<IAutocadTransactionManager, IEntitySet> getObjectsFunc)
+    /// <param name="objectId">The ObjectId of the block to find the correct document.</param>
+    /// <param name="getObjectsFunc">Function to retrieve the entities from the block.</param>
+    /// <returns>A collection of geometric goo objects, or null if no document is available.</returns>
+    private IEnumerable<IGH_GeometricGoo>? LoadBlockObjects(IObjectId objectId, Func<IAutocadTransactionManager, IEntitySet> getObjectsFunc)
     {
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(objectId);
+        if (document is null)
+        {
+            return null;
+        }
 
         var transactionManagerWrapper = document.CreateTransactionManager();
 
@@ -80,20 +86,21 @@ public class AutocadExtractBlockGeometryComponent : RhinoInsideAutocad_Component
             || generic is null) return;
 
         var gooObjects = new List<IGH_GeometricGoo>();
+        IEnumerable<IGH_GeometricGoo>? loadedObjects = null;
 
         switch (generic)
         {
             case GH_AutocadBlockReference gooBlockReference:
-                gooObjects.AddRange(this.LoadBlockObjects(gooBlockReference.Value.GetObjects));
+                loadedObjects = this.LoadBlockObjects(gooBlockReference.Value.Id, gooBlockReference.Value.GetObjects);
                 break;
             case GH_AutocadBlockTableRecord gooBlockTableRecord:
-                gooObjects.AddRange(this.LoadBlockObjects(gooBlockTableRecord.Value.GetObjects));
+                loadedObjects = this.LoadBlockObjects(gooBlockTableRecord.Value.Id, gooBlockTableRecord.Value.GetObjects);
                 break;
             case AutocadBlockReferenceWrapper blockReferenceWrapper:
-                gooObjects.AddRange(this.LoadBlockObjects(blockReferenceWrapper.GetObjects));
+                loadedObjects = this.LoadBlockObjects(blockReferenceWrapper.Id, blockReferenceWrapper.GetObjects);
                 break;
             case AutocadBlockTableRecordWrapper blockTableRecordWrapper:
-                gooObjects.AddRange(this.LoadBlockObjects(blockTableRecordWrapper.GetObjects));
+                loadedObjects = this.LoadBlockObjects(blockTableRecordWrapper.Id, blockTableRecordWrapper.GetObjects);
                 break;
             default:
                 this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error,
@@ -101,6 +108,13 @@ public class AutocadExtractBlockGeometryComponent : RhinoInsideAutocad_Component
                 return;
         }
 
+        if (loadedObjects is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
+
+        gooObjects.AddRange(loadedObjects);
         DA.SetDataList(0, gooObjects.ToList());
     }
 }

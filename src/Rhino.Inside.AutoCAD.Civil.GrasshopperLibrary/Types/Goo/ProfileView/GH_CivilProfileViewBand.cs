@@ -1,0 +1,125 @@
+using Grasshopper.Kernel.Types;
+using Rhino.Inside.AutoCAD.Civil.Interop;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
+
+namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
+
+/// <summary>
+/// Represents a Grasshopper Goo object for Civil 3D ProfileView bands.
+/// </summary>
+/// <remarks>
+/// This Goo wraps a <see cref="CivilProfileViewBand"/> containing
+/// band information from a ProfileView.
+/// </remarks>
+public class GH_CivilProfileViewBand : GH_Goo<CivilProfileViewBand>
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GH_CivilProfileViewBand"/> class with no value.
+    /// </summary>
+    public GH_CivilProfileViewBand()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GH_CivilProfileViewBand"/> class with the
+    /// specified ProfileView band wrapper.
+    /// </summary>
+    /// <param name="profileViewBand">The Civil 3D ProfileView band wrapper.</param>
+    public GH_CivilProfileViewBand(CivilProfileViewBand profileViewBand) : base(profileViewBand)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GH_CivilProfileViewBand"/> class by copying
+    /// another instance.
+    /// </summary>
+    /// <param name="other">The instance to copy.</param>
+    public GH_CivilProfileViewBand(GH_CivilProfileViewBand other) : base(other.Value?.ShallowClone())
+    {
+    }
+
+    /// <summary>
+    /// Constructs a new <see cref="GH_CivilProfileViewBand"/> via the interface.
+    /// </summary>
+    public GH_CivilProfileViewBand(ICivilProfileViewBand profileViewBand)
+        : base((profileViewBand as CivilProfileViewBand)!)
+    {
+    }
+
+    /// <inheritdoc />
+    public override bool IsValid => this.Value != null;
+
+    /// <inheritdoc />
+    public override string IsValidWhyNot
+    {
+        get
+        {
+            if (this.Value == null)
+                return "No ProfileView band data";
+            return string.Empty;
+        }
+    }
+
+    /// <inheritdoc />
+    public override string TypeName => "Civil3d ProfileView Band";
+
+    /// <inheritdoc />
+    public override string TypeDescription => "A band from a Civil 3D ProfileView";
+
+    /// <inheritdoc />
+    public override IGH_Goo Duplicate()
+    {
+        return new GH_CivilProfileViewBand(this);
+    }
+
+    /// <inheritdoc />
+    public override bool CastFrom(object source)
+    {
+        if (source is GH_CivilProfileViewBand goo)
+        {
+            this.Value = goo.Value?.ShallowClone();
+            return true;
+        }
+
+        if (source is CivilProfileViewBand wrapper)
+        {
+            this.Value = wrapper.ShallowClone();
+            return true;
+        }
+
+        if (source is ICivilProfileViewBand band)
+        {
+            this.Value = (band as CivilProfileViewBand)?.ShallowClone();
+            return this.Value != null;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
+    public override bool CastTo<Q>(ref Q target)
+    {
+        if (typeof(Q).IsAssignableFrom(typeof(CivilProfileViewBand)))
+        {
+            target = (Q)(object)this.Value!;
+            return true;
+        }
+
+        if (typeof(Q).IsAssignableFrom(typeof(GH_CivilProfileViewBand)))
+        {
+            target = (Q)(object)new GH_CivilProfileViewBand(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        if (this.Value == null)
+            return "Null Civil3d ProfileView Band";
+
+        return this.Value.ToString();
+    }
+}

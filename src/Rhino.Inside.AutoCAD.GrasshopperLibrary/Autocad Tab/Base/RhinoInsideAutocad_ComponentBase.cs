@@ -1,8 +1,10 @@
-﻿using GH_IO.Serialization;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -20,7 +22,7 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     /// </summary>
     protected IComponentVersion Version { get; private set; }
 
-#if DEBUG
+#if DEBUG || DEBUGNET8
     /// <summary>
     /// Adds versioning information to the instance description in debug builds.
     /// </summary>

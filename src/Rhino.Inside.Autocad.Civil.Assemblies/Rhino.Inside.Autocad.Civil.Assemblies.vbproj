@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>Subassembly</RootNamespace>
+    <OutputType>Library</OutputType>
+    <Platform>x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="AcdbMgd">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2026\AcdbMgd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="AecBaseMgd">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2026\ACA\AecBaseMgd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="AeccDbMgd">
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2026\C3D\AeccDbMgd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Import Include="Autodesk.AutoCAD.DatabaseServices" />
+    <Import Include="Autodesk.AutoCAD.Geometry" />
+    <Import Include="Autodesk.Civil" />
+    <Import Include="Autodesk.Civil.ApplicationServices" />
+    <Import Include="Autodesk.Civil.DatabaseServices" />
+    <Import Include="Autodesk.Civil.Runtime" />
+    <Import Include="Autodesk.Civil.Settings" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="*.pkt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="*.atc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Build PKT file after compilation -->
+  <Target Name="BuildPKT" AfterTargets="Build">
+    <Exec Command="powershell -ExecutionPolicy Bypass -Command &quot;&amp; '$(ProjectDir)PKT\BuildPKT.ps1' -OutputDir '$(OutputPath)' -ProjectDir '$(ProjectDir)'&quot;" />
+  </Target>
+</Project>

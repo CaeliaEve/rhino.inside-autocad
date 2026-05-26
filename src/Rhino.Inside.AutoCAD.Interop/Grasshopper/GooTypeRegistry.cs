@@ -1,3 +1,4 @@
+using System.Reflection;
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
@@ -63,6 +64,39 @@ public class GooTypeRegistry
     {
         if (_instance != null) return;
         _instance = new GooTypeRegistry();
+    }
+
+    /// <summary>
+    /// Registers all Goo types from the specified assembly.
+    /// Called by external libraries (e.g., Civil 3D) to register their types.
+    /// </summary>
+    /// <param name="assembly">The assembly containing Goo types to register.</param>
+    public void RegisterAssembly(Assembly assembly)
+    {
+        if (assembly == null) return;
+
+        var gooTypes = assembly.GetTypes()
+            .Where(t => !t.IsAbstract &&
+                        !t.IsGenericTypeDefinition &&
+                        this.IsSubclassOfGenericType(t, _gooBaseType));
+
+        foreach (var gooType in gooTypes)
+        {
+            var wrapperType = this.ExtractWrapperType(gooType);
+            if (wrapperType == null) continue;
+
+            // Skip if already registered
+            if (_exactMatchCache.ContainsKey(wrapperType)) continue;
+
+            var factory = this.CreateFactory(gooType, wrapperType);
+            if (factory == null) continue;
+
+            this.Register(wrapperType, factory);
+        }
+
+        // Re-sort inheritance chain (most derived first)
+        _inheritanceChain.Sort((a, b) =>
+            this.GetInheritanceDepth(b.BaseType) - this.GetInheritanceDepth(a.BaseType));
     }
 
     /// <summary>

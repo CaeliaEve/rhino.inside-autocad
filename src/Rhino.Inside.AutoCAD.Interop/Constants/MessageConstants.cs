@@ -46,4 +46,16 @@ public class MessageConstants
     /// An error message when the GH_AutocadGeometricGoo type cannot be found.
     /// </summary>
     public const string GooBaseTypeNotFound = "GH_AutocadGeometricGoo type not found. Ensure Rhino.Inside.Autocad.GrasshopperLibrary is loaded.";
+
+    /// <summary>
+    /// The registry key for accessing user profile information in AutoCAD, used to
+    /// determine if the current profile is a pure AutoCAD profile or not.
+    /// </summary>
+    public const string UserRegistryProductRootKeyProfiles = "\\Profiles";
+
+    /// <summary>
+    /// The registry key name used to identify if the current AutoCAD profile is
+    /// a pure AutoCAD profile.
+    /// </summary>
+    public const string IsPureAcadProfile = "IsPureAcadProfile";
 }

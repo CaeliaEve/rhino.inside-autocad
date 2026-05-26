@@ -1,7 +1,5 @@
-using Autodesk.AutoCAD.ApplicationServices.Core;
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
-
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -70,21 +68,25 @@ public class AutocadObjectIdComponent : RhinoInsideAutocad_ComponentBase
         var isValid = objectId.IsValid;
         var isErased = objectId.IsErased;
 
-        var activeDocument = Application.DocumentManager.MdiActiveDocument;
+        var document = this.GetDocumentForObjectId(objectId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
-        using var documentLock = activeDocument.LockDocument();
+        var transactionManager = document.CreateTransactionManager();
 
-        var database = activeDocument.Database;
+        var handle = transactionManager.PerformTask(() =>
+        {
+            var transaction = transactionManager.Unwrap();
 
-        using var transaction = database.TransactionManager.StartTransaction();
+            var cadObject =
+                transaction.GetObject(objectId.Unwrap(), OpenMode.ForRead,
+                    false) as DBObject;
 
-        var cadObject =
-            transaction.GetObject(objectId.Unwrap(), OpenMode.ForRead,
-                false) as DBObject;
-
-        var handle = cadObject.Handle.Value;
-
-        transaction.Commit();
+            return cadObject.Handle.Value;
+        });
 
         DA.SetData(0, value);
         DA.SetData(1, isValid);

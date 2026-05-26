@@ -117,19 +117,13 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         var objects = new List<object>();
         if (!DA.GetDataList(1, objects) || objects.Count == 0)
@@ -165,7 +159,7 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
 
         var bakedIds = new List<GH_AutocadObjectId>();
 
-        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
+        var transactionManagerWrapper = document.CreateTransactionManager();
 
         _ = transactionManagerWrapper.PerformTask(() =>
          {

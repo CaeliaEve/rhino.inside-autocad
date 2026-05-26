@@ -1,7 +1,7 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadMesh = Autodesk.AutoCAD.DatabaseServices.PolyFaceMesh;
+using CadMesh = Autodesk.AutoCAD.DatabaseServices.SubDMesh;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 

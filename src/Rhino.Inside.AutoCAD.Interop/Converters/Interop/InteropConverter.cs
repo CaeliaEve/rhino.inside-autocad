@@ -102,7 +102,7 @@ public static class InteropConverter
     /// </returns>
     public static TransactionManager Unwrap(this IAutocadTransactionManager autocadTransactionManager)
     {
-        var objectIdWrapper = (AutocadWrapperDisposableBase<TransactionManager>)autocadTransactionManager;
+        var objectIdWrapper = (AutocadWrapperBase<TransactionManager>)autocadTransactionManager;
 
         return objectIdWrapper.AutocadObject;
     }

@@ -126,6 +126,11 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
         var entityCollection = new EntitySet();
         var blockTableRecord = _blockReference.AnonymousBlockTableRecord;
 
+        if (blockTableRecord.IsValid == false)
+        {
+            blockTableRecord = _blockReference.BlockTableRecord;
+        }
+
         var transaction = autocadTransactionManager.Unwrap();
 
         var blockDefinition = transaction.GetObject(blockTableRecord, OpenMode.ForRead) as BlockTableRecord;

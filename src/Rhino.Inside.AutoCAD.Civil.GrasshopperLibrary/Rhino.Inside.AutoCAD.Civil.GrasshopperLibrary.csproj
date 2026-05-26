@@ -1,0 +1,104 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>$(TargetFrameworkName)</TargetFramework>
+
+		<Configurations>Release;Debug;ReleaseNET8;DebugNET8</Configurations>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<OutputType>Library</OutputType>
+		<Nullable>enable</Nullable>
+		<LangVersion>preview</LangVersion>
+		<Version>$(AssemblyVersion)</Version>
+		<Company>$(BimorphCompany)</Company>
+		<Product>$(BimorphProduct)</Product>
+		<Copyright>$(BimorphCopyright)</Copyright>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+
+		<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Civil Tab\Alignments\NewFolder\**" />
+	  <Compile Remove="Types\NewFolder\**" />
+	  <EmbeddedResource Remove="Civil Tab\Alignments\NewFolder\**" />
+	  <EmbeddedResource Remove="Types\NewFolder\**" />
+	  <None Remove="Civil Tab\Alignments\NewFolder\**" />
+	  <None Remove="Types\NewFolder\**" />
+	</ItemGroup>
+	
+
+	<ItemGroup>
+		<PackageReference Include="NaturalSort.Extension" />
+		<PackageReference Include="MaterialDesignThemes" />
+		<PackageReference Include="System.Resources.Extensions" />
+		<PackageReference Include="RhinoCommon">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Grasshopper">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="RhinoWindows">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="AutoCAD.NET">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Civil3D.NET">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="AutoCAD.NET.Core">
+			<PrivateAssets></PrivateAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Applications\Rhino.Inside.AutoCAD.Applications.csproj">
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Civil.Interop\Rhino.Inside.AutoCAD.Civil.Interop.csproj" />
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Core\Rhino.Inside.AutoCAD.Core.csproj">
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.GrasshopperLibrary\Rhino.Inside.AutoCAD.GrasshopperLibrary.csproj">
+		  <Private>False</Private>
+		  <ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Interop\Rhino.Inside.AutoCAD.Interop.csproj">
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Properties\Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Properties\Resources.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">
+		<DefineConstants>DEBUG;DEBUGNET8;TRACE</DefineConstants>
+		<Optimize>false</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="xcopy /y /i &quot;$(OutDir)*.dll&quot; &quot;$(AppRootDirAssemblies)&quot;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.pdb&quot; &quot;$(AppRootDirAssemblies)&quot;&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.dll&quot; &quot;$(DeploymentPackage_Win64)&quot;" />
+	</Target>
+
+</Project>

@@ -1,4 +1,5 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
@@ -16,6 +17,8 @@ public class AutoCadInstance : IAutoCadInstance
 
     private readonly string _readOnlyNotSupported = MessageConstants.ReadOnlyNotSupported;
     private readonly string _fileUnitsNotSupported = MessageConstants.FileUnitsNotSupported;
+    private const string _userRegistryProductRootKeyProfiles = MessageConstants.UserRegistryProductRootKeyProfiles;
+    private const string _isPureAcadProfile = MessageConstants.IsPureAcadProfile;
 
     /// <inheritdoc/>
     public event EventHandler? DocumentCreated;
@@ -37,6 +40,9 @@ public class AutoCadInstance : IAutoCadInstance
 
     /// <inheritdoc/>
     public Version ApplicationVersion { get; }
+
+    /// <inheritdoc/>
+    public bool IsCivil3d { get; }
 
     /// <summary>
     /// Constructs a new <see cref="IAutoCadInstance"/>.
@@ -68,6 +74,48 @@ public class AutoCadInstance : IAutoCadInstance
         this.ApplicationVersion = Application.Version;
 
         this.Validate(documentFiles);
+
+        this.IsCivil3d = this.CheckIsCivil();
+    }
+
+    /// <summary>
+    /// Checks if the current AutoCAD profile is a Civil 3D profile by checking the registry
+    /// key for the current profile. If the application is not "IsPureAcadProfile" = "0",
+    /// then we assume it is a Civil 3D profile. Not this is not robust if it turns out that
+    /// there are other profiles which are not pure AutoCAD profiles.
+    /// </summary>
+    private bool CheckIsCivil()
+    {
+        var productKey = HostApplicationServices.Current.UserRegistryProductRootKey;
+        productKey += _userRegistryProductRootKeyProfiles;
+
+        var key = Microsoft.Win32.Registry.CurrentUser;
+        key = key.OpenSubKey(productKey, false);
+
+        var currentProfile = key.GetValue("").ToString();
+        key = key.OpenSubKey(currentProfile, false);
+
+        var keyNames = key.GetValueNames();
+
+        foreach (var valueName in keyNames)
+        {
+            if (valueName != _isPureAcadProfile) continue;
+
+            if (key.GetValue(valueName).ToString() == "1") return false;
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            foreach (var assembly in assemblies)
+            {
+                if (assembly.FullName.StartsWith("AeccUiWindows"))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+
     }
 
     /// <summary>
@@ -114,6 +162,20 @@ public class AutoCadInstance : IAutoCadInstance
         foreach (var autoCadDocument in this.Documents)
         {
             if (autoCadDocument.Unwrap().IsActive)
+            {
+                return autoCadDocument;
+            }
+        }
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public IAutocadDocument? FindDocumentByFingerprintGuid(string fingerprintGuid)
+    {
+        foreach (var autoCadDocument in this.Documents)
+        {
+            var nativeDocument = autoCadDocument.Unwrap();
+            if (nativeDocument.Database.FingerprintGuid == fingerprintGuid)
             {
                 return autoCadDocument;
             }
@@ -190,16 +252,30 @@ public class AutoCadInstance : IAutoCadInstance
     /// <inheritdoc/>
     public void Shutdown()
     {
-        _documentManager!.DocumentActivated -= this.OnDocumentActivated;
+        System.Diagnostics.Debug.WriteLine("=== AutoCadInstance.Shutdown() START ===");
 
-        if (this.Documents.Any())
+        try
         {
-            foreach (var autoCadDocument in this.Documents)
+            _documentManager!.DocumentActivated -= this.OnDocumentActivated;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to unsubscribe DocumentActivated: {ex.Message}");
+        }
+
+        foreach (var autoCadDocument in this.Documents.ToList())
+        {
+            try
             {
                 this.UnsubscribeToDocumentEvents(autoCadDocument);
-
                 autoCadDocument.CloseDocument();
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to close document: {ex.Message}");
+            }
         }
+
+        System.Diagnostics.Debug.WriteLine("=== AutoCadInstance.Shutdown() END ===");
     }
 }

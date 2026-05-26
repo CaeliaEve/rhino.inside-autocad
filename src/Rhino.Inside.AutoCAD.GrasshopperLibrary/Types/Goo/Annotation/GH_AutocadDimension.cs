@@ -11,7 +11,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD Dimensions.
 /// </summary>
-public class GH_AutocadDimension : GH_AutocadGeometricGoo<AutocadDimension, RhinoDimension>
+public class GH_AutocadDimension : GH_AutocadGeometricGoo<AutocadDimension, RhinoGeometryAdapter<RhinoDimension>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadDimension"/> class with no value.
@@ -39,36 +39,36 @@ public class GH_AutocadDimension : GH_AutocadGeometricGoo<AutocadDimension, Rhin
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadDimension, RhinoDimension> CreateClonedInstance(AutocadDimension entity)
+    protected override GH_AutocadGeometricGoo<AutocadDimension, RhinoGeometryAdapter<RhinoDimension>> CreateClonedInstance(AutocadDimension entity)
     {
         return new GH_AutocadDimension(entity.Clone() as AutocadDimension, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadDimension, RhinoDimension> CreateInstance(AutocadDimension entity)
+    protected override GH_AutocadGeometricGoo<AutocadDimension, RhinoGeometryAdapter<RhinoDimension>> CreateInstance(AutocadDimension entity)
     {
         return new GH_AutocadDimension(entity);
     }
 
     /// <inheritdoc />
-    protected override AutocadDimension? Convert(RhinoDimension rhinoType)
+    protected override AutocadDimension? Convert(RhinoGeometryAdapter<RhinoDimension> rhinoType)
     {
-        return rhinoType.ToAutocadDimension();
+        return rhinoType.Geometry?.ToAutocadDimension();
     }
 
     /// <inheritdoc />
-    protected override RhinoDimension? Convert(AutocadDimension wrapperType)
+    protected override RhinoGeometryAdapter<RhinoDimension>? Convert(AutocadDimension wrapperType)
     {
-        return wrapperType.ToRhinoDimension();
+        return new RhinoGeometryAdapter<RhinoDimension>(wrapperType.ToRhinoDimension());
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        var rhinoGeometry = this.RhinoGeometry;
-        if (rhinoGeometry == null) return;
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry == null) return;
 
-        args.Pipeline.DrawAnnotation(rhinoGeometry, args.Color);
+        args.Pipeline.DrawAnnotation(geometry, args.Color);
     }
 
     /// <inheritdoc />
@@ -80,10 +80,10 @@ public class GH_AutocadDimension : GH_AutocadGeometricGoo<AutocadDimension, Rhin
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
-        if (rhinoGeometry == null) return;
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry == null) return;
 
-        var geometryBases = rhinoGeometry.Explode();
+        var geometryBases = geometry.Explode();
 
         foreach (var geometryBase in geometryBases)
         {

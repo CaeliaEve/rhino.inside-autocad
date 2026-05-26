@@ -24,9 +24,16 @@ public interface IPreviewServer
 
     /// <summary>
     /// Removes all the transient entities which are in the <see cref="IObjectRegister"/>
-    /// from the AutoCAD drawing.
+    /// from the AutoCAD drawing but keeps them in the register for later re-use.
+    /// Used for visibility toggling (preview on/off).
     /// </summary>
     void ClearServer();
+
+    /// <summary>
+    /// Removes all transient entities and disposes the underlying AutoCAD entities.
+    /// Used during application shutdown to ensure clean disposal.
+    /// </summary>
+    void ClearAndDisposeAll();
 
     /// <summary>
     /// Adds all the transient entities which are in the <see cref="IObjectRegister"/>

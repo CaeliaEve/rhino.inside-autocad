@@ -19,11 +19,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	<PackageReference Include="AutoCAD.NET.Model" >
+
+		<PackageReference Include="NaturalSort.Extension" />
+		<PackageReference Include="MaterialDesignThemes" />
+		<PackageReference Include="Microsoft.Bcl.HashCode" />
+		<PackageReference Include="AutoCAD.NET.Model">
 		<ExcludeAssets>runtime</ExcludeAssets>
 	</PackageReference>
-	<PackageReference Include="NaturalSort.Extension" />
-		<PackageReference Include="MaterialDesignThemes" />
+
 		<PackageReference Include="RhinoCommon">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
@@ -40,6 +43,7 @@
 			<PrivateAssets></PrivateAssets>
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+	
 
 	</ItemGroup>
 

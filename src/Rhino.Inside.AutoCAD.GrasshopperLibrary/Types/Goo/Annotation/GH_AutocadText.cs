@@ -1,7 +1,8 @@
-﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
+using AutocadDBText = Autodesk.AutoCAD.DatabaseServices.DBText;
 using AutocadText = Autodesk.AutoCAD.DatabaseServices.MText;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -9,8 +10,29 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD Texts.
 /// </summary>
-public class GH_AutocadText : GH_AutocadGeometricGoo<AutocadText, TextEntity>
+public class GH_AutocadText : GH_AutocadGeometricGoo<AutocadText, RhinoGeometryAdapter<TextEntity>>
 {
+    /// <summary>
+    /// Creates a GH_AutocadText from an AutoCAD text entity, which can be either a DBText or an MText.
+    /// If the input is a DBText, it will be converted to an MText for consistency.
+    /// </summary>
+    public static GH_AutocadText CreateFromTextEntity(IEntity textEntity)
+    {
+        switch (textEntity)
+        {
+            case AutocadDBText text:
+                {
+                    var mtext = text.ConvertToMText();
+
+                    return new GH_AutocadText(mtext);
+                }
+            case AutocadText mText:
+                return new GH_AutocadText(mText);
+            default:
+                throw new ArgumentException($"Unsupported text entity type: {textEntity.GetType().FullName}");
+        }
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadText"/> class with no value.
     /// </summary>
@@ -38,33 +60,35 @@ public class GH_AutocadText : GH_AutocadGeometricGoo<AutocadText, TextEntity>
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadText, TextEntity> CreateClonedInstance(AutocadText entity)
+    protected override GH_AutocadGeometricGoo<AutocadText, RhinoGeometryAdapter<TextEntity>> CreateClonedInstance(AutocadText entity)
     {
         return new GH_AutocadText(entity.Clone() as AutocadText, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadText, TextEntity> CreateInstance(AutocadText entity)
+    protected override GH_AutocadGeometricGoo<AutocadText, RhinoGeometryAdapter<TextEntity>> CreateInstance(AutocadText entity)
     {
         return new GH_AutocadText(entity);
     }
 
     /// <inheritdoc />
-    protected override AutocadText? Convert(TextEntity rhinoType)
+    protected override AutocadText? Convert(RhinoGeometryAdapter<TextEntity> rhinoType)
     {
-        return rhinoType.ToAutocadMText();
+        return rhinoType.Geometry?.ToAutocadMText();
     }
 
     /// <inheritdoc />
-    protected override TextEntity? Convert(AutocadText wrapperType)
+    protected override RhinoGeometryAdapter<TextEntity>? Convert(AutocadText wrapperType)
     {
-        return wrapperType.ToRhinoTextEntity();
+        return new RhinoGeometryAdapter<TextEntity>(wrapperType.ToRhinoTextEntity());
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        args.Pipeline.DrawText(this.RhinoGeometry, args.Color, this.RhinoGeometry.DimensionScale);
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry != null)
+            args.Pipeline.DrawText(geometry, args.Color, geometry.DimensionScale);
     }
 
     /// <inheritdoc />
@@ -76,12 +100,11 @@ public class GH_AutocadText : GH_AutocadGeometricGoo<AutocadText, TextEntity>
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
+        var geometry = this.RhinoGeometry?.Geometry;
 
-        if (rhinoGeometry == null) return;
+        if (geometry == null) return;
 
-        previewData.Texts.Add(rhinoGeometry);
-
+        previewData.Texts.Add(geometry);
     }
 }
 

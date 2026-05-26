@@ -1,6 +1,7 @@
 ﻿using Autodesk.AutoCAD.Runtime;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
 using Rhino.Inside.AutoCAD.Services;
 using System.Globalization;
@@ -130,7 +131,9 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
         }
         catch (System.Exception ex)
         {
-
+            System.Diagnostics.Debug.WriteLine($"Shutdown error: {ex.Message}");
+            try { LoggerService.Instance?.LogError(ex, "Termination error"); } catch { }
+            Application = null;
         }
     }
 
@@ -143,6 +146,8 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
         if (Application is not null)
         {
             e.IsVetoed = true;
+
+            ApplicationState.BeginShutdown();
 
             Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
 

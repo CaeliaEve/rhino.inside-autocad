@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Default_24x24" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilDefault" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilStationPointComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_Filter" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\..\Rhino.Inside.AutoCAD.GrasshopperLibrary\Properties\..\Icons\Param_Filter.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_SurfaceDefinitionContour" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CreateCivilTINSurface" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilVolumeSurface" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CreateCivilTINVolumeSurface" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilBoundedVolume" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentEntity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilSurfaceBoundary" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilSurfaceContour" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilSurfaceBreakline" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GetAlignmentsComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetAlignmentsComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentPropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilAlignmentPropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilAlignmentComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="AlignmentTypeValueList" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\AlignmentTypeValueList.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CreateCivilAlignmentComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CreateCivilAlignmentComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilDesignSpeedsInfoComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilDesignSpeedsInfoComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilRailAlignmentInfoComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilRailAlignmentInfoComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentSubEntityComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilAlignmentSubEntityComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilReferenceStationComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilReferenceStationComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentEntityComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilAlignmentEntityComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilCantInfoComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilCantInfoComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilConnectedAlignmentInfoComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilConnectedAlignmentInfoComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilOffsetAlignmentInfoComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilOffsetAlignmentInfoComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GetAssembliesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetAssembliesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilSubassemblyComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilSubassemblyComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAssemblyComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilAssemblyComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GetCorridorsComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetCorridorsComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilCorridorBaselineComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilCorridorBaselineComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilCorridorFeatureLineComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilCorridorFeatureLineComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilCorridorSurfaceComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilCorridorSurfaceComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilCorridorBaselineRegionComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilCorridorBaselineRegionComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilCorridorComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilCorridorComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilCorridorPropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilCorridorPropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilProfileLabelGroupComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilProfileLabelGroupComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentLabelGroupComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilAlignmentLabelGroupComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilAlignmentLabelComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilAlignmentLabelComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilParcelComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilParcelComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GetParcelsFromSiteComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetParcelsFromSiteComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilParcelSegmentComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilParcelSegmentComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilSiteComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilSiteComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GetSitesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetSitesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilParcelPropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilParcelPropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GetProfileViewsFromAlignmentComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetProfileViewsFromAlignmentComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilProfileViewComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilProfileViewComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilProfileViewPropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilProfileViewPropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilProfileEntityComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilProfileEntityComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="GetProfilesFromAlignmentComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetProfilesFromAlignmentComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilProfileComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilProfileComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilProfilePropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilProfilePropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CreateCivilTINVolumeSurfaceComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CreateCivilTINVolumeSurfaceComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TINVolumePropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TINVolumePropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilBoundedVolumeComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CivilBoundedVolumeComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TINVolumeSurfaceComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TINVolumeSurfaceComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TINSurfaceComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TINSurfaceComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TINSurfacePropertiesComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TINSurfacePropertiesComponent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentLabelSetStyle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAlignmentLabelSetStyle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentStyle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAlignmentStyle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentSubEntity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAlignmentSubEntity.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilRailAlignmentInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilRailAlignmentInfo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilOffsetAlignmentInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilOffsetAlignmentInfo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilConnectedAlignmentInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilConnectedAlignmentInfo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilCANTInfo" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilCANTInfo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilDesignSpeeds" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilDesignSpeeds.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilReferenceStation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilReferenceStation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilFeatureLabel" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilFeatureLabel.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentLabelGroup" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAlignmentLabelGroup.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAlignment.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentEntity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAlignmentEntity.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAlignmentProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAlignmentProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilAssembly" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilAssembly.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilSubassemblyProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilSubassemblyProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilCorridor" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilCorridor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilCorridorFeatureLine" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilCorridorFeatureLine.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilCorridorSurface" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilCorridorSurface.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilCorridorBaselineRegion" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilCorridorBaselineRegion.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilCorridorBaseline" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilCorridorBaseline.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilCorridorProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilCorridorProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileViewBand" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileViewBand.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileViewProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileViewProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileView" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileView.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilSite" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilSite.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilParcelSegment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilParcelSegment.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilParcelProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilParcelProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilParcel" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilParcel.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileLabelGroup" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileLabelGroup.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileParabola" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileParabola.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileCircularArc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileCircularArc.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileTangent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileTangent.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileEntity" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileEntity.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfileProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfileProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilProfile" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilProfile.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilTinVolumeSurface" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilTinVolumeSurface.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilVolumeProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilVolumeProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilTinProperties" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Param_CivilTinProperties.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilTinSurface" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilSurfaceStyle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilSurfaceBoundary" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilSurfaceContour" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Param_CivilSurfaceBreakline" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CivilSideValueList" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="CreateCivilSubassemblyComponent" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Default_24x24.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+</root>

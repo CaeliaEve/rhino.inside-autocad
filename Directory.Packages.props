@@ -7,6 +7,9 @@
   <ItemGroup>
     <!-- MVVM Toolkits -->
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <!-- Civil3D API nugets -->
+    <PackageVersion Include="Civil3D.NET" Version="13.6.1781" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
+    <PackageVersion Include="Civil3D.NET" Version="13.8.1516" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
     <!-- AutoCAD API nugets -->
     <PackageVersion Include="AutoCAD.NET.Model" Version="24.3.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="AutoCAD.NET.Core" Version="24.3.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
@@ -31,6 +34,7 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.5" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
     <!-- Deployment -->
     <PackageVersion Include="WixToolset.UI.wixext" Version="6.0.2" />
+	  <PackageVersion Include="Microsoft.Bcl.HashCode" version="1.1.1" />
     <!--Logging : -Note Net4.8 is Higher-->
     <PackageVersion Include="Serilog" Version="4.2.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Serilog" Version="4.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
