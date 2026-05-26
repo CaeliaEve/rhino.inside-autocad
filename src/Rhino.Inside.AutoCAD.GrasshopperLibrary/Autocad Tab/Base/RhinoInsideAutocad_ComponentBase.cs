@@ -1,5 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-using GH_IO.Serialization;
+﻿using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
@@ -156,5 +155,13 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     protected IAutocadDocument? GetActiveDocumentFallback()
     {
         return RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+    }
+
+    /// <summary>
+    /// Returns the provided AutoCAD document or, if null, attempts to retrieve the active document from the AutoCAD application.
+    /// </summary>
+    protected IAutocadDocument? GetDocumentOrDefault(AutocadDocument? autocadDocument = null)
+    {
+        return autocadDocument ?? this.GetActiveDocumentFallback();
     }
 }
