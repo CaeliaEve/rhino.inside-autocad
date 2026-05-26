@@ -41,6 +41,12 @@ public class InteropConstants
     /// </summary>
     public const string GooBaseTypeName = "Rhino.Inside.AutoCAD.GrasshopperLibrary.GH_AutocadGeometricGoo`2, Rhino.Inside.AutoCAD.GrasshopperLibrary";
 
+/// <summary>
+    /// The file name of the Civil3d Grasshopper library DLL.
+    /// </summary>
+    public const string GrasshopperCivilLibraryFileName = "Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll";
+
+
     /// <summary>
     /// The temporary directory path used for file-based conversions. This directory is
     /// created in the system's temporary folder and is specific to the

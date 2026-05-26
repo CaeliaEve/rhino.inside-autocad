@@ -34,34 +34,6 @@ public class Param_AutocadText : Param_AutocadObjectBase<GH_AutocadText, CadMTex
             "A Text Object in AutoCAD", "Params", "AutoCAD")
     { }
 
-    /// <summary>
-    /// Converts a DBText to an MText.
-    /// </summary>
-    private CadMText ConvertToMText(CadText dbText)
-    {
-        var mText = new CadMText();
-
-        mText.Contents = dbText.TextString;
-
-        mText.Location = dbText.Position;
-
-        mText.TextHeight = dbText.Height;
-
-        mText.Rotation = dbText.Rotation;
-
-        mText.TextStyleId = dbText.TextStyleId;
-
-        mText.Layer = dbText.Layer;
-
-        mText.Color = dbText.Color;
-
-        mText.Attachment = dbText.Justify;
-
-        mText.Width = 0;
-
-        return mText;
-    }
-
     /// <inheritdoc />
     protected override IObjectFilter CreateSelectionFilter() => new TextFilter();
 
@@ -74,9 +46,7 @@ public class Param_AutocadText : Param_AutocadObjectBase<GH_AutocadText, CadMTex
 
         if (entity is CadText text)
         {
-            var mtext = this.ConvertToMText(text);
-
-            supportedGoo = new GH_AutocadText(mtext);
+            supportedGoo = GH_AutocadText.CreateFromTextEntity(entity);
             return true;
         }
         supportedGoo = null;

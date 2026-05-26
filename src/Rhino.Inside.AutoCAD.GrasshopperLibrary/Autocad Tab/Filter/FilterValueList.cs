@@ -12,7 +12,7 @@ public class FilterValueList : GH_ValueList
     public override Guid ComponentGuid => new Guid("C5D7E9F1-A3B5-4C7D-8E9F-1A3B5C7D9E0F");
 
     /// <inheritdoc />
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    public override GH_Exposure Exposure => GH_Exposure.quarternary;
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Properties.Resources.Param_Filter;
@@ -39,6 +39,9 @@ public class FilterValueList : GH_ValueList
         this.ListItems.Add(new GH_ValueListItem("Text", "\"Text\""));
         this.ListItems.Add(new GH_ValueListItem("Leader", "\"Leader\""));
         this.ListItems.Add(new GH_ValueListItem("Block", "\"Block\""));
+        this.ListItems.Add(new GH_ValueListItem("Layer", "\"Layer\""));
+        this.ListItems.Add(new GH_ValueListItem("Layout", "\"Layout\""));
+        this.ListItems.Add(new GH_ValueListItem("Linetype", "\"Linetype\""));
 
         this.SelectItem(0);
     }

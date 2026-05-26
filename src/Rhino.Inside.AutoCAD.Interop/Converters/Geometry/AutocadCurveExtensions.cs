@@ -1,5 +1,8 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
+using System.Diagnostics;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using CadArc = Autodesk.AutoCAD.DatabaseServices.Arc;
 using CadCircle = Autodesk.AutoCAD.DatabaseServices.Circle;
 using CadCurve = Autodesk.AutoCAD.DatabaseServices.Curve;
@@ -7,6 +10,8 @@ using CadDBPoint = Autodesk.AutoCAD.DatabaseServices.DBPoint;
 using CadEllipse = Autodesk.AutoCAD.DatabaseServices.Ellipse;
 using CadLine = Autodesk.AutoCAD.DatabaseServices.Line;
 using CadPolyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
+using CadPolyline2d = Autodesk.AutoCAD.DatabaseServices.Polyline2d;
+using CadPolyline3d = Autodesk.AutoCAD.DatabaseServices.Polyline3d;
 using RhinoArc = Rhino.Geometry.Arc;
 using RhinoArcCurve = Rhino.Geometry.ArcCurve;
 using RhinoCircle = Rhino.Geometry.Circle;
@@ -20,6 +25,7 @@ using RhinoPoint = Rhino.Geometry.Point;
 using RhinoPoint2d = Rhino.Geometry.Point2d;
 using RhinoPoint3d = Rhino.Geometry.Point3d;
 using RhinoPolyCurve = Rhino.Geometry.PolyCurve;
+using RhinoPolylineCurve = Rhino.Geometry.PolylineCurve;
 using RhinoTransform = Rhino.Geometry.Transform;
 
 namespace Rhino.Inside.AutoCAD.Interop;
@@ -835,6 +841,8 @@ public static class AutocadCurveExtensions
     ///   <item><see cref="CadArc"/></item>
     ///   <item><see cref="CadCircle"/></item>
     ///   <item><see cref="CadPolyline"/></item>
+    ///   <item><see cref="CadPolyline2d"/></item>
+    ///   <item><see cref="CadPolyline3d"/></item>
     /// </list>
     /// </remarks>
     /// <seealso cref="ToRhinoCurve(Curve2d)"/>
@@ -862,8 +870,13 @@ public static class AutocadCurveExtensions
 
             case CadPolyline polyline:
                 return polyline.ToRhinoPolyCurve();
+            case CadPolyline2d polyline:
+                return polyline.ToRhinoCurve();
+            case CadPolyline3d polyline:
+                return polyline.ToRhinoCurve();
 
             default:
+                Debug.WriteLine(curve.GetType().Name);
                 return null;
         }
     }
@@ -916,6 +929,91 @@ public static class AutocadCurveExtensions
         }
 
         return polyCurve;
+    }
+
+    /// <summary>
+    /// Converts an AutoCAD polyline2d to a Rhino curve.
+    /// </summary>
+    public static RhinoCurve? ToRhinoCurve(this Polyline2d polyline2d)
+    {
+        var activeDocument = Application.DocumentManager.GetDocument(polyline2d.Database);
+
+        using var documentLock = activeDocument.LockDocument();
+
+        var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
+
+        using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
+
+        var result = polyline2d.ToRhinoCurve(transactionManagerWrapper);
+
+        transaction.Commit();
+        return result;
+    }
+
+    /// <summary>
+    /// Converts an AutoCAD polyline2d to a Rhino curve.
+    /// </summary>
+    public static RhinoCurve? ToRhinoCurve(this Polyline2d polyline2d,
+        IAutocadTransactionManager transactionManager)
+    {
+        var points = new List<RhinoPoint3d>();
+
+        foreach (ObjectId vertexId in polyline2d)
+        {
+            if (transactionManager.Unwrap().GetObject(vertexId, OpenMode.ForRead) is PolylineVertex3d vertex)
+            {
+                var rhinoPoint = vertex.Position.ToRhinoPoint3d();
+                points.Add(rhinoPoint);
+            }
+        }
+
+        if (points.Count < 2)
+            return null;
+
+        return new RhinoPolylineCurve(points);
+    }
+
+    /// <summary>
+    /// Converts an AutoCAD Polyline3d to a Rhino curve.
+    /// </summary>
+    public static RhinoCurve? ToRhinoCurve(this Polyline3d polyline3d)
+    {
+
+        var activeDocument = Application.DocumentManager.GetDocument(polyline3d.Database);
+
+        using var documentLock = activeDocument.LockDocument();
+
+        var transactionManagerWrapper = new AutocadTransactionManagerWrapper(activeDocument);
+
+        using var transaction = transactionManagerWrapper.Unwrap().StartTransaction();
+
+        var result = polyline3d.ToRhinoCurve(transactionManagerWrapper);
+
+        transaction.Commit();
+        return result;
+    }
+
+    /// <summary>
+    /// Converts an AutoCAD Polyline3d to a Rhino curve.
+    /// </summary>
+    public static RhinoCurve? ToRhinoCurve(this Polyline3d polyline3d,
+        IAutocadTransactionManager transactionManager)
+    {
+        var points = new List<RhinoPoint3d>();
+
+        foreach (ObjectId vertexId in polyline3d)
+        {
+            if (transactionManager.Unwrap().GetObject(vertexId, OpenMode.ForRead) is PolylineVertex3d vertex)
+            {
+                var rhinoPoint = vertex.Position.ToRhinoPoint3d();
+                points.Add(rhinoPoint);
+            }
+        }
+
+        if (points.Count < 2)
+            return null;
+
+        return new RhinoPolylineCurve(points);
     }
 
     /// <summary>

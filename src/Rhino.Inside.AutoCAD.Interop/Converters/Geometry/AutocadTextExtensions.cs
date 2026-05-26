@@ -13,6 +13,34 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public static class AutocadTextExtensions
 {
     /// <summary>
+    /// Converts a DBText to an MText.
+    /// </summary>
+    public static MText ConvertToMText(this DBText dbText)
+    {
+        var mText = new MText();
+
+        mText.Contents = dbText.TextString;
+
+        mText.Location = dbText.Position;
+
+        mText.TextHeight = dbText.Height;
+
+        mText.Rotation = dbText.Rotation;
+
+        mText.TextStyleId = dbText.TextStyleId;
+
+        mText.Layer = dbText.Layer;
+
+        mText.Color = dbText.Color;
+
+        mText.Attachment = dbText.Justify;
+
+        mText.Width = 0;
+
+        return mText;
+    }
+
+    /// <summary>
     /// Converts an AutoCAD <see cref="MText"/> to a Rhino <see cref="TextEntity"/>.
     /// </summary>
     /// <param name="cadText">The AutoCAD MText to convert.</param>

@@ -1,0 +1,77 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>$(TargetFrameworkName)</TargetFramework>
+		<Configurations>Release;Debug;ReleaseNET8;DebugNET8</Configurations>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<OutputType>Library</OutputType>
+		<Nullable>enable</Nullable>
+		<LangVersion>preview</LangVersion>
+		<Version>$(AssemblyVersion)</Version>
+		<Company>$(BimorphCompany)</Company>
+		<Product>$(BimorphProduct)</Product>
+		<Copyright>$(BimorphCopyright)</Copyright>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NaturalSort.Extension" />
+		<PackageReference Include="MaterialDesignThemes" />
+		<PackageReference Include="RhinoCommon">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="RhinoWindows">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Grasshopper">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="AutoCAD.NET">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="AutoCAD.NET.Core">
+			<PrivateAssets></PrivateAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="Civil3D.NET">
+		<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Applications\Rhino.Inside.AutoCAD.Applications.csproj" />
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Core\Rhino.Inside.AutoCAD.Core.csproj">
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Interop\Rhino.Inside.AutoCAD.Interop.csproj">
+		<Private>False</Private>
+		<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Services\Rhino.Inside.AutoCAD.Services.csproj">
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\Rhino.Inside.AutoCAD.UI.Resources\Rhino.Inside.AutoCAD.UI.Resources.csproj">
+			<Private>False</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">
+		<DefineConstants>DEBUG;DEBUGNET8;TRACE</DefineConstants>
+		<Optimize>false</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="xcopy /y /i &quot;$(OutDir)*.dll&quot; &quot;$(AppRootDirAssemblies)&quot;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.pdb&quot; &quot;$(AppRootDirAssemblies)&quot;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.pkt&quot; &quot;$(AppRootDirAssemblies)&quot;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.atc&quot; &quot;$(AppRootDirAssemblies)&quot;&#xD;&#xA;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.dll&quot; &quot;$(DeploymentPackage_Win64)&quot;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.pkt&quot; &quot;$(DeploymentPackage_Win64)&quot;&#xD;&#xA;xcopy /y /i &quot;$(OutDir)*.atc&quot; &quot;$(DeploymentPackage_Win64)&quot;" />
+	</Target>
+
+</Project>

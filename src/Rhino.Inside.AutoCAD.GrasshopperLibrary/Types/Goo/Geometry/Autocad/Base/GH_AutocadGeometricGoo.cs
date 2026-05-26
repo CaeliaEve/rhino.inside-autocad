@@ -1,11 +1,11 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using CadColor = Autodesk.AutoCAD.Colors.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -17,9 +17,12 @@ public abstract class GH_AutocadGeometricGoo<TWrapperType, TRhinoType>
     : GH_GeometricGoo<TWrapperType>, IGH_AutocadReferenceDatabaseObject,
         IGH_PreviewData, IGH_AutocadGeometryPreview, IAutocadBakeable
 where TWrapperType : Entity
-where TRhinoType : GeometryBase
+where TRhinoType : class, IRhinoAdapter
 {
     private const string _referenceHandleDictionaryName = "AutocadReferenceHandle";
+
+    private TRhinoType? _cachedRhinoGeometry;
+    private TWrapperType? _cachedValueForGeometry;
 
     /// <inheritdoc />
     public IAutocadReferenceId Reference { get; private set; }
@@ -29,18 +32,36 @@ where TRhinoType : GeometryBase
 
     /// <summary>
     /// Gets the Rhino geometry equivalent of the AutoCAD geometry.
+    /// The result is cached and automatically invalidated when Value changes.
     /// </summary>
-    public TRhinoType? RhinoGeometry =>
-        this.Value == null
-            ? null
-            : this.Convert(this.Value);
+    public TRhinoType? RhinoGeometry
+    {
+        get
+        {
+            if (this.Value == null)
+            {
+                _cachedRhinoGeometry = null;
+                _cachedValueForGeometry = null;
+                return null;
+            }
+
+            // Recompute if Value reference has changed
+            if (!ReferenceEquals(_cachedValueForGeometry, this.Value))
+            {
+                _cachedRhinoGeometry = this.Convert(this.Value);
+                _cachedValueForGeometry = this.Value;
+            }
+
+            return _cachedRhinoGeometry;
+        }
+    }
 
     /// <inheritdoc />
     public override BoundingBox Boundingbox
     {
         get
         {
-            if (this.Value == null && this.Value.Bounds.HasValue == false)
+            if (this.Value == null || !this.Value.Bounds.HasValue)
                 return BoundingBox.Empty;
 
             var bounds = this.Value.Bounds;
@@ -162,9 +183,10 @@ where TRhinoType : GeometryBase
         if (rhinoGeometry == null)
             return this;
 
-        rhinoGeometry.Transform(xform);
+        var duplicate = (TRhinoType)rhinoGeometry.Duplicate();
+        duplicate.Transform(xform);
 
-        var transformed = this.Convert(rhinoGeometry);
+        var transformed = this.Convert(duplicate);
 
         return this.CreateInstance(transformed);
     }
@@ -177,9 +199,10 @@ where TRhinoType : GeometryBase
         if (rhinoGeometry == null)
             return this;
 
-        xmorph.Morph(rhinoGeometry);
+        var duplicate = (TRhinoType)rhinoGeometry.Duplicate();
+        duplicate.Morph(xmorph);
 
-        var morphed = this.Convert(rhinoGeometry);
+        var morphed = this.Convert(duplicate);
 
         return this.CreateInstance(morphed);
     }

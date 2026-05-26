@@ -73,4 +73,13 @@ public class RhinoObjectPreviewServer : IRhinoObjectPreviewServer
 
         this.UpdateTransientElements();
     }
+
+    /// <summary>
+    /// Clears all preview objects from the server and disposes entities.
+    /// Used during application shutdown to ensure clean disposal.
+    /// </summary>
+    public void ClearAll()
+    {
+        _previewServer.ClearAndDisposeAll();
+    }
 }

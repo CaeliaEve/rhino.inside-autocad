@@ -14,11 +14,15 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public class GrasshopperInstance : IGrasshopperInstance
 {
     private readonly IInstallationDirectories _installationDirectories;
+
+    private readonly bool _loadCivil;
     private const string _grasshopperLibraryFileName = InteropConstants.GrasshopperLibraryFileName;
+    private const string _grasshopperCivilLibraryFileName = InteropConstants.GrasshopperCivilLibraryFileName;
     private const string _loadGhaMethodNotFound = MessageConstants.LoadGhaMethodNotFound;
     private const string _grasshopperInitializationFailed = MessageConstants.GrasshopperInitializationFailed;
-    private static readonly Guid _grasshopperPlugInId = Guid.Parse("b45a29b1-4343-4035-989e-044e8580d9cf");
+
     private IGrasshopperSelectionTracker? _selectionTracker;
+    private GH_Canvas? _activeCanvas;
 
     /// <inheritdoc />
     public event EventHandler<IGrasshopperObjectModifiedEventArgs>? PreviewExpired;
@@ -44,9 +48,14 @@ public class GrasshopperInstance : IGrasshopperInstance
     /// <param name="installationDirectories">
     /// The application directories used to locate resources.
     /// </param>
-    public GrasshopperInstance(IInstallationDirectories installationDirectories)
+    /// <param name="loadCivil">
+    /// A Boolean indicating if the Civil3d grasshopper library will
+    /// also be loaded when grasshopper loads
+    /// </param>
+    public GrasshopperInstance(IInstallationDirectories installationDirectories, bool loadCivil)
     {
         _installationDirectories = installationDirectories;
+        _loadCivil = loadCivil;
     }
 
     /// <summary>
@@ -63,6 +72,7 @@ public class GrasshopperInstance : IGrasshopperInstance
     {
         var assembliesFolder = _installationDirectories.VersionedAssemblies;
         var grasshopperLibraryPath = System.IO.Path.Combine(assembliesFolder, _grasshopperLibraryFileName);
+        var grasshopperCivilLibraryPath = System.IO.Path.Combine(assembliesFolder, _grasshopperCivilLibraryFileName);
 
         var assembly = Assembly.LoadFrom(grasshopperLibraryPath);
 
@@ -86,6 +96,13 @@ public class GrasshopperInstance : IGrasshopperInstance
                 loadGhaMethod.Invoke(Instances.ComponentServer,
                     [new GH_ExternalFile(grasshopperLibraryPath), false]
                 );
+
+                if (_loadCivil)
+                {
+                    loadGhaMethod.Invoke(Instances.ComponentServer,
+                        [new GH_ExternalFile(grasshopperCivilLibraryPath), false]
+                    );
+                }
             }
             catch (TargetInvocationException e)
             {
@@ -128,11 +145,10 @@ public class GrasshopperInstance : IGrasshopperInstance
     /// </summary>
     private void OnCanvasCreated(GH_Canvas canvas)
     {
-
         this.LoadGrasshopperLibrary();
 
-        var activeCanvas = Grasshopper.Instances.ActiveCanvas;
-        activeCanvas.DocumentChanged += this.OnDocumentChanged;
+        _activeCanvas = Grasshopper.Instances.ActiveCanvas;
+        _activeCanvas.DocumentChanged += this.OnDocumentChanged;
     }
 
     /// <summary>
@@ -249,6 +265,7 @@ public class GrasshopperInstance : IGrasshopperInstance
         _selectionTracker.ObjectsSelected -= this.OnObjectsSelected;
         _selectionTracker.ObjectsDeselected -= this.OnObjectsDeselected;
 
+        _selectionTracker.Dispose();
         _selectionTracker = null;
     }
 
@@ -349,14 +366,41 @@ public class GrasshopperInstance : IGrasshopperInstance
     }
 
     /// <summary>
+    /// Clears volatile data from a parameter without disposing the underlying objects.
+    /// This prevents RhinoCore from accessing disposed memory during its own disposal.
+    /// </summary>
+    private void ClearParamData(IGH_Param param)
+    {
+        try
+        {
+            param.ClearData();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to clear param data: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Shuts down the Grasshopper instance, releasing resources and removing
     /// subscriptions.
     /// </summary>
     public void Shutdown()
     {
+        System.Diagnostics.Debug.WriteLine("=== GrasshopperInstance.Shutdown() START ===");
+
+
         this.RemoveDocumentSubscriptions();
 
+        if (_activeCanvas != null)
+        {
+            _activeCanvas.DocumentChanged -= this.OnDocumentChanged;
+            _activeCanvas = null;
+        }
+
         Grasshopper.Instances.CanvasCreated -= this.OnCanvasCreated;
+
+        System.Diagnostics.Debug.WriteLine("=== GrasshopperInstance.Shutdown() END ===");
     }
 }
 

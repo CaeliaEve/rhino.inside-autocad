@@ -11,7 +11,7 @@
 /// when disposed.
 /// </remarks>
 /// <seealso cref="IAutocadBlockTableRecord"/>
-public interface IAutocadTransactionManager : IDisposable
+public interface IAutocadTransactionManager
 {
     /// <summary>
     /// Gets the <see cref="IObjectId"/> of the document's block table.
@@ -42,6 +42,11 @@ public interface IAutocadTransactionManager : IDisposable
     /// Gets the <see cref="IObjectId"/> of the document's app registration table.
     /// </summary>
     IObjectId RegAppTableId { get; }
+
+    /// <summary>
+    /// Returns the <see cref="IAutocadDatabase"/> associated with this transaction manager.
+    /// </summary>
+    IAutocadDatabase AutocadDatabase { get; }
 
     /// <summary>
     /// Opens the model space block table record for reading or writing.

@@ -14,7 +14,7 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// <seealso cref="IAutocadTransactionManager"/>
 /// <seealso cref="IAutocadDocument"/>
 /// <seealso cref="AutocadBlockTableRecordWrapper"/>
-public class AutocadTransactionManagerWrapper : AutocadWrapperDisposableBase<TransactionManager>, IAutocadTransactionManager
+public class AutocadTransactionManagerWrapper : AutocadWrapperBase<TransactionManager>, IAutocadTransactionManager
 {
     private readonly Document _document;
     private readonly Database _database;
@@ -34,6 +34,9 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperDisposableBase<Tra
 
     /// <inheritdoc/>
     public IObjectId RegAppTableId { get; }
+
+    /// <inheritdoc/>
+    public IAutocadDatabase AutocadDatabase => new AutocadDatabaseWrapper(_database);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutocadTransactionManagerWrapper"/> class.
@@ -104,19 +107,15 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperDisposableBase<Tra
     public T PerformTask<T>(Func<T> function, bool abort = false)
     {
         using var documentLock = _document.LockDocument();
-
         using var transaction = _wrappedAutocadObject.StartTransaction();
 
         var result = function.Invoke();
 
         if (abort)
-        {
             transaction.Abort();
-        }
         else
-        {
             transaction.Commit();
-        }
+
         return result;
     }
 }

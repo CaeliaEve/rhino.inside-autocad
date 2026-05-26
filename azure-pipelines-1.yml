@@ -103,6 +103,11 @@ stages:
             /p:NoWarn=NU1605 /p:CopyLocalLockFileAssemblies=true
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
+          dotnet publish "src/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.csproj" `
+            --configuration Release --framework net48 --output "publish/net48" `
+            /p:NoWarn=NU1605 /p:CopyLocalLockFileAssemblies=true
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
     # 4. PUBLISH NET8
     - task: PowerShell@2
       displayName: 'Publish NET8 Projects'
@@ -110,6 +115,11 @@ stages:
         targetType: 'inline'
         script: |
           dotnet publish "src/Rhino.Inside.AutoCAD.GrasshopperLibrary/Rhino.Inside.AutoCAD.GrasshopperLibrary.csproj" `
+            --configuration ReleaseNET8 --framework net8.0-windows --output "publish/net8" `
+            --self-contained false /p:NoWarn=NU1605 /p:CopyLocalLockFileAssemblies=true
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          dotnet publish "src/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.csproj" `
             --configuration ReleaseNET8 --framework net8.0-windows --output "publish/net8" `
             --self-contained false /p:NoWarn=NU1605 /p:CopyLocalLockFileAssemblies=true
           if ($LASTEXITCODE -ne 0) { exit 1 }

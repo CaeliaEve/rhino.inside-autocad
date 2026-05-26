@@ -3,6 +3,7 @@ using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -20,7 +21,7 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     /// </summary>
     protected IComponentVersion Version { get; private set; }
 
-#if DEBUG
+#if DEBUG || DEBUGNET8
     /// <summary>
     /// Adds versioning information to the instance description in debug builds.
     /// </summary>
@@ -154,5 +155,13 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     protected IAutocadDocument? GetActiveDocumentFallback()
     {
         return RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+    }
+
+    /// <summary>
+    /// Returns the provided AutoCAD document or, if null, attempts to retrieve the active document from the AutoCAD application.
+    /// </summary>
+    protected IAutocadDocument? GetDocumentOrDefault(AutocadDocument? autocadDocument = null)
+    {
+        return autocadDocument ?? this.GetActiveDocumentFallback();
     }
 }

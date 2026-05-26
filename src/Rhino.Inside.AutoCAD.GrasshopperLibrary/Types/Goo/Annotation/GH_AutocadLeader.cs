@@ -9,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD Leaders (MLeader).
 /// </summary>
-public class GH_AutocadLeader : GH_AutocadGeometricGoo<AutocadMLeader, RhinoLeader>
+public class GH_AutocadLeader : GH_AutocadGeometricGoo<AutocadMLeader, RhinoGeometryAdapter<RhinoLeader>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadLeader"/> class with no value.
@@ -37,36 +37,36 @@ public class GH_AutocadLeader : GH_AutocadGeometricGoo<AutocadMLeader, RhinoLead
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadMLeader, RhinoLeader> CreateClonedInstance(AutocadMLeader entity)
+    protected override GH_AutocadGeometricGoo<AutocadMLeader, RhinoGeometryAdapter<RhinoLeader>> CreateClonedInstance(AutocadMLeader entity)
     {
         return new GH_AutocadLeader(entity.Clone() as AutocadMLeader, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadMLeader, RhinoLeader> CreateInstance(AutocadMLeader entity)
+    protected override GH_AutocadGeometricGoo<AutocadMLeader, RhinoGeometryAdapter<RhinoLeader>> CreateInstance(AutocadMLeader entity)
     {
         return new GH_AutocadLeader(entity);
     }
 
     /// <inheritdoc />
-    protected override AutocadMLeader? Convert(RhinoLeader rhinoType)
+    protected override AutocadMLeader? Convert(RhinoGeometryAdapter<RhinoLeader> rhinoType)
     {
-        return rhinoType.ToAutocadMLeader();
+        return rhinoType.Geometry?.ToAutocadMLeader();
     }
 
     /// <inheritdoc />
-    protected override RhinoLeader? Convert(AutocadMLeader wrapperType)
+    protected override RhinoGeometryAdapter<RhinoLeader>? Convert(AutocadMLeader wrapperType)
     {
-        return wrapperType.ToRhinoLeader();
+        return new RhinoGeometryAdapter<RhinoLeader>(wrapperType.ToRhinoLeader());
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        var rhinoGeometry = this.RhinoGeometry;
-        if (rhinoGeometry == null) return;
+        var geometry = this.RhinoGeometry?.Geometry;
+        if (geometry == null) return;
 
-        var curve = rhinoGeometry.Curve;
+        var curve = geometry.Curve;
         if (curve != null)
         {
             args.Pipeline.DrawCurve(curve, args.Color, args.Thickness);
@@ -82,13 +82,12 @@ public class GH_AutocadLeader : GH_AutocadGeometricGoo<AutocadMLeader, RhinoLead
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
+        var geometry = this.RhinoGeometry?.Geometry;
 
-        if (rhinoGeometry == null) return;
+        if (geometry == null) return;
 
-        var curve = rhinoGeometry.Curve;
+        var curve = geometry.Curve;
 
         previewData.Wires.Add(curve);
-
     }
 }

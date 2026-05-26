@@ -1,8 +1,8 @@
-﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using AutocadMesh = Autodesk.AutoCAD.DatabaseServices.PolyFaceMesh;
+using AutocadMesh = Autodesk.AutoCAD.DatabaseServices.SubDMesh;
 using RhinoMesh = Rhino.Geometry.Mesh;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -10,7 +10,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// Represents a Grasshopper Goo object for AutoCAD meshes.
 /// </summary>
-public class GH_AutocadMesh : GH_AutocadGeometricGoo<AutocadMesh, RhinoMesh>
+public class GH_AutocadMesh : GH_AutocadGeometricGoo<AutocadMesh, RhinoGeometryAdapter<RhinoMesh>>
 {
 
     /// <summary>
@@ -39,51 +39,51 @@ public class GH_AutocadMesh : GH_AutocadGeometricGoo<AutocadMesh, RhinoMesh>
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadMesh, RhinoMesh> CreateClonedInstance(AutocadMesh entity)
+    protected override GH_AutocadGeometricGoo<AutocadMesh, RhinoGeometryAdapter<RhinoMesh>> CreateClonedInstance(AutocadMesh entity)
     {
         return new GH_AutocadMesh(entity.Clone() as AutocadMesh, this.Reference);
     }
 
     /// <inheritdoc />
-    protected override GH_AutocadGeometricGoo<AutocadMesh, RhinoMesh> CreateInstance(AutocadMesh entity)
+    protected override GH_AutocadGeometricGoo<AutocadMesh, RhinoGeometryAdapter<RhinoMesh>> CreateInstance(AutocadMesh entity)
     {
         return new GH_AutocadMesh(entity);
     }
 
     /// <inheritdoc />
-    protected override AutocadMesh? Convert(RhinoMesh rhinoType)
+    protected override AutocadMesh? Convert(RhinoGeometryAdapter<RhinoMesh> rhinoType)
     {
-        return rhinoType.ToAutocadPolyFaceMesh();
+        return rhinoType.Geometry?.ToAutocadSubDMesh();
     }
 
     /// <inheritdoc />
-    protected override RhinoMesh? Convert(AutocadMesh wrapperType)
+    protected override RhinoGeometryAdapter<RhinoMesh>? Convert(AutocadMesh wrapperType)
     {
-        return wrapperType.ToRhinoMesh();
+        return new RhinoGeometryAdapter<RhinoMesh>(wrapperType.ToRhinoMesh());
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryWires(GH_PreviewWireArgs args)
     {
-        args.Pipeline.DrawMeshWires(this.RhinoGeometry, args.Color, args.Thickness);
+        args.Pipeline.DrawMeshWires(this.RhinoGeometry?.Geometry, args.Color, args.Thickness);
     }
 
     /// <inheritdoc />
     protected override void DrawViewportGeometryMeshes(GH_PreviewMeshArgs args)
     {
-        args.Pipeline.DrawMeshShaded(this.RhinoGeometry, args.Material);
+        args.Pipeline.DrawMeshShaded(this.RhinoGeometry?.Geometry, args.Material);
     }
 
     /// <inheritdoc />
     public override void DrawAutocadPreview(IGrasshopperPreviewData previewData)
     {
-        var rhinoGeometry = this.RhinoGeometry;
+        var geometry = this.RhinoGeometry?.Geometry;
 
-        if (rhinoGeometry == null) return;
+        if (geometry == null) return;
 
-        previewData.Meshes.Add(rhinoGeometry);
+        previewData.Meshes.Add(geometry);
 
-        var polylines = rhinoGeometry.GetNakedEdges();
+        var polylines = geometry.GetNakedEdges();
 
         foreach (var polyline in polylines)
         {

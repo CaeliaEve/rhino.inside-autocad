@@ -67,19 +67,13 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
-        {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
-        }
+        var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (autocadDocument is null)
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
             return;
+        }
 
         GH_AutocadFilter? filterGoo = null;
         if (!DA.GetData(1, ref filterGoo) || filterGoo?.Value == null)
@@ -97,8 +91,8 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
 
         var selectionFilter = filter.GetSelectionFilter().Unwrap();
 
-        var document = autocadDocument.Unwrap();
-        var promptResult = document.Editor.SelectAll(selectionFilter);
+        var cadDocument = document.Unwrap();
+        var promptResult = cadDocument.Editor.SelectAll(selectionFilter);
 
         if (promptResult.Status != PromptStatus.OK)
         {
@@ -116,7 +110,7 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
 
         var count = Math.Min(selectionSet.Count, limit);
 
-        var transactionManagerWrapper = autocadDocument.CreateTransactionManager();
+        var transactionManagerWrapper = document.CreateTransactionManager();
 
         var elements = transactionManagerWrapper.PerformTask(() =>
        {

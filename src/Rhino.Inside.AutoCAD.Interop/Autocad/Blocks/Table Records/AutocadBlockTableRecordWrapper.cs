@@ -34,7 +34,6 @@ public class AutocadBlockTableRecordWrapper : AutocadDbObjectWrapper, IAutocadBl
     public AutocadBlockTableRecordWrapper(BlockTableRecord blockTableRecord) : base(blockTableRecord)
     {
         _blockTableRecord = blockTableRecord;
-
         this.Name = blockTableRecord.Name;
 
         this.ObjectIds = new AutocadObjectIdCollection();

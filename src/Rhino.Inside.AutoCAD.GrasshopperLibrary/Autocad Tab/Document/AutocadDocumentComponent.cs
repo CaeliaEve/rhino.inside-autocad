@@ -59,24 +59,18 @@ public class AutocadDocumentComponent : RhinoInsideAutocad_ComponentBase
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
-        if (autocadDocument is null)
+        var document = this.GetDocumentOrDefault(autocadDocument);
+
+        if (document is null)
         {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
-            if (activeDoc is null)
-            {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-                return;
-            }
-            autocadDocument = activeDoc as AutocadDocument;
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+            return;
         }
 
-        if (autocadDocument is null)
-            return;
-
-        var filePath = autocadDocument.FileMetadata.FilePath;
-        var fileName = autocadDocument.FileMetadata.FileName;
-        var isActive = autocadDocument.FileMetadata.IsActive;
-        var isReadOnly = autocadDocument.FileMetadata.IsReadOnly;
+        var filePath = document.FileMetadata.FilePath;
+        var fileName = document.FileMetadata.FileName;
+        var isActive = document.FileMetadata.IsActive;
+        var isReadOnly = document.FileMetadata.IsReadOnly;
 
         DA.SetData(0, fileName);
         DA.SetData(1, filePath);

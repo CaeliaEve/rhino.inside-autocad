@@ -81,8 +81,12 @@ public class SetAutocadDynamicPropertiesComponent : RhinoInsideAutocad_Component
         var value = property.Value;
         DA.GetData(1, ref value);
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
-            .AutoCadInstance.ActiveDocument;
+        var document = this.GetDocumentForObjectId(property.BlockReferenceId);
+        if (document is null)
+        {
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No document available");
+            return;
+        }
 
         var transactionManagerWrapper = document.CreateTransactionManager();
 

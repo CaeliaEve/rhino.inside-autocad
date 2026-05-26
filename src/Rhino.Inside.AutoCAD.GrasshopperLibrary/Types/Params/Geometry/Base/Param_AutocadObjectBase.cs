@@ -12,7 +12,8 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// </summary>
 /// <typeparam name="TGoo">The Grasshopper Goo type that wraps the AutoCAD entity.</typeparam>
 /// <typeparam name="TEntity">The AutoCAD entity type.</typeparam>
-public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeometryParam<TGoo>, IReferenceParam, IGH_PreviewObject
+public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeometryParam<TGoo>,
+    IReferenceParam, IGH_PreviewObject
     where TGoo : class, IGH_GeometricGoo, IGH_AutocadReference
     where TEntity : CadEntity
 {
