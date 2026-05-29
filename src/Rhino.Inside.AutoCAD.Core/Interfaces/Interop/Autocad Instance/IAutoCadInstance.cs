@@ -9,7 +9,7 @@ public interface IAutoCadInstance
     /// <summary>
     /// Event raised when the Autocad document changes, e.g. a new document is opened.
     /// </summary>
-    event EventHandler? DocumentCreated;
+    event EventHandler? DocumentActivated;
 
     /// <summary>
     /// Event raised when the units of the Autocad document change.
