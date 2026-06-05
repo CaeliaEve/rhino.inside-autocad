@@ -23,4 +23,15 @@ public class CivilProfileViewFilter : IObjectFilter
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
     }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is ProfileView)
+                return true;
+        }
+        return false;
+    }
 }

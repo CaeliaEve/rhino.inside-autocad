@@ -1,11 +1,12 @@
+using System.Windows.Forms;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
+using GH_IO.Serialization;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Attributes;
 using Grasshopper.Kernel.Types;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadEntity = Autodesk.AutoCAD.DatabaseServices.Entity;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -15,7 +16,16 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 [ComponentVersion(introduced: "1.0.9", updated: "1.0.13")]
 public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
 {
+    private const string AutoUpdateEnabledKey = "AutoUpdateEnabled";
+
     private readonly GooConverter _gooConverter;
+    private bool _autoUpdateEnabled;
+
+    /// <summary>
+    /// Gets a value indicating whether auto update is enabled.
+    /// When disabled, the component will not auto-expire based on document changes.
+    /// </summary>
+    public bool AutoUpdateEnabled => _autoUpdateEnabled;
 
     /// <inheritdoc />
     public override Guid ComponentGuid => new("D6E8F0A2-B4C6-4D8E-9F0A-2B4C6D8E0F1A");
@@ -35,6 +45,12 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
             "AutoCAD", "Filter")
     {
         _gooConverter = new GooConverter();
+    }
+
+    /// <inheritdoc />
+    public override void CreateAttributes()
+    {
+        m_attributes = new GetAutocadObjectsByFilterComponentAttributes(this);
     }
 
     /// <inheritdoc />
@@ -147,20 +163,91 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     /// <inheritdoc />
     public bool NeedsToBeExpired(IAutocadDocumentChange change)
     {
+        // If auto update is disabled, never auto-expire
+        if (!_autoUpdateEnabled)
+            return false;
+
+        // Check output params for referenced objects that may have changed
         foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
         {
             if (ghParam.NeedsToBeExpired(change)) return true;
         }
 
-        // Expire when entities are added, modified, or removed
-        foreach (var changedObject in change)
+        // Check if any objects currently in the output were affected by the change
+        var outputParam = this.Params.Output[0];
+        foreach (var goo in outputParam.VolatileData.AllData(true).OfType<IGH_AutocadReference>())
         {
-            if (changedObject.UnwrapObject() is CadEntity)
-            {
+            if (change.DoesEffectObject(goo.Reference.ObjectId))
                 return true;
-            }
+        }
+
+        // Check input filter - ask the filter if this change is relevant to its criteria
+        var filterParam = this.Params.Input[1];
+        foreach (var data in filterParam.VolatileData.AllData(true))
+        {
+            if (data is GH_AutocadFilter filterGoo && filterGoo.Value?.IsAffectedByChange(change) == true)
+                return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Appends additional menu items to the component's context menu.
+    /// </summary>
+    protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+    {
+        base.AppendAdditionalComponentMenuItems(menu);
+        Menu_AppendSeparator(menu);
+
+        var autoUpdateItem = Menu_AppendItem(
+            menu,
+            "Auto Update",
+            OnAutoUpdateMenuClick,
+            true,
+            _autoUpdateEnabled
+        );
+        autoUpdateItem.ToolTipText = "When enabled, the component automatically updates when AutoCAD document changes. When disabled, use the Update button to manually refresh.";
+    }
+
+    /// <summary>
+    /// Handles the click event for the Auto Update menu item.
+    /// </summary>
+    private void OnAutoUpdateMenuClick(object? sender, EventArgs e)
+    {
+        _autoUpdateEnabled = !_autoUpdateEnabled;
+        ExpireSolution(true);
+    }
+
+    /// <summary>
+    /// Triggers a manual update of the component.
+    /// Called by the custom attributes when the Update button is clicked.
+    /// </summary>
+    public void TriggerManualUpdate()
+    {
+        ExpireSolution(true);
+    }
+
+    /// <inheritdoc />
+    public override bool Read(GH_IReader reader)
+    {
+        if (!base.Read(reader))
+            return false;
+
+        _autoUpdateEnabled = false;
+        reader.TryGetBoolean(AutoUpdateEnabledKey, ref _autoUpdateEnabled);
+
+        return true;
+    }
+
+    /// <inheritdoc />
+    public override bool Write(GH_IWriter writer)
+    {
+        if (!base.Write(writer))
+            return false;
+
+        writer.SetBoolean(AutoUpdateEnabledKey, _autoUpdateEnabled);
+
+        return true;
     }
 }
