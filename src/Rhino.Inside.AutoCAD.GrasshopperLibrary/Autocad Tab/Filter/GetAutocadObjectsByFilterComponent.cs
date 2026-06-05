@@ -1,9 +1,7 @@
-using System.Windows.Forms;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Attributes;
 using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
@@ -13,7 +11,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns AutoCAD elements matching a selection filter.
 /// </summary>
-[ComponentVersion(introduced: "1.0.9", updated: "1.0.13")]
+[ComponentVersion(introduced: "1.0.9", updated: "1.2.24")]
 public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
 {
     private const string AutoUpdateEnabledKey = "AutoUpdateEnabled";
@@ -203,7 +201,7 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
         var autoUpdateItem = Menu_AppendItem(
             menu,
             "Auto Update",
-            OnAutoUpdateMenuClick,
+            this.OnAutoUpdateMenuClick,
             true,
             _autoUpdateEnabled
         );
@@ -216,7 +214,7 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     private void OnAutoUpdateMenuClick(object? sender, EventArgs e)
     {
         _autoUpdateEnabled = !_autoUpdateEnabled;
-        ExpireSolution(true);
+        this.ExpireSolution(true);
     }
 
     /// <summary>
@@ -225,7 +223,7 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     /// </summary>
     public void TriggerManualUpdate()
     {
-        ExpireSolution(true);
+        this.ExpireSolution(true);
     }
 
     /// <inheritdoc />
