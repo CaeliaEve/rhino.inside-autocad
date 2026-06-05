@@ -1,6 +1,7 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
+using Rhino.Input;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Runtime.InProcess;
@@ -120,6 +121,16 @@ public class RhinoCoreExtension : IRhinoCoreExtension
 
             return Assembly.LoadFrom(assemblyPath);
         };
+    }
+
+    /// <summary>
+    /// We need to check if Rhino is in get mode for grasshopper and show the window if it is headless.
+    /// </summary>
+    public void ShowInGet()
+    {
+        if (_rhinoCore != null && RhinoDoc.ActiveDoc is RhinoDoc rhinoDoc && RhinoGet.InGet(rhinoDoc))
+            this.WindowManager.ShowWindow();
+
     }
 
     /// <summary>

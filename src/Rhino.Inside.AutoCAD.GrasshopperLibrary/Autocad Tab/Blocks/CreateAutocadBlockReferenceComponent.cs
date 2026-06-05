@@ -1,7 +1,7 @@
+using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -139,8 +139,9 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
                 if (layerId is not null)
                     blockReference.LayerId = layerId.Unwrap();
 
-                if (color is not null)
-                    blockReference.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(color.Red, color.Green, color.Blue);
+                blockReference.Color = color is null
+                    ? Autodesk.AutoCAD.Colors.Color.FromColorIndex(ColorMethod.ByLayer, 256)
+                    : Autodesk.AutoCAD.Colors.Color.FromRgb(color.Red, color.Green, color.Blue);
 
                 if (linetypeId is not null)
                     blockReference.LinetypeId = linetypeId.Unwrap();
