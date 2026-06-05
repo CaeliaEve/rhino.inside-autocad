@@ -1,7 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using Rhino.Input;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Runtime.InProcess;
@@ -124,16 +123,6 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     }
 
     /// <summary>
-    /// We need to check if Rhino is in get mode for grasshopper and show the window if it is headless.
-    /// </summary>
-    public void ShowInGet()
-    {
-        if (_rhinoCore != null && RhinoDoc.ActiveDoc is RhinoDoc rhinoDoc && RhinoGet.InGet(rhinoDoc))
-            this.WindowManager.ShowWindow();
-
-    }
-
-    /// <summary>
     /// Disposes the Rhino core when the rhino window is closed.
     /// </summary>
     private void OnClosing(object sender, EventArgs e)
@@ -177,6 +166,10 @@ public class RhinoCoreExtension : IRhinoCoreExtension
             var mainWindow = RhinoApp.MainWindowHandle();
 
             this.WindowManager.SetWindow(mainWindow);
+
+            // Install CBT hook to automatically show window when user input is needed.
+            // The hook detects activation attempts and shows the window if RhinoGet.InGet() is true.
+            this.WindowManager.InstallActivationHook();
 
             RhinoApp.Closing += this.OnClosing;
 
@@ -276,6 +269,9 @@ public class RhinoCoreExtension : IRhinoCoreExtension
         {
             System.Diagnostics.Debug.WriteLine($"WindowManager.BringToFront failed: {ex.Message}");
         }
+
+        // Clean up the window manager (uninstalls CBT hook)
+        this.WindowManager.Dispose();
 
         try
         {
