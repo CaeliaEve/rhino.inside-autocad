@@ -337,7 +337,12 @@ public class ApplicationConstants
     /// Includes a URL directing users to download an updated version.
     /// </remarks>
     public const string ExpiredMessage =
-        "This version of Rhino.Inside.AutoCAD has expired. Please download the latest version from https://www.bimorph.com/products/rhino-inside-autocad";
+        "This version of Rhino.Inside.AutoCAD has expired. Please download the latest version.";
+
+    /// <summary>
+    /// URL to download the latest version of Rhino.Inside.AutoCAD.
+    /// </summary>
+    public const string DownloadUrl = "https://www.bimorph.com/products/rhino-inside-autocad";
 
     /// <summary>
     /// Error message displayed when the RhinoDoc fails to initialize.

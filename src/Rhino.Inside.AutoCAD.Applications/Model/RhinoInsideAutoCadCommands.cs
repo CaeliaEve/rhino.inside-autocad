@@ -3,6 +3,7 @@ using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Interop;
 using Rhino.Inside.AutoCAD.Services;
+using Rhino.Inside.AutoCAD.UI.Resources.Models;
 
 [assembly: CommandClass(typeof(RhinoInsideAutoCadCommands))]
 
@@ -27,21 +28,30 @@ public class RhinoInsideAutoCadCommands
     private const string _grasshopperPlayerCommandName = ApplicationConstants.GrasshopperPlayerCommandName;
     private const string _newFloatingViewportScript = ApplicationConstants.NewFloatingViewportScript;
     private const string _expiredMessage = ApplicationConstants.ExpiredMessage;
+    private const string _downloadUrl = ApplicationConstants.DownloadUrl;
 
     /// <summary>
-    /// Checks if the application has expired and shows an alert dialog if it has.
+    /// Checks if the application has expired and shows the expiration dialog if it has.
     /// </summary>
     private static bool CheckApplicationHasExpired()
     {
-        var application = RhinoInsideAutoCadExtension.Application;
-
-        if (application is null)
+        if (RhinoInsideAutoCadExtension.Application is null || RhinoInsideAutoCadExtension.IsExpired)
         {
-            Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(_expiredMessage);
+            ShowExpirationDialog();
             return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Shows the expiration dialog with download and close buttons.
+    /// </summary>
+    private static void ShowExpirationDialog()
+    {
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown";
+        var manager = new ExpirationDialogManager(_expiredMessage, _downloadUrl, version);
+        manager.Show();
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO", CommandFlags.Modal)]
