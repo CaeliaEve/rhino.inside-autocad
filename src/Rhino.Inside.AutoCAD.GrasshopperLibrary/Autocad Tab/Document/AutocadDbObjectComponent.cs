@@ -1,8 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Interop;
-using Color = System.Drawing.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -57,11 +55,8 @@ public class AutocadDbObjectComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LayerId", "LayerId",
             "The layer ObjectId of the Entity. Null if not an Entity.", GH_ParamAccess.item);
 
-        pManager.AddColourParameter("Color", "Col",
-            "The RGB color of the Entity. Null if not an Entity.", GH_ParamAccess.item);
-
-        pManager.AddIntegerParameter("ColorIndex", "ACI",
-            "The ACI color index of the Entity. 256=ByLayer, 0=ByBlock. Null if not an Entity.", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Color", "Col",
+            "The AutoCAD color of the Entity (supports ByLayer/ByBlock). Null if not an Entity.", GH_ParamAccess.item);
 
         pManager.AddTextParameter("MaterialName", "Mat",
             "The material name of the Entity. Null if not an Entity.", GH_ParamAccess.item);
@@ -110,23 +105,21 @@ public class AutocadDbObjectComponent : RhinoInsideAutocad_ComponentBase
             DA.SetData(4, entity.Layer);
             DA.SetData(5, new AutocadObjectIdWrapper(entity.LayerId));
 
-            // Color
-            var cadColor = entity.Color;
-            var ghColor = new GH_Colour(Color.FromArgb(255, cadColor.Red, cadColor.Green, cadColor.Blue));
-            DA.SetData(6, ghColor);
-            DA.SetData(7, entity.ColorIndex);
+            // Color - output AutoCAD color directly (preserves ByLayer/ByBlock)
+            var colorWrapper = new AutocadColorWrapper(entity);
+            DA.SetData(6, new GH_AutocadColor(colorWrapper));
 
             // Material
-            DA.SetData(8, entity.Material);
-            DA.SetData(9, new AutocadObjectIdWrapper(entity.MaterialId));
+            DA.SetData(7, entity.Material);
+            DA.SetData(8, new AutocadObjectIdWrapper(entity.MaterialId));
 
             // Linetype
-            DA.SetData(10, entity.Linetype);
-            DA.SetData(11, new AutocadObjectIdWrapper(entity.LinetypeId));
+            DA.SetData(9, entity.Linetype);
+            DA.SetData(10, new AutocadObjectIdWrapper(entity.LinetypeId));
 
             // LineWeight (cast enum to int)
-            DA.SetData(12, (int)entity.LineWeight);
+            DA.SetData(11, (int)entity.LineWeight);
         }
-        // If not Entity, outputs 4-12 remain null (default behavior)
+        // If not Entity, outputs 4-11 remain null (default behavior)
     }
 }

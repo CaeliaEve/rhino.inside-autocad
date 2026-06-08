@@ -1,8 +1,6 @@
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Interop;
-using Color = System.Drawing.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -38,9 +36,9 @@ public class CreateAutocadLayerComponent : Layer_BaseComponent
         pManager.AddTextParameter("NewName", "Name",
             "The name of the AutoCAD Layer.", GH_ParamAccess.item);
 
-        pManager.AddColourParameter("NewColour", "Colour",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "NewColour", "Colour",
             "The color associated with the layer",
-            GH_ParamAccess.item, Color.White);
+            GH_ParamAccess.item);
         pManager[2].Optional = true;
 
     }
@@ -57,7 +55,7 @@ public class CreateAutocadLayerComponent : Layer_BaseComponent
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LinePatternId", "LinePatternId",
             "The Id of Line Patten of the AutoCAD Layer.", GH_ParamAccess.item);
 
-        pManager.AddColourParameter("Colour", "Colour",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Colour", "Colour",
             "The color associated with the layer",
             GH_ParamAccess.item);
 
@@ -91,10 +89,10 @@ public class CreateAutocadLayerComponent : Layer_BaseComponent
         if (!DA.GetData(1, ref newName)
             || newName is null) return;
 
-        var newColor = Color.White;
+        AutocadColorWrapper? newColor = null;
         DA.GetData(2, ref newColor);
 
-        var cadColor = new InternalColor(newColor);
+        var cadColor = newColor ?? AutocadColorWrapper.CreateByLayer();
 
         var transactionManager = autocadDocument.CreateTransactionManager();
 
@@ -119,7 +117,7 @@ public class CreateAutocadLayerComponent : Layer_BaseComponent
 
         var color = autocadLayer.Color;
 
-        var gooColor = new GH_Colour(Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue));
+        var gooColor = new GH_AutocadColor(color);
 
         var isLocked = autocadLayer.IsLocked;
 

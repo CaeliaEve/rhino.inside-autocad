@@ -183,12 +183,6 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     private void OnReplaceMenuClick(object? sender, EventArgs e)
     {
         _replaceEnabled = !_replaceEnabled;
-        if (!_replaceEnabled)
-        {
-            _lastCreatedObjectIds.Clear();
-            _pendingHandleValues.Clear();
-            _lastInputSignature = null;
-        }
         this.ExpireSolution(true);
     }
 

@@ -32,13 +32,13 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
     public IObjectId BlockTableRecordId { get; }
 
     /// <inheritdoc/>
-    public IColor Color => new InternalColor(_blockReference.Color);
+    public IAutocadColor Color { get; }
 
     /// <inheritdoc/>
-    public IObjectId LayerId => new AutocadObjectIdWrapper(_blockReference.LayerId);
+    public IObjectId LayerId { get; }
 
     /// <inheritdoc/>
-    public IObjectId LinetypeId => new AutocadObjectIdWrapper(_blockReference.LinetypeId);
+    public IObjectId LinetypeId { get; }
 
     /// <summary>
     /// Initializes a new instance of <see cref="AutocadBlockReferenceWrapper"/>.
@@ -57,6 +57,12 @@ public class AutocadBlockReferenceWrapper : AutocadEntityWrapper, IAutocadBlockR
         this.Scale = new AutocadScale(_blockReference.ScaleFactors);
 
         this.Position = _blockReference.Position.ToRhinoPoint3d();
+
+        this.Color = new AutocadColorWrapper(_blockReference);
+
+        this.LayerId = new AutocadObjectIdWrapper(_blockReference.LayerId);
+
+        this.LinetypeId = new AutocadObjectIdWrapper(_blockReference.LinetypeId);
 
     }
 

@@ -1,6 +1,5 @@
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Interop;
-using Color = System.Drawing.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -37,7 +36,7 @@ public class AutocadBakeSettingsComponent : RhinoInsideAutocad_ComponentBase
             "LT", "The line type to assign to baked objects", GH_ParamAccess.item);
         pManager[1].Optional = true;
 
-        pManager.AddColourParameter("Color", "C",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Color", "C",
             "The color to assign to baked objects", GH_ParamAccess.item);
         pManager[2].Optional = true;
     }
@@ -58,14 +57,14 @@ public class AutocadBakeSettingsComponent : RhinoInsideAutocad_ComponentBase
         GH_AutocadLineType? lineTypeGoo = null;
         DA.GetData(1, ref lineTypeGoo);
 
-        Color? color = null;
-        DA.GetData(2, ref color);
+        GH_AutocadColor? colorGoo = null;
+        DA.GetData(2, ref colorGoo);
 
         var layer = layerGoo?.Value;
         var lineType = lineTypeGoo?.Value;
-        var internalColor = color.HasValue ? new InternalColor(color.Value) : null;
+        var color = colorGoo?.Value;
 
-        var settings = new BakeSettings(layer, lineType, internalColor);
+        var settings = new BakeSettings(layer, lineType, color);
 
         DA.SetData(0, new GH_BakeSettings(settings));
     }

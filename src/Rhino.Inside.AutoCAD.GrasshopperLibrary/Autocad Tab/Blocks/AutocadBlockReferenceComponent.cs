@@ -1,11 +1,9 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using Color = System.Drawing.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -56,7 +54,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
             "New layer object ID", GH_ParamAccess.item);
         pManager[4].Optional = true;
 
-        pManager.AddColourParameter("Color", "Col",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Color", "Col",
             "New color for the Block Reference", GH_ParamAccess.item);
         pManager[5].Optional = true;
 
@@ -93,7 +91,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_BlockAttributeReference(GH_ParamAccess.list),
             "Attributes", "Attr", "The Block Reference Attributes", GH_ParamAccess.list);
 
-        pManager.AddColourParameter("Color", "Col",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Color", "Col",
             "The color of the Block Reference", GH_ParamAccess.item);
 
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LayerId", "Layer",
@@ -115,7 +113,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
         double newRotation,
         IAutocadScale newScale,
         IObjectId newLayerId,
-        IColor newColor,
+        IAutocadColor newColor,
         IObjectId newLinetypeId)
     {
 
@@ -134,8 +132,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
 
         cadBlockRef.LayerId = newLayerId.Unwrap();
 
-        cadBlockRef.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(
-            newColor.Red, newColor.Green, newColor.Blue);
+        cadBlockRef.Color = newColor.Unwrap();
 
         cadBlockRef.LinetypeId = newLinetypeId.Unwrap();
 
@@ -211,7 +208,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
             new GH_AutocadObjectId(blockReferenceWrapper.BlockTableRecordId);
 
         var color = blockReferenceWrapper.Color;
-        var gooColor = new GH_Colour(Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue));
+        var gooColor = new GH_AutocadColor(color);
 
         DA.SetData(0, blockReferenceWrapper.Name);
         DA.SetData(1, blockReferenceWrapper.Id);

@@ -1,7 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using CadColor = Autodesk.AutoCAD.Colors.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -37,7 +36,7 @@ public class BakableRhinoConverter : IAutocadBakeable
         if (settings?.Color != null)
         {
             var color = settings.Color;
-            entity.Color = CadColor.FromRgb(color.Red, color.Green, color.Blue);
+            entity.Color = color.Unwrap();
         }
     }
 

@@ -1,5 +1,3 @@
-using System.Linq;
-using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Grasshopper.Kernel;
@@ -59,7 +57,7 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
             "The layer object ID for the Block Reference", GH_ParamAccess.item);
         pManager[5].Optional = true;
 
-        pManager.AddColourParameter("Color", "Col",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Color", "Col",
             "The color for the Block Reference", GH_ParamAccess.item);
         pManager[6].Optional = true;
 
@@ -107,7 +105,7 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
         DA.GetData(4, ref scale);
 
         IObjectId? layerId = null;
-        IColor? color = null;
+        AutocadColorWrapper? color = null;
         IObjectId? linetypeId = null;
 
         DA.GetData(5, ref layerId);
@@ -126,9 +124,9 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
             .Build();
 
         // 3. Check for reuse to prevent infinite loops
-        if (TryReuseLastCreated(signature))
+        if (this.TryReuseLastCreated(signature))
         {
-            var retrievedBlocks = RetrieveAllTrackedObjects<BlockReference>(document);
+            var retrievedBlocks = this.RetrieveAllTrackedObjects<BlockReference>(document);
             if (retrievedBlocks.Count > 0)
             {
                 var wrappers = retrievedBlocks
@@ -141,7 +139,7 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
         }
 
         // 4. Delete previous objects now (if replace enabled)
-        DeleteTrackedObjectsIfReplaceEnabled();
+        this.DeleteTrackedObjectsIfReplaceEnabled();
 
         var blockReferences = new List<GH_AutocadBlockReference>();
 
@@ -170,9 +168,7 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
                 if (layerId is not null)
                     blockReference.LayerId = layerId.Unwrap();
 
-                blockReference.Color = color is null
-                    ? Autodesk.AutoCAD.Colors.Color.FromColorIndex(ColorMethod.ByLayer, 256)
-                    : Autodesk.AutoCAD.Colors.Color.FromRgb(color.Red, color.Green, color.Blue);
+                blockReference.Color = color?.Unwrap() ?? AutocadColorWrapper.CreateByLayer().Unwrap();
 
                 if (linetypeId is not null)
                     blockReference.LinetypeId = linetypeId.Unwrap();
