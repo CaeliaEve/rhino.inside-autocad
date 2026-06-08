@@ -44,11 +44,11 @@ public class Param_AutocadObjectId : GH_Param<GH_AutocadObjectId>, IReferencePar
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var autocadId in m_data.AllData(true).OfType<GH_AutocadObjectId>())
         {
-            if (change.DoesEffectObject(autocadId.Value))
+            if (change.DoesEffectObject(autocadId.Value, includeModified))
                 return true;
         }
 

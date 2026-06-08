@@ -43,11 +43,11 @@ public class Param_AutocadAssocNetwork : GH_Param<GH_AutocadAssocNetwork>, IRefe
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var assocNetwork in m_data.AllData(true).OfType<GH_AutocadAssocNetwork>())
         {
-            if (change.DoesEffectObject(assocNetwork.Value.Id))
+            if (change.DoesEffectObject(assocNetwork.Value.Id, includeModified))
                 return true;
         }
 

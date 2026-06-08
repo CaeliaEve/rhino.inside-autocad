@@ -58,6 +58,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     private const string ReplaceEnabledKey = "ReplaceEnabled";
     private const string SaveConnectionEnabledKey = "SaveConnectionEnabled";
     private const string TrackedObjectHandlesKey = "TrackedObjectHandles";
+    private const string LastInputSignatureKey = "LastInputSignature";
 
     // State tracking
     private bool _replaceEnabled = true;
@@ -66,6 +67,10 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     private readonly List<long> _pendingHandleValues = new();
     private bool _deletionPerformedThisCycle = false;
     private bool _isSubscribedToUndo = false;
+
+    // Input caching for infinite loop prevention
+    private string? _lastInputSignature;
+    private bool _reusingLastOutput = false;
 
     // Static flags shared across all instances - undo affects all components
     private static bool _undoInProgress = false;
@@ -182,6 +187,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         {
             _lastCreatedObjectIds.Clear();
             _pendingHandleValues.Clear();
+            _lastInputSignature = null;
         }
         this.ExpireSolution(true);
     }
@@ -201,6 +207,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     {
         _lastCreatedObjectIds.Clear();
         _pendingHandleValues.Clear();
+        _lastInputSignature = null;
         this.ExpireSolution(true);
     }
 
@@ -215,6 +222,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         base.BeforeSolveInstance();
         _deletionPerformedThisCycle = false;
         _skipThisSolve = false;
+        _reusingLastOutput = false; // Reset at start of cycle
 
         // If undo is currently in progress, skip this solve entirely
         if (_undoInProgress)
@@ -237,12 +245,8 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
             return;
         }
 
-        // Normal execution - delete tracked objects if replace mode enabled
-        if (_replaceEnabled && !_deletionPerformedThisCycle)
-        {
-            this.DeleteAllTrackedObjects();
-            _deletionPerformedThisCycle = true;
-        }
+        // Note: Deletion of tracked objects is now deferred to after input check
+        // This allows derived classes to check for reuse before deleting
     }
 
     /// <summary>
@@ -252,6 +256,168 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     /// </summary>
     /// <returns>True if the solve should be skipped; otherwise false.</returns>
     protected bool ShouldSkipSolve() => _skipThisSolve;
+
+    /// <summary>
+    /// Checks if inputs have changed since last solve. If unchanged and tracked objects still exist,
+    /// sets reuse flag and returns true (caller should output cached result).
+    /// This prevents infinite loops when Create components trigger change events that invalidate
+    /// downstream Get components, which in turn expire the Create component.
+    /// </summary>
+    /// <param name="currentInputSignature">The signature built from current inputs.</param>
+    /// <returns>True if the last created object can be reused; otherwise false.</returns>
+    protected bool TryReuseLastCreated(string currentInputSignature)
+    {
+        _reusingLastOutput = false;
+
+        // Check if inputs match AND we have tracked objects
+        if (_lastInputSignature == currentInputSignature && (_lastCreatedObjectIds.Count > 0 || _pendingHandleValues.Count > 0))
+        {
+            // Resolve any pending handles from a loaded file
+            ResolvePendingHandles();
+
+            // Validate at least one tracked object still exists
+            if (ValidateTrackedObjectsExist())
+            {
+                _reusingLastOutput = true;
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark,
+                    "No change in inputs, reusing last created");
+                return true;
+            }
+        }
+
+        // Inputs changed - update signature for next comparison
+        _lastInputSignature = currentInputSignature;
+        return false;
+    }
+
+    /// <summary>
+    /// Validates that at least one tracked object still exists in the database.
+    /// </summary>
+    private bool ValidateTrackedObjectsExist()
+    {
+        foreach (var objectIdWrapper in _lastCreatedObjectIds)
+        {
+            var objectId = objectIdWrapper.Unwrap();
+            if (!objectId.IsNull && !objectId.IsEffectivelyErased)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the first tracked ObjectId, if any exist.
+    /// </summary>
+    /// <returns>The first tracked ObjectId, or null if none exist.</returns>
+    protected IObjectId? GetFirstTrackedObjectId()
+    {
+        ResolvePendingHandles();
+        return _lastCreatedObjectIds.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Gets all tracked ObjectIds as a read-only list.
+    /// </summary>
+    /// <returns>A read-only list of tracked ObjectIds.</returns>
+    protected IReadOnlyList<IObjectId> GetTrackedObjectIds()
+    {
+        ResolvePendingHandles();
+        return _lastCreatedObjectIds.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Deletes all tracked objects if replace mode is enabled.
+    /// Call this after checking for input reuse in derived classes.
+    /// </summary>
+    protected void DeleteTrackedObjectsIfReplaceEnabled()
+    {
+        if (_replaceEnabled && !_deletionPerformedThisCycle)
+        {
+            this.DeleteAllTrackedObjects();
+            _deletionPerformedThisCycle = true;
+        }
+    }
+
+    /// <summary>
+    /// Retrieves a tracked database object of the specified type from its ObjectId.
+    /// </summary>
+    /// <typeparam name="T">The type of database object to retrieve.</typeparam>
+    /// <param name="objectId">The ObjectId wrapper to retrieve.</param>
+    /// <param name="document">The document containing the object.</param>
+    /// <returns>The retrieved object, or null if retrieval failed.</returns>
+    protected T? RetrieveTrackedObject<T>(IObjectId objectId, IAutocadDocument document) where T : class
+    {
+        T? result = null;
+
+        var transactionManager = document.CreateTransactionManager();
+        transactionManager.PerformTask(() =>
+        {
+            try
+            {
+                var id = objectId.Unwrap();
+                if (id.IsNull || id.IsEffectivelyErased)
+                    return false;
+
+                var transaction = transactionManager.Unwrap();
+                var dbObject = transaction.GetObject(id, OpenMode.ForRead, false);
+
+                result = dbObject as T;
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        });
+
+        return result;
+    }
+
+    /// <summary>
+    /// Retrieves all tracked database objects of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of database objects to retrieve.</typeparam>
+    /// <param name="document">The document containing the objects.</param>
+    /// <returns>A list of retrieved objects (excludes any that failed to retrieve).</returns>
+    protected List<T> RetrieveAllTrackedObjects<T>(IAutocadDocument document) where T : class
+    {
+        var results = new List<T>();
+        var trackedIds = GetTrackedObjectIds();
+
+        if (trackedIds.Count == 0)
+            return results;
+
+        var transactionManager = document.CreateTransactionManager();
+        transactionManager.PerformTask(() =>
+        {
+            var transaction = transactionManager.Unwrap();
+
+            foreach (var objectId in trackedIds)
+            {
+                try
+                {
+                    var id = objectId.Unwrap();
+                    if (id.IsNull || id.IsEffectivelyErased)
+                        continue;
+
+                    var dbObject = transaction.GetObject(id, OpenMode.ForRead, false);
+
+                    if (dbObject is T typedObject)
+                    {
+                        results.Add(typedObject);
+                    }
+                }
+                catch
+                {
+                    // Skip objects that can't be retrieved
+                }
+            }
+
+            return true;
+        });
+
+        return results;
+    }
 
     /// <summary>
     /// Deletes all tracked objects in batched transactions (one per document).
@@ -385,11 +551,13 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
     /// <summary>
     /// Clears all tracked objects without deleting them.
+    /// Also clears the input signature to allow fresh creation on next solve.
     /// </summary>
     protected void ClearTrackedObjects()
     {
         _lastCreatedObjectIds.Clear();
         _pendingHandleValues.Clear();
+        _lastInputSignature = null;
     }
 
     /// <inheritdoc />
@@ -406,6 +574,13 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
         _lastCreatedObjectIds.Clear();
         _pendingHandleValues.Clear();
+        _lastInputSignature = null;
+
+        // Restore input signature if save connection is enabled
+        if (_saveConnectionEnabled && reader.ItemExists(LastInputSignatureKey))
+        {
+            _lastInputSignature = reader.GetString(LastInputSignatureKey);
+        }
 
         // Restore tracked object handles if save connection is enabled
         if (_saveConnectionEnabled && reader.ItemExists(TrackedObjectHandlesKey))
@@ -435,6 +610,12 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
         writer.SetBoolean(ReplaceEnabledKey, _replaceEnabled);
         writer.SetBoolean(SaveConnectionEnabledKey, _saveConnectionEnabled);
+
+        // Serialize input signature if save connection is enabled
+        if (_saveConnectionEnabled && !string.IsNullOrEmpty(_lastInputSignature))
+        {
+            writer.SetString(LastInputSignatureKey, _lastInputSignature);
+        }
 
         // Serialize tracked object handles if save connection is enabled
         if (_saveConnectionEnabled && _lastCreatedObjectIds.Count > 0)

@@ -1,3 +1,4 @@
+using System.Linq;
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
@@ -82,6 +83,7 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
         if (this.ShouldSkipSolve())
             return;
 
+        // 1. Read all inputs first
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
@@ -111,6 +113,35 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
         DA.GetData(5, ref layerId);
         DA.GetData(6, ref color);
         DA.GetData(7, ref linetypeId);
+
+        // 2. Build input signature for change detection
+        var signature = new InputSignatureBuilder()
+            .Add(blockTableRecord.Id)
+            .AddPoints(insertionPoints)
+            .Add(rotation)
+            .AddScale(scale)
+            .Add(layerId)
+            .AddColor(color)
+            .Add(linetypeId)
+            .Build();
+
+        // 3. Check for reuse to prevent infinite loops
+        if (TryReuseLastCreated(signature))
+        {
+            var retrievedBlocks = RetrieveAllTrackedObjects<BlockReference>(document);
+            if (retrievedBlocks.Count > 0)
+            {
+                var wrappers = retrievedBlocks
+                    .Select(br => new GH_AutocadBlockReference(new AutocadBlockReferenceWrapper(br)))
+                    .ToList();
+                DA.SetDataList(0, wrappers);
+                return;
+            }
+            // Fall through to create if retrieval failed
+        }
+
+        // 4. Delete previous objects now (if replace enabled)
+        DeleteTrackedObjectsIfReplaceEnabled();
 
         var blockReferences = new List<GH_AutocadBlockReference>();
 
@@ -151,7 +182,7 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
                 transaction.AddNewlyCreatedDBObject(blockReference, true);
 
                 // Track created object for replace-on-recompute functionality
-                this.TrackCreatedObject(objectId, autocadDocument);
+                this.TrackCreatedObject(objectId, document);
 
                 var cadBlockDefinition = blockTableRecord.Unwrap();
 

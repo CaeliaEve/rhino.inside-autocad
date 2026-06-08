@@ -159,7 +159,7 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         // If auto update is disabled, never auto-expire
         if (!_autoUpdateEnabled)
@@ -168,14 +168,14 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
         // Check output params for referenced objects that may have changed
         foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
         {
-            if (ghParam.NeedsToBeExpired(change)) return true;
+            if (ghParam.NeedsToBeExpired(change, includeModified)) return true;
         }
 
         // Check if any objects currently in the output were affected by the change
         var outputParam = this.Params.Output[0];
         foreach (var goo in outputParam.VolatileData.AllData(true).OfType<IGH_AutocadReference>())
         {
-            if (change.DoesEffectObject(goo.Reference.ObjectId))
+            if (change.DoesEffectObject(goo.Reference.ObjectId, includeModified))
                 return true;
         }
 

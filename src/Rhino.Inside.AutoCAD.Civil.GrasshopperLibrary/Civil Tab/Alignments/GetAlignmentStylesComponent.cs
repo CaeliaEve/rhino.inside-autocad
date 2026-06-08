@@ -2,6 +2,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices.Styles;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Civil.Interop;
+using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
@@ -105,18 +106,21 @@ public class GetAlignmentStylesComponent : RhinoInsideAutocad_ComponentBase, IRe
     }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
+        // Only expire if objects are created or erased (list changes)
         foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
         {
-            if (ghParam.NeedsToBeExpired(change)) return true;
+            if (ghParam.NeedsToBeExpired(change, includeModified: false)) return true;
         }
 
-        foreach (var changedObject in change)
+        // Check for type created/erased only
+        if (change.Contains(ChangeType.ObjectCreated) || change.Contains(ChangeType.ObjectErased))
         {
-            if (changedObject.UnwrapObject() is AlignmentStyle)
+            foreach (var changedObject in change)
             {
-                return true;
+                if (changedObject.UnwrapObject() is AlignmentStyle)
+                    return true;
             }
         }
 

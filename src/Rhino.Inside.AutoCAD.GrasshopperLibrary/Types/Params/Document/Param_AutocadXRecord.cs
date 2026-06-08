@@ -43,11 +43,11 @@ public class Param_AutocadXRecord : GH_Param<GH_AutocadXRecord>, IReferenceParam
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var xrecord in m_data.AllData(true).OfType<GH_AutocadXRecord>())
         {
-            if (change.DoesEffectObject(xrecord.Value.Id))
+            if (change.DoesEffectObject(xrecord.Value.Id, includeModified))
                 return true;
         }
 

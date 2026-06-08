@@ -49,11 +49,11 @@ public class Param_CivilAlignmentStyle : GH_Param<GH_CivilAlignmentStyle>, IRefe
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var styleGoo in m_data.AllData(true).OfType<GH_CivilAlignmentStyle>())
         {
-            if (styleGoo.Value != null && change.DoesEffectObject(styleGoo.Value.Id))
+            if (styleGoo.Value != null && change.DoesEffectObject(styleGoo.Value.Id, includeModified))
                 return true;
         }
 

@@ -1,8 +1,10 @@
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Civil.Interop.Constants;
 using Rhino.Inside.AutoCAD.Civil.Interop.Naming;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using CivilAlignmentType = Autodesk.Civil.DatabaseServices.AlignmentType;
@@ -96,6 +98,7 @@ public class CreateCivilAlignmentComponent : RhinoInsideAutocad_CreateComponentB
     {
         if (ShouldSkipSolve()) return;
 
+        // 1. Read all inputs first
         AutocadDocument? autocadDocument = null;
         RhinoCurve? curve = null;
         var alignmentName = string.Empty;
@@ -135,6 +138,38 @@ public class CreateCivilAlignmentComponent : RhinoInsideAutocad_CreateComponentB
                 "Invalid alignment type. Must be 1-5 (1=Centerline, 2=Offset, 3=CurbReturn, 4=Utility, 5=Rail)");
             return;
         }
+
+        // 2. Build input signature for change detection
+        var signature = new InputSignatureBuilder()
+            .AddCurve(curve)
+            .Add(alignmentName)
+            .Add(siteGoo?.Value?.Id)
+            .Add(layerGoo?.Value?.Id)
+            .Add(styleGoo?.Value?.Id)
+            .Add(labelSetGoo?.Value?.Id)
+            .Add(alignmentType)
+            .Build();
+
+        // 3. Check for reuse to prevent infinite loops
+        if (TryReuseLastCreated(signature))
+        {
+            var trackedId = GetFirstTrackedObjectId();
+            if (trackedId != null)
+            {
+                var alignment = RetrieveTrackedObject<Alignment>(trackedId, document);
+                if (alignment != null)
+                {
+                    DA.SetData(0, new GH_CivilAlignment(alignment));
+                    DA.SetData(1, alignment.Name);
+                    DA.SetData(2, new GH_AutocadObjectId(trackedId));
+                    return;
+                }
+            }
+            // Fall through to create if retrieval failed
+        }
+
+        // 4. Delete previous objects now (if replace enabled)
+        DeleteTrackedObjectsIfReplaceEnabled();
 
         _errorMessage = string.Empty;
 

@@ -49,11 +49,11 @@ public class Param_CivilAlignmentLabelSetStyle : GH_Param<GH_CivilAlignmentLabel
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var styleGoo in m_data.AllData(true).OfType<GH_CivilAlignmentLabelSetStyle>())
         {
-            if (styleGoo.Value != null && change.DoesEffectObject(styleGoo.Value.Id))
+            if (styleGoo.Value != null && change.DoesEffectObject(styleGoo.Value.Id, includeModified))
                 return true;
         }
 

@@ -53,12 +53,12 @@ public class Param_NamedId : GH_Param<GH_NamedId>, IReferenceParam
     }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var namedId in m_data.AllData(true).OfType<GH_NamedId>())
         {
             if (namedId.Value?.ObjectId is IObjectId objectId &&
-                change.DoesEffectObject(objectId))
+                change.DoesEffectObject(objectId, includeModified))
                 return true;
         }
 
