@@ -18,5 +18,5 @@ public interface IBakeSettings
     /// <summary>
     /// Gets the color to assign to baked entities. Null means use ByLayer.
     /// </summary>
-    IColor? Color { get; }
+    IAutocadColor? Color { get; }
 }

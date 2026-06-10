@@ -4,7 +4,7 @@ using Rhino.Inside.AutoCAD.Core.Interfaces;
 namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <summary>
-/// Represents a  custom filter built by the user. 
+/// Represents a  custom filter built by the user.
 /// </summary>
 public class CustomFilter : IObjectFilter
 {
@@ -34,5 +34,13 @@ public class CustomFilter : IObjectFilter
             .ToArray());
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        // Custom filters use arbitrary DXF criteria that cannot be analyzed at runtime.
+        // Return true conservatively to ensure components always expire when needed.
+        return true;
     }
 }

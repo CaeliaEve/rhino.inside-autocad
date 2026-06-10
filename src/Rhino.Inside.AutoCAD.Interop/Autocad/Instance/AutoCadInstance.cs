@@ -21,7 +21,7 @@ public class AutoCadInstance : IAutoCadInstance
     private const string _isPureAcadProfile = MessageConstants.IsPureAcadProfile;
 
     /// <inheritdoc/>
-    public event EventHandler? DocumentCreated;
+    public event EventHandler? DocumentActivated;
 
     /// <inheritdoc/>
     public event EventHandler? UnitsChanged;
@@ -185,13 +185,13 @@ public class AutoCadInstance : IAutoCadInstance
 
     /// <summary>
     /// Event handler which fires when the <see cref=" DocumentCollection.DocumentActivated"/>
-    /// is raised. Raises the <see cref="DocumentCreated"/> event.
+    /// is raised. Raises the <see cref="DocumentActivated"/> event.
     /// </summary>
     protected void OnDocumentActivated(object sender, DocumentCollectionEventArgs e)
     {
         var document = e.Document;
 
-        if (document != null)
+        if (document != null && this.Documents.Any(d => d.Unwrap().Name == document.Name) == false)
         {
             var documentFile = new AutocadDocument(document, _dispatcher);
 
@@ -202,7 +202,7 @@ public class AutoCadInstance : IAutoCadInstance
             this.SubscribeToDocumentEvents(documentFile);
         }
 
-        this.DocumentCreated?.Invoke(this, EventArgs.Empty);
+        this.DocumentActivated?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public class AutoCadInstance : IAutoCadInstance
     {
         var document = sender as Document;
 
-        var autoCadDocument = this.Documents.FirstOrDefault(d => d.Unwrap() == document);
+        var autoCadDocument = this.Documents.FirstOrDefault(d => d.Unwrap().Name == document.Name);
 
         if (autoCadDocument != null)
         {
@@ -253,7 +253,6 @@ public class AutoCadInstance : IAutoCadInstance
     public void Shutdown()
     {
         System.Diagnostics.Debug.WriteLine("=== AutoCadInstance.Shutdown() START ===");
-
         try
         {
             _documentManager!.DocumentActivated -= this.OnDocumentActivated;

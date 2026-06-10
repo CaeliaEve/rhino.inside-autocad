@@ -15,7 +15,7 @@ public class Param_CivilAlignment : Param_AutocadObjectBase<GH_CivilAlignment, C
     public override GH_Exposure Exposure => GH_Exposure.primary;
 
     /// <inheritdoc />
-    public override Guid ComponentGuid => new Guid("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
+    public override Guid ComponentGuid => new Guid("640c0e65-0982-4afa-bb2f-b3e8e022e66d");
 
     /// <inheritdoc />
     protected override System.Drawing.Bitmap Icon => Civil.GrasshopperLibrary.Properties.Resources.Param_CivilAlignment;

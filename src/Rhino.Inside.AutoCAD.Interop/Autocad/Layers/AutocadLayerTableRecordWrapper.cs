@@ -1,6 +1,5 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using CadColor = Autodesk.AutoCAD.Colors.Color;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -11,13 +10,12 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// Used by the Grasshopper library in layer components including
 /// <c>AutocadLayerComponent</c>, <c>GetAutocadLayersComponent</c>, and <c>CreateAutocadLayerComponent</c>.
 /// </remarks>
-/// <seealso cref="ILayerRegister"/>
 public class AutocadLayerTableRecordWrapper : AutocadDbObjectWrapper, IAutocadLayerTableRecord
 {
     private readonly LayerTableRecord _layerTableRecord;
 
     /// <inheritdoc/>
-    public IColor Color { get; }
+    public IAutocadColor Color { get; }
 
     /// <inheritdoc/>
     public string Name { get; }
@@ -42,7 +40,7 @@ public class AutocadLayerTableRecordWrapper : AutocadDbObjectWrapper, IAutocadLa
 
         this.LineTypeId = new AutocadObjectIdWrapper(layerTableRecord.LinetypeObjectId);
 
-        this.Color = new InternalColor(layerTableRecord.Color);
+        this.Color = new AutocadColorWrapper(layerTableRecord.Color);
     }
 
     /// <inheritdoc/>
@@ -54,7 +52,7 @@ public class AutocadLayerTableRecordWrapper : AutocadDbObjectWrapper, IAutocadLa
     /// <summary>
     /// Creates a new layer in the active document and returns the <see cref="IAutocadLayerTableRecord"/>.
     /// </summary>
-    public static IAutocadLayerTableRecord Create(IAutocadDocument document, IColor color, string name)
+    public static IAutocadLayerTableRecord Create(IAutocadDocument document, IAutocadColor color, string name)
     {
         var transactionManagerWrapper = document.CreateTransactionManager();
 
@@ -65,7 +63,7 @@ public class AutocadLayerTableRecordWrapper : AutocadDbObjectWrapper, IAutocadLa
             var newLayer = new LayerTableRecord
             {
                 Name = name,
-                Color = CadColor.FromRgb(color.Red, color.Green, color.Blue)
+                Color = color.Unwrap()
             };
 
             using var layerTable = (LayerTable)transactionManager.GetObject(

@@ -13,7 +13,7 @@ public class GH_AutocadObject : GH_AutocadObjectGoo<AutocadDbObjectWrapper>
     /// <summary>
     /// Initializes a new instance of the <see cref="GH_AutocadObject"/> class with no value.
     /// </summary>
-    protected GH_AutocadObject()
+    public GH_AutocadObject()
     { }
 
     /// <summary>

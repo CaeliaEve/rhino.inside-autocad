@@ -167,6 +167,10 @@ public class RhinoCoreExtension : IRhinoCoreExtension
 
             this.WindowManager.SetWindow(mainWindow);
 
+            // Install CBT hook to automatically show window when user input is needed.
+            // The hook detects activation attempts and shows the window if RhinoGet.InGet() is true.
+            this.WindowManager.InstallActivationHook();
+
             RhinoApp.Closing += this.OnClosing;
 
         }
@@ -265,6 +269,9 @@ public class RhinoCoreExtension : IRhinoCoreExtension
         {
             System.Diagnostics.Debug.WriteLine($"WindowManager.BringToFront failed: {ex.Message}");
         }
+
+        // Clean up the window manager (uninstalls CBT hook)
+        this.WindowManager.Dispose();
 
         try
         {

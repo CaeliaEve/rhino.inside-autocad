@@ -23,4 +23,15 @@ public class CivilAlignmentFilter : IObjectFilter
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
     }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is Alignment)
+                return true;
+        }
+        return false;
+    }
 }

@@ -27,6 +27,11 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     public static IRhinoInsideAutoCadApplication? Application { get; private set; }
 
     /// <summary>
+    /// Indicates whether the application has expired.
+    /// </summary>
+    public static bool IsExpired { get; private set; }
+
+    /// <summary>
     /// Initialize the <see cref="IRhinoInsideAutoCadApplication"/>
     /// </summary>
     public void Initialize()
@@ -45,11 +50,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
             if (currentDate > limitDate)
             {
-                editor?.WriteMessage(_expiredMessage);
-
-                Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(_expiredMessage);
-
-                return;
+                IsExpired = true;
             }
 
 #if DEBUGNET8 || DEGBUG

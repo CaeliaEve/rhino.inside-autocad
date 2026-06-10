@@ -81,15 +81,14 @@ public class Param_AutocadBlockReference : GH_PersistentParam<GH_AutocadBlockRef
     }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
-
         foreach (var blockRef in m_data.AllData(true).OfType<GH_AutocadBlockReference>())
         {
-            if (change.DoesEffectObject(blockRef.Value.Id))
+            if (change.DoesEffectObject(blockRef.Value.Id, includeModified))
                 return true;
 
-            if (change.DoesEffectObject(blockRef.Value.BlockTableRecordId))
+            if (change.DoesEffectObject(blockRef.Value.BlockTableRecordId, includeModified))
                 return true;
         }
 

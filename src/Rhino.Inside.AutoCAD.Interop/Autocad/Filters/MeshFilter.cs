@@ -13,14 +13,26 @@ public class MeshFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(-4, "<AND"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "POLYLINE"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(70, 64),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(-4, "AND>")
+            new TypedValue(-4, "<AND"),
+            new TypedValue((int)DxfCode.Start, "POLYLINE"),
+            new TypedValue(70, 64),
+            new TypedValue(-4, "AND>")
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            var dbObj = changedObject.UnwrapObject();
+            if (dbObj is PolygonMesh || dbObj is PolyFaceMesh)
+                return true;
+        }
+        return false;
     }
 }

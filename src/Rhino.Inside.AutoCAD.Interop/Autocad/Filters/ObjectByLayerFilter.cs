@@ -44,4 +44,16 @@ public class ObjectByLayerFilter : IObjectFilter
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
     }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            var dbObj = changedObject.UnwrapObject();
+            if (dbObj is Entity || dbObj is LayerTableRecord)
+                return true;
+        }
+        return false;
+    }
 }

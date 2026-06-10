@@ -43,11 +43,11 @@ public class Param_AutocadDictionary : GH_Param<GH_AutocadDictionary>, IReferenc
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var dict in m_data.AllData(true).OfType<GH_AutocadDictionary>())
         {
-            if (change.DoesEffectObject(dict.Value.Id))
+            if (change.DoesEffectObject(dict.Value.Id, includeModified))
                 return true;
         }
 

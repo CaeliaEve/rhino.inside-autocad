@@ -53,7 +53,7 @@ public interface IAutocadBlockReference : IEntity
     /// <summary>
     /// Gets the color of the block reference.
     /// </summary>
-    IColor Color { get; }
+    IAutocadColor Color { get; }
 
     /// <summary>
     /// Gets the <see cref="IObjectId"/> of the layer this block reference is on.

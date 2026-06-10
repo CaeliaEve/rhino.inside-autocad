@@ -48,4 +48,10 @@ public class OrFilter : IObjectFilter
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
     }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        return this.FilterA.IsAffectedByChange(change) || this.FilterB.IsAffectedByChange(change);
+    }
 }

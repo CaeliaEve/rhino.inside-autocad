@@ -16,11 +16,22 @@ public class CivilTinVolumeSurfaceFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new TypedValue((int)DxfCode.Start,   RXClass.GetClass(typeof(TinVolumeSurface)).DxfName)
+            new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(TinVolumeSurface)).DxfName)
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is TinVolumeSurface)
+                return true;
+        }
+        return false;
     }
 }

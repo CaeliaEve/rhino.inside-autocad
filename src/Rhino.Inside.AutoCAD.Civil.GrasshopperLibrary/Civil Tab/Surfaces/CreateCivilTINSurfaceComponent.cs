@@ -1,8 +1,10 @@
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.Civil.DatabaseServices;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Civil.Interop;
 using Rhino.Inside.AutoCAD.Civil.Interop.Constants;
 using Rhino.Inside.AutoCAD.Civil.Interop.Naming;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.GrasshopperLibrary;
 using Rhino.Inside.AutoCAD.Interop;
 using RhinoMesh = Rhino.Geometry.Mesh;
@@ -71,8 +73,9 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_CreateComponent
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        if (ShouldSkipSolve()) return;
+        if (this.ShouldSkipSolve()) return;
 
+        // 1. Read all inputs first
         AutocadDocument? autocadDocument = null;
         RhinoMesh? mesh = null;
         var surfaceName = string.Empty;
@@ -103,6 +106,34 @@ public class CreateCivilTINSurfaceComponent : RhinoInsideAutocad_CreateComponent
 
         DA.GetData(2, ref surfaceName);
         DA.GetData(3, ref styleGoo);
+
+        // 2. Build input signature for change detection
+        var signature = new InputSignatureBuilder()
+            .AddMesh(mesh)
+            .Add(surfaceName)
+            .Add(styleGoo?.Value?.Id)
+            .Build();
+
+        // 3. Check for reuse to prevent infinite loops
+        if (this.TryReuseLastCreated(signature))
+        {
+            var trackedId = this.GetFirstTrackedObjectId();
+            if (trackedId != null)
+            {
+                var retrievedSurface = this.RetrieveTrackedObject<TinSurface>(trackedId, document);
+                if (retrievedSurface != null)
+                {
+                    DA.SetData(0, new GH_CivilTinSurface(retrievedSurface));
+                    DA.SetData(1, retrievedSurface.Name);
+                    DA.SetData(2, new GH_AutocadObjectId(trackedId));
+                    return;
+                }
+            }
+            // Fall through to create if retrieval failed
+        }
+
+        // 4. Delete previous objects now (if replace enabled)
+        this.DeleteTrackedObjectsIfReplaceEnabled();
 
         _errorMessage = string.Empty;
 

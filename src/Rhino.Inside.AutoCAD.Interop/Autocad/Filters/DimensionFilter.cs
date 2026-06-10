@@ -14,11 +14,22 @@ public class DimensionFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "DIMENSION")
+            new TypedValue((int)DxfCode.Start, "DIMENSION")
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is Dimension)
+                return true;
+        }
+        return false;
     }
 }

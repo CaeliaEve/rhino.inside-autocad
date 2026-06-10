@@ -1,7 +1,5 @@
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Interop;
-using Color = System.Drawing.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -46,7 +44,7 @@ public class AutocadLayerComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LinePatternId", "LinePatternId",
             "The Id of Line Patten of the AutoCAD Layer.", GH_ParamAccess.item);
 
-        pManager.AddColourParameter("Colour", "Colour",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Colour", "Colour",
             "The color associated with the layer",
             GH_ParamAccess.item);
 
@@ -72,7 +70,7 @@ public class AutocadLayerComponent : RhinoInsideAutocad_ComponentBase
 
         var color = autocadLayer.Color;
 
-        var gooColor = new GH_Colour(Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue));
+        var gooColor = new GH_AutocadColor(color);
 
         var isLocked = autocadLayer.IsLocked;
 

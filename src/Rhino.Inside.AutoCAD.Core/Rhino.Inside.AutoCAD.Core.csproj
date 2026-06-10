@@ -37,6 +37,7 @@
 
 
 	<ItemGroup>
+	  <Folder Include="Interfaces\Grasshopper\Signature\" />
 	  <Folder Include="Interfaces\Interop\Autocad\AssocNetworks\" />
 	  <Folder Include="Interfaces\Interop\Autocad\Blocks\Table Records\" />
 	  <Folder Include="Interfaces\Interop\Autocad\Document Meta\" />

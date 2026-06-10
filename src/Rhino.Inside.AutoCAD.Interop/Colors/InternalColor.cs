@@ -1,8 +1,16 @@
-﻿using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
+using CadColor = Autodesk.AutoCAD.Colors.Color;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
-/// <inheritdoc cref="IColor"/>
+/// <summary>
+/// Represents an AutoCAD color, supporting RGB, ByLayer, ByBlock, and ACI modes.
+/// </summary>
+/// <remarks>
+/// AutoCAD uses special color index values for ByLayer (256) and ByBlock (0).
+/// This class provides methods to create and manipulate colors with these
+/// special values, as well as standard RGB and ACI (AutoCAD Color Index) colors.
+/// </remarks>
 public class InternalColor : IColor
 {
     /// <inheritdoc/>
@@ -18,30 +26,14 @@ public class InternalColor : IColor
     public byte Alpha { get; }
 
     /// <summary>
-    /// Constructs a new <see cref="InternalColor"/> from <see cref=
-    /// "Autodesk.AutoCAD.Colors.Color"/>.
+    /// Constructs a new <see cref="InternalColor"/> from <see cref="Autodesk.AutoCAD.Colors.Color"/>.
     /// </summary>
-    public InternalColor(Autodesk.AutoCAD.Colors.Color color)
+    public InternalColor(CadColor color)
     {
-        this.Red = color.Red;
-
-        this.Green = color.Green;
-
-        this.Blue = color.Blue;
-    }
-
-    /// <summary>
-    /// Constructs a new <see cref="InternalColor"/> from <see cref="System.Drawing.Color"/>.
-    /// </summary>
-    public InternalColor(System.Drawing.Color color)
-    {
-        this.Red = color.R;
-
-        this.Green = color.G;
-
-        this.Blue = color.B;
-
-        this.Alpha = color.A;
+        this.Red = color.ColorValue.R;
+        this.Green = color.ColorValue.G;
+        this.Blue = color.ColorValue.B;
+        this.Alpha = color.ColorValue.A;
     }
 
     /// <inheritdoc/>

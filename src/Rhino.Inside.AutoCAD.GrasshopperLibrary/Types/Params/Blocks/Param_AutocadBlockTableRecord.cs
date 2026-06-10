@@ -44,11 +44,11 @@ public class Param_AutocadBlockTableRecord : GH_Param<GH_AutocadBlockTableRecord
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var block in m_data.AllData(true).OfType<GH_AutocadBlockTableRecord>())
         {
-            if (change.DoesEffectObject(block.Value.Id))
+            if (change.DoesEffectObject(block.Value.Id, includeModified))
                 return true;
         }
 

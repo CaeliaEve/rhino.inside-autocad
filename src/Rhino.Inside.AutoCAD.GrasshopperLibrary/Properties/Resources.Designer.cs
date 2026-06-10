@@ -139,7 +139,17 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap AutocadColorComponent {
+            get {
+                object obj = ResourceManager.GetObject("AutocadColorComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -523,6 +533,16 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap GetAutocadBlockTableRecordByNameComponent {
+            get {
+                object obj = ResourceManager.GetObject("GetAutocadBlockTableRecordByNameComponent", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap GetAutocadBlockTableRecordsComponent {
             get {
                 object obj = ResourceManager.GetObject("GetAutocadBlockTableRecordsComponent", resourceCulture);
@@ -699,7 +719,17 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Param_AutocadColor {
+            get {
+                object obj = ResourceManager.GetObject("Param_AutocadColor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
@@ -926,16 +956,6 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary.Properties {
         internal static System.Drawing.Bitmap Param_Filter {
             get {
                 object obj = ResourceManager.GetObject("Param_Filter", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap Param_Filter1 {
-            get {
-                object obj = ResourceManager.GetObject("Param_Filter1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

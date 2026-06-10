@@ -78,14 +78,13 @@ public class GetByAutocadIdComponent : RhinoInsideAutocad_ComponentBase, IRefere
     }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
         {
-            if (ghParam.NeedsToBeExpired(change)) return true;
+            if (ghParam.NeedsToBeExpired(change, includeModified)) return true;
         }
 
         return false;
-
     }
 }

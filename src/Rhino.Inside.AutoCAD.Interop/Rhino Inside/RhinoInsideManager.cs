@@ -56,7 +56,7 @@ public class RhinoInsideManager : IRhinoInsideManager
             grasshopperPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
 
         this.AutoCadInstance = autoCadInstance;
-        autoCadInstance.DocumentCreated += this.AutocadDocumentSwitched;
+        autoCadInstance.DocumentActivated += this.AutocadDocumentSwitched;
         autoCadInstance.UnitsChanged += this.UpdateUnitSystem;
         autoCadInstance.DocumentChanged += this.AutocadDocumentChange;
 
@@ -242,7 +242,7 @@ public class RhinoInsideManager : IRhinoInsideManager
         this.RhinoInstance.ObjectRemoved -= this.RhinoObjectRemoved;
         this.RhinoInstance.DeselectAll -= this.DeselectAllRhinoPreview;
 
-        this.AutoCadInstance.DocumentCreated -= this.AutocadDocumentSwitched;
+        this.AutoCadInstance.DocumentActivated -= this.AutocadDocumentSwitched;
         this.AutoCadInstance.UnitsChanged -= this.UpdateUnitSystem;
         this.AutoCadInstance.DocumentChanged -= this.AutocadDocumentChange;
 

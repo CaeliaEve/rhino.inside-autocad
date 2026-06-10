@@ -126,8 +126,15 @@ public abstract class RecordTable_ComponentBase<TWrapper, TCad> : RhinoInsideAut
     }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
+        // Check input params - ignore modifications (side effects like reference count updates)
+        foreach (var ghParam in this.Params.Input.OfType<IReferenceParam>())
+        {
+            if (ghParam.NeedsToBeExpired(change, includeModified: false)) return true;
+        }
+
+        // Check output params - include all changes
         foreach (var ghParam in this.Params.Output.OfType<IReferenceParam>())
         {
             if (ghParam.NeedsToBeExpired(change)) return true;
@@ -142,6 +149,5 @@ public abstract class RecordTable_ComponentBase<TWrapper, TCad> : RhinoInsideAut
         }
 
         return false;
-
     }
 }

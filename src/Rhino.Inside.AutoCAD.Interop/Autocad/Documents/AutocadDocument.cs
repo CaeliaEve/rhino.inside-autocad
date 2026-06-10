@@ -2,13 +2,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
-using System.Diagnostics;
 using System.Windows.Threading;
-using Application = Autodesk.AutoCAD.ApplicationServices.Application;
-using CadBlockTableRecord = Autodesk.AutoCAD.DatabaseServices.BlockTableRecord;
-using CadLayer = Autodesk.AutoCAD.DatabaseServices.LayerTableRecord;
-using CadLayout = Autodesk.AutoCAD.DatabaseServices.Layout;
-using CadLineType = Autodesk.AutoCAD.DatabaseServices.LinetypeTableRecord;
 using Document = Autodesk.AutoCAD.ApplicationServices.Document;
 using Handle = Autodesk.AutoCAD.DatabaseServices.Handle;
 
