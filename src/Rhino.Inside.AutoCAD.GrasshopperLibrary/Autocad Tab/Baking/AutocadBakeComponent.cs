@@ -4,7 +4,17 @@ using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using System.Collections;
 using Exception = System.Exception;
+using RhinoArc = Rhino.Geometry.Arc;
+using RhinoArcCurve = Rhino.Geometry.ArcCurve;
+using RhinoBox = Rhino.Geometry.Box;
 using RhinoBrep = Rhino.Geometry.Brep;
+using RhinoCircle = Rhino.Geometry.Circle;
+using RhinoGeometryBase = Rhino.Geometry.GeometryBase;
+using RhinoLine = Rhino.Geometry.Line;
+using RhinoLineCurve = Rhino.Geometry.LineCurve;
+using RhinoPoint = Rhino.Geometry.Point;
+using RhinoPoint3d = Rhino.Geometry.Point3d;
+using RhinoRectangle3d = Rhino.Geometry.Rectangle3d;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -41,7 +51,7 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
         pManager[0].Optional = true;
 
         pManager.AddGenericParameter("Objects", "O",
-            "The objects to bake to AutoCAD (curves, points, meshes, solids, block references)",
+            "The objects to bake to AutoCAD (curves, points, meshes, solids)",
             GH_ParamAccess.list);
 
         pManager.AddParameter(new Param_BakeSettings(GH_ParamAccess.item), "Settings",
@@ -58,6 +68,21 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
     {
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.list), "ObjectIds",
             "Ids", "The ObjectIds of the baked objects", GH_ParamAccess.list);
+    }
+
+    /// <summary>
+    /// Wraps a Rhino <see cref="RhinoGeometryBase"/> in an <see cref="IAutocadBakeable"/>
+    /// using the convertible factory, or returns <c>null</c> if it cannot be converted.
+    /// </summary>
+    private IAutocadBakeable? Convert(RhinoGeometryBase? geometry, IRhinoConvertibleFactory factory)
+    {
+        if (geometry is null)
+            return null;
+
+        if (factory.MakeConvertible(geometry, out var rhinoConvertible) == false)
+            return null;
+
+        return new BakableRhinoConverter(rhinoConvertible!);
     }
 
     /// <summary>
@@ -79,19 +104,26 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
                 if (value is IAutocadBakeable valueBakeable)
                     return valueBakeable;
 
-                if (value is Rhino.Geometry.GeometryBase nativeGeometryBase)
+                // Several Grasshopper primitives expose a value-type struct as their Value
+                // (Line, Arc, Circle, Rectangle3d, Point3d, Box) which is not a GeometryBase.
+                // Normalize these into the appropriate bakeable, mirroring the conversions used
+                // by GrasshopperGeometryExtractor for previews. Breps (and Boxes, which become
+                // Breps) bake via GH_AutocadBrepProxy; everything else via the convertible factory.
+                var valueBakeableResult = value switch
                 {
-                    if (value is RhinoBrep brep)
-                    {
-                        return new GH_AutocadBrepProxy(brep);
-                    }
+                    RhinoLine line => this.Convert(new RhinoLineCurve(line), factory),
+                    RhinoArc arc => this.Convert(new RhinoArcCurve(arc), factory),
+                    RhinoCircle circle => this.Convert(new RhinoArcCurve(circle), factory),
+                    RhinoRectangle3d rectangle => this.Convert(rectangle.ToNurbsCurve(), factory),
+                    RhinoPoint3d point => this.Convert(new RhinoPoint(point), factory),
+                    RhinoBox box => new GH_AutocadBrepProxy(box.ToBrep()),
+                    RhinoBrep brep => new GH_AutocadBrepProxy(brep),
+                    RhinoGeometryBase nativeGeometry => this.Convert(nativeGeometry, factory),
+                    _ => null
+                };
 
-                    if (factory.MakeConvertible(nativeGeometryBase, out var rhinoConvertible))
-                    {
-                        var converter = new BakableRhinoConverter(rhinoConvertible!);
-                        return converter;
-                    }
-                }
+                if (valueBakeableResult is not null)
+                    return valueBakeableResult;
             }
 
             if (goo is IAutocadBakeable gooBakeable)
