@@ -253,7 +253,6 @@ public class AutoCadInstance : IAutoCadInstance
     public void Shutdown()
     {
         System.Diagnostics.Debug.WriteLine("=== AutoCadInstance.Shutdown() START ===");
-
         try
         {
             _documentManager!.DocumentActivated -= this.OnDocumentActivated;

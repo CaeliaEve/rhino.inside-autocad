@@ -44,12 +44,11 @@ public class Param_AutocadLayer : GH_Param<GH_AutocadLayer>, IReferenceParam
     { }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
-
         foreach (var autocadId in m_data.AllData(true).OfType<GH_AutocadLayer>())
         {
-            if (change.DoesEffectObject(autocadId.Value.Id))
+            if (change.DoesEffectObject(autocadId.Value.Id, includeModified))
                 return true;
         }
 

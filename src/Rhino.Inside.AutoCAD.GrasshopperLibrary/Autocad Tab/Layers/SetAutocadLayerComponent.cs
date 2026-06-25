@@ -1,9 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Types;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
-using Color = System.Drawing.Color;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -41,7 +38,7 @@ public class SetAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "NewLinePatternId", "LinePatternId",
             "The Id of Line Patten of the AutoCAD Layer.", GH_ParamAccess.item);
 
-        pManager.AddColourParameter("NewColour", "Colour",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "NewColour", "Colour",
             "The color associated with the layer",
             GH_ParamAccess.item);
 
@@ -68,7 +65,7 @@ public class SetAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LinePatternId", "LinePatternId",
             "The Id of Line Patten of the AutoCAD Layer.", GH_ParamAccess.item);
 
-        pManager.AddColourParameter("Colour", "Colour",
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Colour", "Colour",
             "The color associated with the layer",
             GH_ParamAccess.item);
 
@@ -98,7 +95,7 @@ public class SetAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
 
         var change = newName != autocadLayer.Name
                      || newPattenId != autocadLayer.LineTypeId
-                     || newColor != autocadLayer.Color
+                     || !newColor.IsEqualTo(autocadLayer.Color)
                      || newIsLocked != autocadLayer.IsLocked;
 
         if (change)
@@ -121,9 +118,7 @@ public class SetAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
 
                 cadLayer!.Name = newName;
                 cadLayer.LinetypeObjectId = newPattenId.Unwrap();
-                cadLayer.Color =
-                    Autodesk.AutoCAD.Colors.Color.FromRgb(newColor.Red, newColor.Green,
-                        newColor.Blue);
+                cadLayer.Color = newColor.Unwrap();
                 cadLayer.IsLocked = newIsLocked;
 
                 return new AutocadLayerTableRecordWrapper(cadLayer);
@@ -138,7 +133,7 @@ public class SetAutocadLayerComponent : RhinoInsideAutocad_ComponentBase
 
         var color = autocadLayer.Color;
 
-        var gooColor = new GH_Colour(Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue));
+        var gooColor = new GH_AutocadColor(color);
 
         var isLocked = autocadLayer.IsLocked;
 

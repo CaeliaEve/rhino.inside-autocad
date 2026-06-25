@@ -2,6 +2,7 @@ using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using CadColor = Autodesk.AutoCAD.Colors.Color;
 using CadDbObject = Autodesk.AutoCAD.DatabaseServices.DBObject;
 using CadEntity = Autodesk.AutoCAD.DatabaseServices.Entity;
 using CadLayer = Autodesk.AutoCAD.DatabaseServices.LayerTableRecord;
@@ -231,6 +232,16 @@ public static class InteropConverter
     public static TypedValue Unwrap(this ITypedValueWrapper typedValue)
     {
         var wrapper = (AutocadWrapperBase<TypedValue>)typedValue;
+
+        return wrapper.AutocadObject;
+    }
+
+    /// <summary>
+    /// Converts this color to an AutoCAD Color object.
+    /// </summary>
+    public static CadColor Unwrap(this IAutocadColor color)
+    {
+        var wrapper = (AutocadWrapperBase<CadColor>)color;
 
         return wrapper.AutocadObject;
     }

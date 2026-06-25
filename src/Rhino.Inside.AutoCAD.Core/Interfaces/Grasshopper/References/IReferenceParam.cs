@@ -13,5 +13,7 @@ public interface IReferenceParam : IGH_Param
     /// the given <see cref="IAutocadDocumentChange"/> in the <see cref="IAutocadDocument"/>.
     /// If it does, the Parameter will be expired to trigger computation.
     /// </summary>
-    bool NeedsToBeExpired(IAutocadDocumentChange change);
+    /// <param name="change">The document change to check.</param>
+    /// <param name="includeModified">If false, excludes ObjectModified changes from the check. Default is true.</param>
+    bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true);
 }

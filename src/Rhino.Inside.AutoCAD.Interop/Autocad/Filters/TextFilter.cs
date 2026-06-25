@@ -15,14 +15,26 @@ public class TextFilter : IObjectFilter
 
         var filterCriteria = new[]
         {
-            new  Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Operator, "<OR"),
-            new  Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "TEXT"),
-            new  Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "MTEXT"),
-            new  Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Operator, "OR>")
+            new TypedValue((int)DxfCode.Operator, "<OR"),
+            new TypedValue((int)DxfCode.Start, "TEXT"),
+            new TypedValue((int)DxfCode.Start, "MTEXT"),
+            new TypedValue((int)DxfCode.Operator, "OR>")
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            var dbObj = changedObject.UnwrapObject();
+            if (dbObj is DBText || dbObj is MText)
+                return true;
+        }
+        return false;
     }
 }

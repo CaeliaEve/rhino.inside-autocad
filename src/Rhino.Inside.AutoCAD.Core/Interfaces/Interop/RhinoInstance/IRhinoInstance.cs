@@ -54,6 +54,11 @@ public interface IRhinoInstance
     Version ApplicationVersion { get; }
 
     /// <summary>
+    /// The unit system of the active Rhino document.
+    /// </summary>
+    UnitSystem UnitSystem { get; }
+
+    /// <summary>
     /// Validates that the Rhino document is created and ready to use.
     /// </summary>
     void ValidateRhinoDoc(RhinoInsideMode mode, IStartUpLogger logger);

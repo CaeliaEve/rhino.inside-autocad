@@ -14,11 +14,22 @@ public class BlockReferenceFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "INSERT")
+            new TypedValue((int)DxfCode.Start, "INSERT")
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is BlockReference)
+                return true;
+        }
+        return false;
     }
 }

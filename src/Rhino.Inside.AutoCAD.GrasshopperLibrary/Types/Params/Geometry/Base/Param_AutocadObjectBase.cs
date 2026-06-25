@@ -130,11 +130,11 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
     }
 
     /// <inheritdoc />
-    public bool NeedsToBeExpired(IAutocadDocumentChange change)
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
     {
         foreach (var autocadId in m_data.AllData(true).OfType<TGoo>())
         {
-            if (change.DoesEffectObject(autocadId.Reference.ObjectId))
+            if (change.DoesEffectObject(autocadId.Reference.ObjectId, includeModified))
                 return true;
         }
 

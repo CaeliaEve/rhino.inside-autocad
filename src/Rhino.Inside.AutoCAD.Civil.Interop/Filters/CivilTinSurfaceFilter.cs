@@ -16,11 +16,22 @@ public class CivilTinSurfaceFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start,  RXClass.GetClass(typeof(TinSurface)).DxfName)
+            new TypedValue((int)DxfCode.Start, RXClass.GetClass(typeof(TinSurface)).DxfName)
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is TinSurface)
+                return true;
+        }
+        return false;
     }
 }

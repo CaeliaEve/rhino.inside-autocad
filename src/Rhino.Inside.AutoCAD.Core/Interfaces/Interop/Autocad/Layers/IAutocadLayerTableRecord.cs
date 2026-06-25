@@ -9,7 +9,6 @@
 /// AutocadLayerComponent, GetAutocadLayersComponent, and CreateAutocadLayerComponent.
 /// Layers control the visual appearance and organization of entities in a drawing.
 /// </remarks>
-/// <seealso cref="ILayerRegister"/>
 /// <seealso cref="INamedDbObject"/>
 public interface IAutocadLayerTableRecord : INamedDbObject
 {
@@ -20,7 +19,7 @@ public interface IAutocadLayerTableRecord : INamedDbObject
     /// Entities with color set to "ByLayer" will display using this color.
     /// The color can be an ACI (AutoCAD Color Index) value or a true color.
     /// </remarks>
-    IColor Color { get; }
+    IAutocadColor Color { get; }
 
     /// <summary>
     /// Gets the <see cref="IObjectId"/> of the line type assigned to this layer.

@@ -23,4 +23,15 @@ public class CivilAssemblyFilter : IObjectFilter
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
     }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is Assembly)
+                return true;
+        }
+        return false;
+    }
 }

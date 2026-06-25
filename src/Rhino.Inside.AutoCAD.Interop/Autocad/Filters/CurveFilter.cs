@@ -1,4 +1,5 @@
-﻿using Autodesk.AutoCAD.EditorInput;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Interop;
@@ -13,18 +14,29 @@ public class CurveFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(-4, "<OR"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(0, "ARC,CIRCLE,ELLIPSE,LEADER,LINE,LWPOLYLINE,RAY,SPLINE,XLINE"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(-4, "<AND"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(0, "POLYLINE"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(-4, "&"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(70, 16 | 32 | 64),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(-4, "AND>"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue(-4, "OR>")
+            new TypedValue(-4, "<OR"),
+            new TypedValue(0, "ARC,CIRCLE,ELLIPSE,LEADER,LINE,LWPOLYLINE,RAY,SPLINE,XLINE"),
+            new TypedValue(-4, "<AND"),
+            new TypedValue(0, "POLYLINE"),
+            new TypedValue(-4, "&"),
+            new TypedValue(70, 16 | 32 | 64),
+            new TypedValue(-4, "AND>"),
+            new TypedValue(-4, "OR>")
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            if (changedObject.UnwrapObject() is Curve)
+                return true;
+        }
+        return false;
     }
 }

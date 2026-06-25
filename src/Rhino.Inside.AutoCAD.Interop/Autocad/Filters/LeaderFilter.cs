@@ -14,14 +14,26 @@ public class LeaderFilter : IObjectFilter
     {
         var filterCriteria = new[]
         {
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Operator, "<OR"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "LEADER"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Start, "MLEADER"),
-            new Autodesk.AutoCAD.DatabaseServices.TypedValue((int)DxfCode.Operator, "OR>")
+            new TypedValue((int)DxfCode.Operator, "<OR"),
+            new TypedValue((int)DxfCode.Start, "LEADER"),
+            new TypedValue((int)DxfCode.Start, "MLEADER"),
+            new TypedValue((int)DxfCode.Operator, "OR>")
         };
 
         var selectionFilter = new SelectionFilter(filterCriteria);
 
         return new AutocadSelectionFilterWrapper(selectionFilter);
+    }
+
+    /// <inheritdoc />
+    public bool IsAffectedByChange(IAutocadDocumentChange change)
+    {
+        foreach (var changedObject in change)
+        {
+            var dbObj = changedObject.UnwrapObject();
+            if (dbObj is Leader || dbObj is MLeader)
+                return true;
+        }
+        return false;
     }
 }

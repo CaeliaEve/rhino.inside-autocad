@@ -45,7 +45,9 @@ public interface IAutocadDocumentChange : IEnumerable<IDbObject>
     /// <summary>
     /// Checks if the change effects the specified <paramref name="objectId"/>.
     /// </summary>
-    bool DoesEffectObject(IObjectId objectId);
+    /// <param name="objectId">The object ID to check.</param>
+    /// <param name="includeModified">If false, excludes ObjectModified changes from the check. Default is true.</param>
+    bool DoesEffectObject(IObjectId objectId, bool includeModified = true);
 
     /// <summary>
     /// Checks if the change effects any objects of the specified <paramref name="type"/>.

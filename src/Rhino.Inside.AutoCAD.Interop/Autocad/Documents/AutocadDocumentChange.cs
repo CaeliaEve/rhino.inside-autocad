@@ -72,9 +72,21 @@ public class AutocadDocumentChange : IAutocadDocumentChange
     }
 
     /// <inheritdoc />
-    public bool DoesEffectObject(IObjectId objectId)
+    public bool DoesEffectObject(IObjectId objectId, bool includeModified = true)
     {
-        return _flatObjectList.Contains(objectId);
+        if (includeModified)
+            return _flatObjectList.Contains(objectId);
+
+        // Check only Created and Erased, exclude Modified
+        if (_changes.TryGetValue(ChangeType.ObjectCreated, out var created) &&
+            created.Any(o => o.Id.Equals(objectId)))
+            return true;
+
+        if (_changes.TryGetValue(ChangeType.ObjectErased, out var erased) &&
+            erased.Any(o => o.Id.Equals(objectId)))
+            return true;
+
+        return false;
     }
 
     /// <inheritdoc />

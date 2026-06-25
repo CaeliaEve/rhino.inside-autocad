@@ -1,4 +1,5 @@
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 
@@ -9,7 +10,7 @@ namespace Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary;
 /// This parameter type wraps <see cref="GH_CivilSite"/> objects which
 /// contain site information and collections.
 /// </remarks>
-public class Param_CivilSite : GH_Param<GH_CivilSite>
+public class Param_CivilSite : GH_Param<GH_CivilSite>, IReferenceParam
 {
     /// <inheritdoc />
     public override Guid ComponentGuid => new Guid("E5F6A7B8-C9D0-1234-EF01-567890123456");
@@ -44,4 +45,15 @@ public class Param_CivilSite : GH_Param<GH_CivilSite>
         : base("Civil3d Site", "Site",
             "A Civil 3D Site container", "Params", "Civil3d", access)
     { }
+
+    /// <inheritdoc />
+    public bool NeedsToBeExpired(IAutocadDocumentChange change, bool includeModified = true)
+    {
+        foreach (var site in m_data.AllData(true).OfType<GH_CivilSite>())
+        {
+            if (site.Value?.Id != null && change.DoesEffectObject(site.Value.Id, includeModified))
+                return true;
+        }
+        return false;
+    }
 }

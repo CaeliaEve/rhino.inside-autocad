@@ -14,7 +14,7 @@ public class BakeSettings : IBakeSettings
     public IAutocadLinetypeTableRecord? LineType { get; }
 
     /// <inheritdoc/>
-    public IColor? Color { get; }
+    public IAutocadColor? Color { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BakeSettings"/> class.
@@ -25,7 +25,7 @@ public class BakeSettings : IBakeSettings
     public BakeSettings(
         IAutocadLayerTableRecord? layer = null,
         IAutocadLinetypeTableRecord? lineType = null,
-        IColor? color = null)
+        IAutocadColor? color = null)
     {
         this.Layer = layer;
         this.LineType = lineType;

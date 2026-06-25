@@ -1,4 +1,5 @@
-﻿using Grasshopper.Kernel;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -6,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that extracts information from an AutoCAD DBObject.
 /// </summary>
-[ComponentVersion(introduced: "1.0.16")]
+[ComponentVersion(introduced: "1.0.16", updated: "1.2.25")]
 public class AutocadDbObjectComponent : RhinoInsideAutocad_ComponentBase
 {
     /// <inheritdoc />
@@ -46,6 +47,31 @@ public class AutocadDbObjectComponent : RhinoInsideAutocad_ComponentBase
 
         pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "ExtensionDictionaryId", "ExtDictId",
             "The ExtensionDictionary Id of the AutoCAD DBObject.", GH_ParamAccess.item);
+
+        // Entity-specific outputs (null if DBObject is not an Entity)
+        pManager.AddTextParameter("LayerName", "Layer",
+            "The layer name of the Entity. Null if not an Entity.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LayerId", "LayerId",
+            "The layer ObjectId of the Entity. Null if not an Entity.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Color", "Col",
+            "The AutoCAD color of the Entity (supports ByLayer/ByBlock). Null if not an Entity.", GH_ParamAccess.item);
+
+        pManager.AddTextParameter("MaterialName", "Mat",
+            "The material name of the Entity. Null if not an Entity.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "MaterialId", "MatId",
+            "The material ObjectId of the Entity. Null if not an Entity.", GH_ParamAccess.item);
+
+        pManager.AddTextParameter("LinetypeName", "LT",
+            "The linetype name of the Entity. Null if not an Entity.", GH_ParamAccess.item);
+
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LinetypeId", "LTId",
+            "The linetype ObjectId of the Entity. Null if not an Entity.", GH_ParamAccess.item);
+
+        pManager.AddIntegerParameter("LineWeight", "LW",
+            "The lineweight of the Entity in 1/100mm. -1=ByLayer, -2=ByBlock, -3=Default. Null if not an Entity.", GH_ParamAccess.item);
     }
 
     /// <inheritdoc />
@@ -71,5 +97,29 @@ public class AutocadDbObjectComponent : RhinoInsideAutocad_ComponentBase
         DA.SetData(1, handle);
         DA.SetData(2, typeName);
         DA.SetData(3, extDictId);
+
+        // Check if DBObject is an Entity and extract entity-specific properties
+        if (dbObject.AutocadObject is Entity entity)
+        {
+            // Layer
+            DA.SetData(4, entity.Layer);
+            DA.SetData(5, new AutocadObjectIdWrapper(entity.LayerId));
+
+            // Color - output AutoCAD color directly (preserves ByLayer/ByBlock)
+            var colorWrapper = new AutocadColorWrapper(entity);
+            DA.SetData(6, new GH_AutocadColor(colorWrapper));
+
+            // Material
+            DA.SetData(7, entity.Material);
+            DA.SetData(8, new AutocadObjectIdWrapper(entity.MaterialId));
+
+            // Linetype
+            DA.SetData(9, entity.Linetype);
+            DA.SetData(10, new AutocadObjectIdWrapper(entity.LinetypeId));
+
+            // LineWeight (cast enum to int)
+            DA.SetData(11, (int)entity.LineWeight);
+        }
+        // If not Entity, outputs 4-11 remain null (default behavior)
     }
 }
