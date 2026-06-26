@@ -20,10 +20,9 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     private bool _autoUpdateEnabled;
 
     // Data dam: in manual mode the query only runs when the Query button is pressed
-    // (which sets _manualUpdateRequested). Input changes re-emit the cached results below.
+    // (which sets _manualUpdateRequested). Any other expiration (input change) clears the
+    // output until the button is pressed again.
     private bool _manualUpdateRequested;
-    private List<IGH_Goo> _cachedObjects = new();
-    private int _cachedCount;
 
     /// <summary>
     /// Gets a value indicating whether auto update is enabled.
@@ -85,14 +84,15 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     protected override void SolveInstance(IGH_DataAccess DA)
     {
         // Only run the query when auto-update is on, or when the Query button triggered this
-        // solve. Other expirations (input changes) re-emit the cached results without querying.
+        // solve. Any other expiration (an input change) clears the previous output until the
+        // user presses Query again.
         var runQuery = _autoUpdateEnabled || _manualUpdateRequested;
         _manualUpdateRequested = false;
 
         if (!runQuery)
         {
-            DA.SetDataList(0, _cachedObjects);
-            DA.SetData(1, _cachedCount);
+            DA.SetDataList(0, new List<IGH_Goo>());
+            DA.SetData(1, 0);
             return;
         }
 
@@ -128,10 +128,8 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
 
         if (promptResult.Status != PromptStatus.OK)
         {
-            _cachedObjects = new List<IGH_Goo>();
-            _cachedCount = 0;
-            DA.SetDataList(0, _cachedObjects);
-            DA.SetData(1, _cachedCount);
+            DA.SetDataList(0, new List<IGH_Goo>());
+            DA.SetData(1, 0);
             return;
         }
 
@@ -174,8 +172,6 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
            return result;
        });
 
-        _cachedObjects = elements;
-        _cachedCount = count;
         DA.SetDataList(0, elements);
         DA.SetData(1, count);
     }
