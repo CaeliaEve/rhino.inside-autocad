@@ -198,6 +198,10 @@ PublishScripts/
 # The packages folder can be ignored because of Package Restore
 **/Releases/*
 **/Nuget/*
+# Keep the NuGet packaging script and manifests (staging/ and Output/ stay ignored above)
+!**/Nuget/*.bat
+!**/Nuget/*.nuspec
+!**/Nuget/*.md
 **/Latest Release/*
 **/Archive/*
 **/[Pp]ackages/*

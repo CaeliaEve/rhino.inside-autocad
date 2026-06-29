@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Rhino.Inside.AutoCAD.NET8</id>
+    <version>0.0.0</version>
+    <title>Rhino.Inside.AutoCAD (.NET 8)</title>
+    <authors>Bimorph Digital Engineering LTD</authors>
+    <owners>Bimorph Digital Engineering LTD</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="file">LICENSE.txt</license>
+    <readme>README.md</readme>
+    <icon>RhinoInsideLogo.png</icon>
+    <projectUrl>https://www.bimorph.com/products/rhino-inside-autocad/docs</projectUrl>
+    <repository type="git" url="https://github.com/mcneel/rhino.inside-autocad" />
+    <description>Rhino.Inside.AutoCAD assemblies (Core, Applications, Interop, Civil.Interop, Services, UI.Resources) for AutoCAD on .NET 8. Host APIs (RhinoCommon, Grasshopper, AutoCAD.NET, Civil3D.NET) are provided by the host at runtime and are not bundled.
+
+Developed in official collaboration with Robert McNeel &amp; Associates - creators of Rhino 3D, Grasshopper, and the open-source Rhino.Inside® technology.</description>
+    <copyright>Copyright © Bimorph LTD. 2026</copyright>
+    <dependencies>
+      <group targetFramework="net8.0-windows7.0">
+        <dependency id="System.Drawing.Common" version="8.0.0" />
+        <dependency id="Serilog" version="4.0.0" />
+        <dependency id="Serilog.Settings.Configuration" version="8.0.0" />
+        <dependency id="Serilog.Sinks.File" version="6.0.0" />
+        <dependency id="System.Text.Json" version="8.0.5" />
+        <dependency id="Microsoft.Extensions.Configuration" version="8.0.0" />
+        <dependency id="Microsoft.Extensions.Configuration.Json" version="8.0.0" />
+        <dependency id="Microsoft.Bcl.HashCode" version="1.1.1" />
+        <dependency id="NaturalSort.Extension" version="4.3.0" />
+        <dependency id="MaterialDesignThemes" version="4.9.0" />
+        <dependency id="CommunityToolkit.Mvvm" version="8.4.0" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="LICENSE.txt" target="" />
+    <file src="README.md" target="" />
+    <file src="RhinoInsideLogo.png" target="" />
+    <file src="lib\net8.0-windows\*.dll" target="lib\net8.0-windows7.0" />
+  </files>
+</package>
