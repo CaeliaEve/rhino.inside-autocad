@@ -90,6 +90,12 @@
 	  </EmbeddedResource>
 	</ItemGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8' AND $([MSBuild]::IsOSPlatform(Windows))">
+		<StartProgram>C:\Program Files\Autodesk\AutoCAD 2026\acad.exe</StartProgram>
+		<StartArguments>/ld "C:\Program Files\Autodesk\AutoCAD 2026\AecBase.dbx" /p "&lt;&lt;C3D_Imperial&gt;&gt;" /product C3D /language en-US</StartArguments>
+		<StartAction>Program</StartAction>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">
 		<DefineConstants>DEBUG;DEBUGNET8;TRACE</DefineConstants>
 		<Optimize>false</Optimize>
