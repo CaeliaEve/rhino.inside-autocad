@@ -19,6 +19,11 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     private readonly GooConverter _gooConverter;
     private bool _autoUpdateEnabled;
 
+    // Data dam: in manual mode the query only runs when the Query button is pressed
+    // (which sets _manualUpdateRequested). Any other expiration (input change) clears the
+    // output until the button is pressed again.
+    private bool _manualUpdateRequested;
+
     /// <summary>
     /// Gets a value indicating whether auto update is enabled.
     /// When disabled, the component will not auto-expire based on document changes.
@@ -78,6 +83,19 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
+        // Only run the query when auto-update is on, or when the Query button triggered this
+        // solve. Any other expiration (an input change) clears the previous output until the
+        // user presses Query again.
+        var runQuery = _autoUpdateEnabled || _manualUpdateRequested;
+        _manualUpdateRequested = false;
+
+        if (!runQuery)
+        {
+            DA.SetDataList(0, new List<IGH_Goo>());
+            DA.SetData(1, 0);
+            return;
+        }
+
         AutocadDocument? autocadDocument = null;
         DA.GetData(0, ref autocadDocument);
 
@@ -223,6 +241,7 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
     /// </summary>
     public void TriggerManualUpdate()
     {
+        _manualUpdateRequested = true;
         this.ExpireSolution(true);
     }
 
