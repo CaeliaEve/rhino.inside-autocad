@@ -80,9 +80,14 @@ public class RhinoCoreExtension : IRhinoCoreExtension
         {
 
 #if DEBUGNET8 || RELEASENET8
+            // Registered before the resolvers below so it observes every request.
+            ZooLicenseDiagnostics.Install();
+
             RegisterAssemblyResolver(_rhinoCommonAssemblyName, Path.Combine(_systemDir, "netcore", _rhinoCommonDllName));
             RegisterAssemblyResolver("Rhino.UI", Path.Combine(_systemDir, "netcore", "Rhino.UI.dll"));
             RegisterAssemblyResolver("Mono.Cecil", Path.Combine(_systemDir, "netcore", "Mono.Cecil.dll"));
+
+            LoadWcfAssemblies();
 #else
             RegisterAssemblyResolver(_rhinoCommonAssemblyName, Path.Combine(_systemDir, _rhinoCommonDllName));
 
@@ -99,6 +104,50 @@ public class RhinoCoreExtension : IRhinoCoreExtension
             Instance.StartUpLogger.AddError(_rhinoNotInstalledErrorMessage);
         }
     }
+
+#if DEBUGNET8 || RELEASENET8
+    /// <summary>
+    /// Preloads the WCF client assemblies that ZooClient (LAN Zoo licensing) needs.
+    /// WCF is not part of the .NET 8 runtime, and the host loads its own
+    /// System.ServiceModel.Primitives at startup (6.0 in AutoCAD 2025, 8.1 in
+    /// AutoCAD 2026), so every WCF type must unify on the host's version family:
+    /// the System.ServiceModel facade (type forwards only) and the HTTP transport
+    /// ship with this plugin, the latter version-matched to the host's Primitives.
+    /// These must be PRELOADED rather than registered with AssemblyResolve: an
+    /// already-loaded assembly wins every resolution path, whereas resolver events
+    /// run after Rhino's own in-process prober, which would serve its 4.9 family
+    /// from System\netcore. Mixing that family with the host's Primitives splits
+    /// the WCF type identities and channel creation fails with "lacks a
+    /// TransportBindingElement".
+    /// </summary>
+    private static void LoadWcfAssemblies()
+    {
+        try
+        {
+            var pluginDir = Path.GetDirectoryName(typeof(RhinoCoreExtension).Assembly.Location) ?? string.Empty;
+            var hostDir = Path.GetDirectoryName(Environment.ProcessPath ?? string.Empty) ?? string.Empty;
+            var hostPrimitives = Path.Combine(hostDir, "System.ServiceModel.Primitives.dll");
+
+            var family = "8.1";
+            if (File.Exists(hostPrimitives) &&
+                AssemblyName.GetAssemblyName(hostPrimitives).Version?.Major <= 6)
+            {
+                family = "6.0";
+            }
+
+            Assembly.LoadFrom(Path.Combine(pluginDir, "System.ServiceModel.dll"));
+            Assembly.LoadFrom(Path.Combine(pluginDir, $"System.ServiceModel.Http.{family}.dll"));
+
+            // The host normally supplies Primitives itself; ship our own only when absent.
+            if (!File.Exists(hostPrimitives))
+                Assembly.LoadFrom(Path.Combine(pluginDir, $"System.ServiceModel.Primitives.{family}.dll"));
+        }
+        catch (Exception e)
+        {
+            System.Diagnostics.Debug.WriteLine($"WCF preload failed: {e.Message}");
+        }
+    }
+#endif
 
     /// <summary>
     /// Registers an assembly resolver for the specified assembly name.
