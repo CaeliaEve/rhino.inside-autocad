@@ -28,8 +28,9 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     private const string _wcfErrorMessage = Services.MessageConstants.WcfErrorMessage;
     private const string _systemPrimitiveDll = ApplicationConstants.SystemPrimitiveDll;
     private const string _systemHttpDll = ApplicationConstants.SystemHttpDll;
-    private const string _serviceModelFamliy2025 = ApplicationConstants.ServiceModelFamliy2025;
-    private const string _serviceModelFamliy2026 = ApplicationConstants.ServiceModelFamliy2026;
+    private const string _serviceModelFamliy8_0 = ApplicationConstants.ServiceModelFamliy8_0;
+    private const string _serviceModelFamliy8_1 = ApplicationConstants.ServiceModelFamliy8_1;
+    private const string _serviceModelFamliy6_0 = ApplicationConstants.ServiceModelFamliy6_0;
 
     private static RhinoCore? _rhinoCore;
 
@@ -134,27 +135,30 @@ public class RhinoCoreExtension : IRhinoCoreExtension
                 Path.GetDirectoryName(typeof(RhinoCoreExtension).Assembly.Location) ??
                 string.Empty;
 
-            var hostDirectory =
-                Path.GetDirectoryName(Environment.ProcessPath ?? string.Empty) ??
-                string.Empty;
+            var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+
+            var hostDirectory = Path.GetDirectoryName(exePath);
 
             var hostPrimitives =
-                Path.Combine(hostDirectory, "System.ServiceModel.Primitives.dll");
+              Path.Combine(hostDirectory, "System.ServiceModel.Primitives.dll");
 
-            var isAutoCad2025ServiceModel =
-                File.Exists(hostPrimitives) &&
-                AssemblyName.GetAssemblyName(hostPrimitives).Version?.Major == 6;
+            var assemblyVersion = AssemblyName.GetAssemblyName(hostPrimitives).Version;
 
-            var family = isAutoCad2025ServiceModel
-                ? _serviceModelFamliy2025
-                : _serviceModelFamliy2026;
+            var hostPrimitivesExists = File.Exists(hostPrimitives);
+
+            var family = (assemblyVersion, hostPrimitivesExists) switch
+            {
+                ({ Major: 6 }, true) => _serviceModelFamliy6_0,
+                ({ Major: 8, Minor: 0 }, true) => _serviceModelFamliy8_0,
+                _ => _serviceModelFamliy8_1
+            };
 
             Assembly.LoadFrom(Path.Combine(pluginDirectory, "System.ServiceModel.dll"));
             Assembly.LoadFrom(Path.Combine(pluginDirectory,
                 string.Format(_systemHttpDll, family)));
 
             // The host normally supplies Primitives itself; ship our own only when absent.
-            if (!File.Exists(hostPrimitives))
+            if (!hostPrimitivesExists)
                 Assembly.LoadFrom(Path.Combine(pluginDirectory,
                     string.Format(_systemPrimitiveDll, family)));
         }

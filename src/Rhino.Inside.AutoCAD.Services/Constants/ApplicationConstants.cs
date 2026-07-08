@@ -445,12 +445,17 @@ public class ApplicationConstants
     public const string SystemHttpDll = "System.ServiceModel.Http.{0}.dll";
 
     /// <summary>
-    /// The family version of the System.ServiceModel assemblies for Autocad 2025.
+    /// The family version of the System.ServiceModel assemblies for Later Autocad 2025.
     /// </summary>
-    public const string ServiceModelFamliy2025 = "6.0";
+    public const string ServiceModelFamliy8_0 = "8.0";
+
+    /// <summary>
+    /// The family version of the System.ServiceModel assemblies for Earlier Autocad 2025.
+    /// </summary>
+    public const string ServiceModelFamliy6_0 = "6.0";
 
     /// <summary>
     /// The family version of the System.ServiceModel assemblies for Autocad 2026.
     /// </summary>
-    public const string ServiceModelFamliy2026 = "8.1";
+    public const string ServiceModelFamliy8_1 = "8.1";
 }
