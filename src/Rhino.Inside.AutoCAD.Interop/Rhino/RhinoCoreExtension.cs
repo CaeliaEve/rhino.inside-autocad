@@ -25,6 +25,11 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     private const string _rhinoInsideSchemeNameFormat = ApplicationConstants.RhinoInsideSchemeNameFormat;
     private const string _rhinoNotInstalledErrorMessage = ApplicationConstants.RhinoNotInstalledErrorMessage;
     private const string _rhinoCoreInitializationFailedErrorMessage = ApplicationConstants.RhinoCoreInitializationFailedErrorMessage;
+    private const string _wcfErrorMessage = Services.MessageConstants.WcfErrorMessage;
+    private const string _systemPrimitiveDll = ApplicationConstants.SystemPrimitiveDll;
+    private const string _systemHttpDll = ApplicationConstants.SystemHttpDll;
+    private const string _serviceModelFamliy2025 = ApplicationConstants.ServiceModelFamliy2025;
+    private const string _serviceModelFamliy2026 = ApplicationConstants.ServiceModelFamliy2026;
 
     private static RhinoCore? _rhinoCore;
 
@@ -80,9 +85,11 @@ public class RhinoCoreExtension : IRhinoCoreExtension
         {
 
 #if DEBUGNET8 || RELEASENET8
-            // Registered before the resolvers below so it observes every request.
-            ZooLicenseDiagnostics.Install();
 
+#if DEBUGNET8
+            // DEBUG ONLY: Registered before the resolvers below so it observes every request.
+            ZooLicenseDiagnostics.Install();
+#endif
             RegisterAssemblyResolver(_rhinoCommonAssemblyName, Path.Combine(_systemDir, "netcore", _rhinoCommonDllName));
             RegisterAssemblyResolver("Rhino.UI", Path.Combine(_systemDir, "netcore", "Rhino.UI.dll"));
             RegisterAssemblyResolver("Mono.Cecil", Path.Combine(_systemDir, "netcore", "Mono.Cecil.dll"));
@@ -105,7 +112,6 @@ public class RhinoCoreExtension : IRhinoCoreExtension
         }
     }
 
-#if DEBUGNET8 || RELEASENET8
     /// <summary>
     /// Preloads the WCF client assemblies that ZooClient (LAN Zoo licensing) needs.
     /// WCF is not part of the .NET 8 runtime, and the host loads its own
@@ -124,30 +130,40 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     {
         try
         {
-            var pluginDir = Path.GetDirectoryName(typeof(RhinoCoreExtension).Assembly.Location) ?? string.Empty;
-            var hostDir = Path.GetDirectoryName(Environment.ProcessPath ?? string.Empty) ?? string.Empty;
-            var hostPrimitives = Path.Combine(hostDir, "System.ServiceModel.Primitives.dll");
+            var pluginDirectory =
+                Path.GetDirectoryName(typeof(RhinoCoreExtension).Assembly.Location) ??
+                string.Empty;
 
-            var family = "8.1";
-            if (File.Exists(hostPrimitives) &&
-                AssemblyName.GetAssemblyName(hostPrimitives).Version?.Major <= 6)
-            {
-                family = "6.0";
-            }
+            var hostDirectory =
+                Path.GetDirectoryName(Environment.ProcessPath ?? string.Empty) ??
+                string.Empty;
 
-            Assembly.LoadFrom(Path.Combine(pluginDir, "System.ServiceModel.dll"));
-            Assembly.LoadFrom(Path.Combine(pluginDir, $"System.ServiceModel.Http.{family}.dll"));
+            var hostPrimitives =
+                Path.Combine(hostDirectory, "System.ServiceModel.Primitives.dll");
+
+            var isAutoCad2025ServiceModel =
+                File.Exists(hostPrimitives) &&
+                AssemblyName.GetAssemblyName(hostPrimitives).Version?.Major == 6;
+
+            var family = isAutoCad2025ServiceModel
+                ? _serviceModelFamliy2025
+                : _serviceModelFamliy2026;
+
+            Assembly.LoadFrom(Path.Combine(pluginDirectory, "System.ServiceModel.dll"));
+            Assembly.LoadFrom(Path.Combine(pluginDirectory,
+                string.Format(_systemHttpDll, family)));
 
             // The host normally supplies Primitives itself; ship our own only when absent.
             if (!File.Exists(hostPrimitives))
-                Assembly.LoadFrom(Path.Combine(pluginDir, $"System.ServiceModel.Primitives.{family}.dll"));
+                Assembly.LoadFrom(Path.Combine(pluginDirectory,
+                    string.Format(_systemPrimitiveDll, family)));
         }
         catch (Exception e)
         {
-            System.Diagnostics.Debug.WriteLine($"WCF preload failed: {e.Message}");
+            Instance.StartUpLogger.AddError(string.Format(_wcfErrorMessage,
+                e.Message));
         }
     }
-#endif
 
     /// <summary>
     /// Registers an assembly resolver for the specified assembly name.

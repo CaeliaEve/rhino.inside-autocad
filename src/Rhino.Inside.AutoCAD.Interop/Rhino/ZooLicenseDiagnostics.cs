@@ -1,5 +1,4 @@
 #if DEBUGNET8 || RELEASENET8
-using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 
@@ -95,6 +94,7 @@ internal static class ZooLicenseDiagnostics
 
     private static void Log(string message)
     {
+
         try
         {
             lock (_lock)
