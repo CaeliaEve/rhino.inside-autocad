@@ -427,7 +427,35 @@ public class ApplicationConstants
     /// Format string for the default Rhino template file path.
     /// </summary>
     /// <remarks>
-    /// Value: "{0}Large Objects - Millimeters.3dm". Placeholder receives the templates directory path.
+    /// Value: "{0}Large Objects - Millimeters.3dm". Placeholder receives the templates
+    /// directory path.
     /// </remarks>
     public const string DefaultTemplateFormat = "{0}Large Objects - Millimeters.3dm";
+
+    /// <summary>
+    /// The family version of the System.ServiceModel.Primitive assemblies for .NET 8. Corresponding
+    /// to the version shipped with each version of AutoCAD.
+    /// </summary>
+    public const string SystemPrimitiveDll = "System.ServiceModel.Primitives.{0}.dll";
+
+    /// <summary>
+    /// The family version of the System.ServiceModel.Primitive assemblies for .NET 8. Corresponding
+    /// to the version shipped with each version of AutoCAD.
+    /// </summary>
+    public const string SystemHttpDll = "System.ServiceModel.Http.{0}.dll";
+
+    /// <summary>
+    /// The family version of the System.ServiceModel assemblies for Later Autocad 2025.
+    /// </summary>
+    public const string ServiceModelFamliy8_0 = "8.0";
+
+    /// <summary>
+    /// The family version of the System.ServiceModel assemblies for Earlier Autocad 2025.
+    /// </summary>
+    public const string ServiceModelFamliy6_0 = "6.0";
+
+    /// <summary>
+    /// The family version of the System.ServiceModel assemblies for Autocad 2026.
+    /// </summary>
+    public const string ServiceModelFamliy8_1 = "8.1";
 }

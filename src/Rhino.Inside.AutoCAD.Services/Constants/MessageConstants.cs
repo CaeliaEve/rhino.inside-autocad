@@ -27,4 +27,10 @@ public class MessageConstants
     /// The error message when the Rhino Inside ribbon tab is not loaded.
     /// </summary>
     public const string RhinoInsideTabNotLoadedError = "Rhino Inside Ribbon Tab not loaded";
+
+    /// <summary>
+    /// The Error message format for WCF preload failures. The placeholder {0} is replaced
+    /// with the specific error details.
+    /// </summary>
+    public const string WcfErrorMessage = "WCF preload failed: {0}";
 }
