@@ -59,6 +59,26 @@ public interface IInputSignatureBuilder
     IInputSignatureBuilder AddColor(IAutocadColor? color);
 
     /// <summary>
+    /// Adds a list of double values to the signature with specified decimal precision.
+    /// </summary>
+    IInputSignatureBuilder AddDoubles(IReadOnlyList<double>? values, int decimals = 6);
+
+    /// <summary>
+    /// Adds a list of scale values to the signature.
+    /// </summary>
+    IInputSignatureBuilder AddScales(IReadOnlyList<IAutocadScale?>? scales);
+
+    /// <summary>
+    /// Adds a list of ObjectId references to the signature using their handle values.
+    /// </summary>
+    IInputSignatureBuilder AddObjectIds(IReadOnlyList<IObjectId?>? objectIds);
+
+    /// <summary>
+    /// Adds a list of colors to the signature.
+    /// </summary>
+    IInputSignatureBuilder AddColors(IReadOnlyList<IAutocadColor?>? colors);
+
+    /// <summary>
     /// Builds and returns the final signature string.
     /// For large inputs, returns an MD5 hash; otherwise returns the raw string.
     /// </summary>
