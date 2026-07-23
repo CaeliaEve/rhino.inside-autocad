@@ -172,7 +172,7 @@ public class GH_AutocadBrepProxy : GH_GeometricGoo<RhinoBrep>, IGH_AutocadRefere
             bakingComponent.AppendDataList(goo);
 
             return true;
-        });
+        }, settings);
 
         var application = RhinoInsideAutoCadExtension.Application;
 

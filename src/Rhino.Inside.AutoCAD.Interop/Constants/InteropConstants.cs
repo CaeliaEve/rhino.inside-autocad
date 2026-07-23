@@ -104,4 +104,11 @@ public class InteropConstants
     /// The error message displayed when a Brep conversion fails.
     /// </summary>
     public const string BrepConversionErrorMessage = "\nError Converting brep: ";
+
+    /// <summary>
+    /// The prefix for the temporary layer names used to map imported entities back to
+    /// their originating Brep conversion requests during batched imports. The layers
+    /// are purged from the document once the imported entities have been reassigned.
+    /// </summary>
+    public const string BrepBatchLayerPrefix = "RIA_BREP_";
 }
