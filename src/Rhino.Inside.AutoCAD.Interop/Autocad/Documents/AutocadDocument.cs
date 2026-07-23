@@ -156,11 +156,15 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     }
 
     /// <summary>
-    /// Records object deletion in the change tracker.
+    /// Records object deletion in the change tracker. The event is also raised when an
+    /// object is un-erased (e.g. undo of a delete), in which case the object is recorded
+    /// as created.
     /// </summary>
     private void OnObjectErased(object sender, ObjectErasedEventArgs e)
     {
-        _documentChange?.AddObjectChange(ChangeType.ObjectCreated, new AutocadDbObjectWrapper(e.DBObject));
+        var changeType = e.Erased ? ChangeType.ObjectErased : ChangeType.ObjectCreated;
+
+        _documentChange?.AddObjectChange(changeType, new AutocadDbObjectWrapper(e.DBObject));
     }
 
     /// <inheritdoc/>

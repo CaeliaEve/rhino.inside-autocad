@@ -1,4 +1,4 @@
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Interop;
@@ -8,7 +8,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD BlockTableRecords currently open in the AutoCAD session.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.9")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.2.29")]
 public class GetAutocadBlockReferencesComponent : Block_BaseComponent
 {
     /// <inheritdoc />
@@ -28,6 +28,7 @@ public class GetAutocadBlockReferencesComponent : Block_BaseComponent
             "Returns the list of all the AutoCAD Block References in the document of a given Block Table Record",
             "AutoCAD", "Blocks")
     {
+        this.EnableStaleTracking();
     }
 
     /// <inheritdoc />

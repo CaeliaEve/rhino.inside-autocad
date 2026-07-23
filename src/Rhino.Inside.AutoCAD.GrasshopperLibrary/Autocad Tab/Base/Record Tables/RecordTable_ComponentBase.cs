@@ -1,4 +1,5 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
+using GH_IO.Serialization;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using System.Collections;
@@ -15,10 +16,15 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// removing the need to keep track of the records in the document and update them
 /// when changes are made, which was the cause of bugs with the BlockTableRecords.
 /// </summary>
-public abstract class RecordTable_ComponentBase<TWrapper, TCad> : RhinoInsideAutocad_ComponentBase, IReferenceComponent
+public abstract class RecordTable_ComponentBase<TWrapper, TCad> : RhinoInsideAutocad_ComponentBase, IStaleDataComponent
     where TWrapper : INamedDbObject
     where TCad : DBObject
 {
+    private StaleDataTracker? _staleTracker;
+
+    /// <inheritdoc />
+    public IStaleDataTracker? StaleTracker => _staleTracker;
+
     /// <summary>
     /// Passes the component name, nickname, description, category and subcategory to the base class constructor
     /// </summary>
@@ -26,6 +32,62 @@ public abstract class RecordTable_ComponentBase<TWrapper, TCad> : RhinoInsideAut
         string category, string subCategory)
         : base(name, nickname, description, category, subCategory)
     {
+    }
+
+    /// <summary>
+    /// Enables stale-data tracking, called from the constructor of components which support
+    /// it (the Get components). Document changes affecting <typeparamref name="TCad"/> objects
+    /// then mark the component stale instead of expiring it, unless the user enables Auto
+    /// Update from the context menu. Components which do not call this (the Create components)
+    /// keep the auto-expire behaviour.
+    /// </summary>
+    protected void EnableStaleTracking()
+    {
+        _staleTracker = new StaleDataTracker(this, o => o.UnwrapObject() is TCad);
+    }
+
+    /// <inheritdoc />
+    public override void CreateAttributes()
+    {
+        m_attributes = new RecordTable_ComponentAttributes(this);
+    }
+
+    /// <inheritdoc />
+    protected override void BeforeSolveInstance()
+    {
+        base.BeforeSolveInstance();
+
+        _staleTracker?.OnSolveBeginning();
+    }
+
+    /// <inheritdoc />
+    protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+    {
+        base.AppendAdditionalComponentMenuItems(menu);
+
+        _staleTracker?.AppendMenuItems(menu);
+    }
+
+    /// <inheritdoc />
+    public override bool Read(GH_IReader reader)
+    {
+        if (!base.Read(reader))
+            return false;
+
+        _staleTracker?.Read(reader);
+
+        return true;
+    }
+
+    /// <inheritdoc />
+    public override bool Write(GH_IWriter writer)
+    {
+        if (!base.Write(writer))
+            return false;
+
+        _staleTracker?.Write(writer);
+
+        return true;
     }
 
     /// <summary>
@@ -139,6 +201,11 @@ public abstract class RecordTable_ComponentBase<TWrapper, TCad> : RhinoInsideAut
         {
             if (ghParam.NeedsToBeExpired(change)) return true;
         }
+
+        // In manual mode TCad changes mark the component stale via the StaleDataTracker
+        // instead of expiring it.
+        if (_staleTracker is { AutoUpdateEnabled: false })
+            return false;
 
         foreach (var changedObject in change)
         {
