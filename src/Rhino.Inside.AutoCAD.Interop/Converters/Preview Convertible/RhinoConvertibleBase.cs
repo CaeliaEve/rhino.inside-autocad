@@ -1,6 +1,4 @@
-﻿using Autodesk.AutoCAD.Colors;
-using Autodesk.AutoCAD.DatabaseServices;
-using Rhino.Inside.AutoCAD.Core.Interfaces;
+﻿using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -22,27 +20,6 @@ public abstract class RhinoConvertibleBase<TRhinoType> : IRhinoConvertibleTyped<
     }
 
     /// <summary>
-    /// Applies the preview settings to the given entity.
-    /// </summary>
-    private void ApplySettings(IEntity entity, IGeometryPreviewSettings previewSettings)
-    {
-        var autocadEntity = entity.Unwrap();
-
-        var materialId = previewSettings.MaterialId.Unwrap();
-
-        autocadEntity.ColorIndex = previewSettings.ColorIndex;
-
-        autocadEntity.LineWeight = LineWeight.LineWeight050;
-
-        autocadEntity.Transparency = new Transparency(previewSettings.Transparency);
-
-        if (materialId.IsValid)
-        {
-            autocadEntity.MaterialId = materialId;
-        }
-    }
-
-    /// <summary>
     /// Converts the Rhino geometry to AutoCAD entities.
     /// </summary>
     protected abstract List<IEntity> ConvertGeometry(IAutocadTransactionManager autocadTransactionManager);
@@ -55,7 +32,7 @@ public abstract class RhinoConvertibleBase<TRhinoType> : IRhinoConvertibleTyped<
 
         foreach (var convertedEntity in converted)
         {
-            this.ApplySettings(convertedEntity, previewSettings);
+            previewSettings.ApplyTo(convertedEntity);
         }
         return converted;
     }

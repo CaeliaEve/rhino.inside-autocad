@@ -1,6 +1,4 @@
-﻿using Autodesk.AutoCAD.Colors;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
+﻿using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.GraphicsInterface;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
@@ -167,27 +165,6 @@ public class PreviewServer : IPreviewServer
         }
     }
 
-    /// <summary>
-    /// Applies the preview settings to the given entity.
-    /// </summary>
-    private void ApplySettings(IEntity entity, IGeometryPreviewSettings previewSettings)
-    {
-        var autocadEntity = entity.Unwrap();
-
-        var materialId = previewSettings.MaterialId.Unwrap();
-
-        autocadEntity.ColorIndex = previewSettings.ColorIndex;
-
-        autocadEntity.LineWeight = LineWeight.LineWeight050;
-
-        autocadEntity.Transparency = new Transparency(previewSettings.Transparency);
-
-        if (materialId.IsValid)
-        {
-            autocadEntity.MaterialId = materialId;
-        }
-    }
-
     /// <inheritdoc />
     public void DeselectAll()
     {
@@ -197,7 +174,7 @@ public class PreviewServer : IPreviewServer
 
             foreach (var entity in entities)
             {
-                this.ApplySettings(entity, _previewSettings);
+                _previewSettings.ApplyTo(entity);
             }
 
             this.AddTransientEntities(entities);

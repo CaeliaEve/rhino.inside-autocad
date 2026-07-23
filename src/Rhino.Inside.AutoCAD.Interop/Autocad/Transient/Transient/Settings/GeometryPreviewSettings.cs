@@ -2,6 +2,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.GraphicsInterface;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Services;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -48,8 +49,13 @@ public class GeometryPreviewSettings : IGeometryPreviewSettings
             {
                 var existingMaterialId = dbDictionary.GetAt(this.MaterialName);
 
-                this.MaterialId = new AutocadObjectIdWrapper(existingMaterialId);
-                return true;
+                // An erased entry can linger in the dictionary (e.g. after UNDO); fall
+                // through to recreate the material so we never cache an erased id.
+                if (existingMaterialId.IsErased == false)
+                {
+                    this.MaterialId = new AutocadObjectIdWrapper(existingMaterialId);
+                    return true;
+                }
             }
 
             var material = new Material
@@ -73,5 +79,53 @@ public class GeometryPreviewSettings : IGeometryPreviewSettings
             this.MaterialId = new AutocadObjectIdWrapper(material.ObjectId);
             return true;
         });
+    }
+
+    /// <inheritdoc/>
+    public void EnsureMaterial(IAutocadDocument document)
+    {
+        var materialId = this.MaterialId.Unwrap();
+
+        if (materialId is { IsNull: false, IsValid: true, IsErased: false } &&
+            materialId.Database == document.AutocadDatabase.Unwrap())
+        {
+            return;
+        }
+
+        this.CreateMaterial(document);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The cached preview material id can go stale (document switched or closed, UNDO past
+    /// the material creation, or PURGE erasing the unreferenced material), so it is only
+    /// applied when it is valid, not erased and belongs to the current working database.
+    /// Applying the material is cosmetic and must never throw into the calling event handler.
+    /// </remarks>
+    public void ApplyTo(IEntity entity)
+    {
+        var autocadEntity = entity.Unwrap();
+
+        autocadEntity.ColorIndex = this.ColorIndex;
+
+        autocadEntity.LineWeight = LineWeight.LineWeight050;
+
+        autocadEntity.Transparency = new Transparency(this.Transparency);
+
+        try
+        {
+            var materialId = this.MaterialId.Unwrap();
+
+            if (materialId is { IsNull: false, IsValid: true, IsErased: false } &&
+                materialId.Database == HostApplicationServices.WorkingDatabase)
+            {
+                autocadEntity.MaterialId = materialId;
+            }
+        }
+        catch (Autodesk.AutoCAD.Runtime.Exception exception)
+        {
+            LoggerService.Instance.LogMessage(
+                $"Unable to apply preview material '{this.MaterialName}': {exception.Message}");
+        }
     }
 }
