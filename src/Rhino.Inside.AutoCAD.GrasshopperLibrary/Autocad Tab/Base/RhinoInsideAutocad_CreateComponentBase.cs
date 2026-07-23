@@ -52,7 +52,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <c>SolveInstance</c> method and return early if it returns <c>true</c>.
 /// </para>
 /// </remarks>
-public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutocad_ComponentBase
+public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutocad_ComponentBase, ITrackedObjectsComponent
 {
     // Serialization keys
     private const string ReplaceEnabledKey = "ReplaceEnabled";
@@ -79,6 +79,9 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     // Per-instance state for current solve cycle
     private bool _skipThisSolve = false;
 
+    /// <inheritdoc />
+    public int TrackedObjectCount => _lastCreatedObjectIds.Count + _pendingHandleValues.Count;
+
     /// <summary>
     /// Constructs a new instance of the <see cref="RhinoInsideAutocad_CreateComponentBase"/> class.
     /// </summary>
@@ -89,6 +92,12 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         string category,
         string subCategory) : base(name, nickname, description, category, subCategory)
     {
+    }
+
+    /// <inheritdoc />
+    public override void CreateAttributes()
+    {
+        m_attributes = new ObjectTrackingComponentAttributes(this);
     }
 
     /// <inheritdoc />
@@ -199,9 +208,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     /// </summary>
     private void OnClearConnectionMenuClick(object? sender, EventArgs e)
     {
-        _lastCreatedObjectIds.Clear();
-        _pendingHandleValues.Clear();
-        _lastInputSignature = null;
+        this.ClearTrackedObjects();
         this.ExpireSolution(true);
     }
 
@@ -464,6 +471,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
         // Clear BEFORE attempting deletion
         _lastCreatedObjectIds.Clear();
+        this.UpdateTrackingDisplay();
 
         // Delete objects grouped by document
         foreach (var kvp in objectsByDocument)
@@ -529,6 +537,9 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         }
 
         _pendingHandleValues.Clear();
+
+        // Count can shrink if some handles failed to resolve
+        this.UpdateTrackingDisplay();
     }
 
     /// <summary>
@@ -541,6 +552,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
             return;
 
         _lastCreatedObjectIds.Add(new AutocadObjectIdWrapper(objectId));
+        this.UpdateTrackingDisplay();
     }
 
     /// <summary>
@@ -552,6 +564,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         _lastCreatedObjectIds.Clear();
         _pendingHandleValues.Clear();
         _lastInputSignature = null;
+        this.UpdateTrackingDisplay();
     }
 
     /// <inheritdoc />
@@ -592,6 +605,8 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
                 }
             }
         }
+
+        this.UpdateTrackingDisplay();
 
         return true;
     }
