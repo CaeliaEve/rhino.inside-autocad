@@ -35,7 +35,7 @@ public static class ObjectTrackingDisplayExtensions
 
         // The message capsule size changed - expire the layout and repaint. During a
         // solution Grasshopper redraws afterwards anyway; this covers out-of-solution
-        // changes (context menu Clear Connection, file load).
+        // changes (context menu Forget Connections, file load).
         component.Attributes?.ExpireLayout();
         Instances.ActiveCanvas?.Invalidate();
     }

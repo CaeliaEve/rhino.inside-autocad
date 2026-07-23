@@ -157,6 +157,56 @@ public class InputSignatureBuilder : IInputSignatureBuilder
     }
 
     /// <inheritdoc />
+    public IInputSignatureBuilder AddGeometry(Rhino.Geometry.GeometryBase? geometry)
+    {
+        switch (geometry)
+        {
+            case null:
+                _stringBuilder.Append("null");
+                _stringBuilder.Append(_separator);
+                return this;
+            case Rhino.Geometry.Curve curve:
+                return this.AddCurve(curve);
+            case Rhino.Geometry.Mesh mesh:
+                return this.AddMesh(mesh);
+            case Rhino.Geometry.Point point:
+                return this.AddPoint(point.Location);
+        }
+
+        _stringBuilder.Append(geometry.GetType().Name);
+        _stringBuilder.Append(',');
+
+        var bbox = geometry.GetBoundingBox(false);
+        this.AddBoundingBox(bbox);
+
+        if (geometry is Rhino.Geometry.Brep brep)
+        {
+            _stringBuilder.Append(brep.Faces.Count);
+            _stringBuilder.Append(',');
+            _stringBuilder.Append(brep.Edges.Count);
+            _stringBuilder.Append(',');
+            _stringBuilder.Append(brep.Vertices.Count);
+            _stringBuilder.Append(',');
+
+            // Sample vertices for comparison (every Nth vertex based on size)
+            var step = Math.Max(1, brep.Vertices.Count / 10);
+            for (var i = 0; i < brep.Vertices.Count; i += step)
+            {
+                var pt = brep.Vertices[i].Location;
+                _stringBuilder.Append(pt.X.ToString("F4"));
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(pt.Y.ToString("F4"));
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(pt.Z.ToString("F4"));
+                _stringBuilder.Append(',');
+            }
+        }
+
+        _stringBuilder.Append(_separator);
+        return this;
+    }
+
+    /// <inheritdoc />
     public IInputSignatureBuilder AddPoints(IList<Rhino.Geometry.Point3d>? points)
     {
         if (points == null || points.Count == 0)

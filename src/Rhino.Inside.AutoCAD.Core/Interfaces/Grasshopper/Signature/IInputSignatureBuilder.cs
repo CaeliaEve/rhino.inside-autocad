@@ -44,6 +44,14 @@ public interface IInputSignatureBuilder
     IInputSignatureBuilder AddPoint(Rhino.Geometry.Point3d point);
 
     /// <summary>
+    /// Adds any Rhino geometry to the signature, dispatching to the most specific
+    /// method available (curve, mesh, point). Breps use bounding box corners,
+    /// face/edge/vertex counts, and sampled vertex positions; other geometry types
+    /// fall back to type name and bounding box corners.
+    /// </summary>
+    IInputSignatureBuilder AddGeometry(Rhino.Geometry.GeometryBase? geometry);
+
+    /// <summary>
     /// Adds a list of Rhino points to the signature.
     /// </summary>
     IInputSignatureBuilder AddPoints(IList<Rhino.Geometry.Point3d>? points);

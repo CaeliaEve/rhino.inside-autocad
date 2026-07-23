@@ -177,13 +177,23 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
         Menu_AppendSeparator(menu);
 
-        var clearConnectionItem = Menu_AppendItem(
+        var hasTrackedObjects = _lastCreatedObjectIds.Count > 0 || _pendingHandleValues.Count > 0;
+
+        var forgetConnectionsItem = Menu_AppendItem(
             menu,
-            "Clear Connection",
-            this.OnClearConnectionMenuClick,
-            _lastCreatedObjectIds.Count > 0 || _pendingHandleValues.Count > 0
+            "Forget Connections",
+            this.OnForgetConnectionsMenuClick,
+            hasTrackedObjects
         );
-        clearConnectionItem.ToolTipText = "Clears all tracked object connections without deleting the objects.";
+        forgetConnectionsItem.ToolTipText = "Forgets all tracked object connections without deleting the objects from AutoCAD.";
+
+        var deleteConnectedObjectsItem = Menu_AppendItem(
+            menu,
+            "Delete Connected Objects",
+            this.OnDeleteConnectedObjectsMenuClick,
+            hasTrackedObjects
+        );
+        deleteConnectedObjectsItem.ToolTipText = "Deletes all tracked objects from the AutoCAD database.";
     }
 
     /// <summary>
@@ -204,12 +214,40 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     }
 
     /// <summary>
-    /// Handles the click event for the Clear Connection menu item.
+    /// Handles the click event for the Forget Connections menu item.
     /// </summary>
-    private void OnClearConnectionMenuClick(object? sender, EventArgs e)
+    private void OnForgetConnectionsMenuClick(object? sender, EventArgs e)
     {
         this.ClearTrackedObjects();
         this.ExpireSolution(true);
+    }
+
+    /// <summary>
+    /// Handles the click event for the Delete Connected Objects menu item.
+    /// Asks for confirmation, then deletes all tracked objects from the AutoCAD database.
+    /// The solution is deliberately not expired afterwards - a re-solve would immediately
+    /// recreate the objects the user just chose to delete.
+    /// </summary>
+    private void OnDeleteConnectedObjectsMenuClick(object? sender, EventArgs e)
+    {
+        var count = this.TrackedObjectCount;
+
+        if (count == 0)
+            return;
+
+        var objectDescription = count == 1 ? "1 connected object" : $"{count} connected objects";
+
+        var result = MessageBox.Show(
+            $"This will permanently delete {objectDescription} from the AutoCAD database.\n\n" +
+            "Are you sure you want to continue?",
+            "Delete Connected Objects",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning);
+
+        if (result != DialogResult.Yes)
+            return;
+
+        this.DeleteAllTrackedObjects();
     }
 
     /// <summary>
