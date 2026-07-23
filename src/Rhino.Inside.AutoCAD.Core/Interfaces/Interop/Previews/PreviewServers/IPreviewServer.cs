@@ -11,6 +11,14 @@ public interface IPreviewServer
     IObjectRegister ObjectRegister { get; }
 
     /// <summary>
+    /// A value indicating whether the transient entities in this <see cref="IPreviewServer"/>
+    /// are currently displayed. Set to false by <see cref="ClearServer"/> and true by
+    /// <see cref="PopulateServer"/>; while false, newly added objects are registered but
+    /// not drawn.
+    /// </summary>
+    bool Visible { get; }
+
+    /// <summary>
     /// Adds the provided <paramref name="rhinoConvertibleSet"/> into this <see cref=
     /// "IPreviewServer"/>.
     /// </summary>
