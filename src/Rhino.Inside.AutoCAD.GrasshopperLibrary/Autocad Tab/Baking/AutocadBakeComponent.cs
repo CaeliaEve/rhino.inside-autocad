@@ -4,7 +4,6 @@ using Grasshopper.Kernel.Data;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using System.Collections;
-using System.Windows.Forms;
 using Exception = System.Exception;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -14,7 +13,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// The bake is triggered by the "Bake" boolean input, or by the Bake button shown
 /// on the component when the "Driven Button" context menu toggle is enabled (the default).
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.2.29")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingComponent
 {
     private const string DrivenButtonEnabledKey = "DrivenButtonEnabled";

@@ -7,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD Block Table Record which matches the name.
 /// </summary>
-[ComponentVersion(introduced: "1.2.24", updated: "1.2.29")]
+[ComponentVersion(introduced: "1.2.24", updated: "1.3.0")]
 public class GetAutocadBlockTableRecordByNameComponent : Block_BaseComponent
 {
     /// <inheritdoc />

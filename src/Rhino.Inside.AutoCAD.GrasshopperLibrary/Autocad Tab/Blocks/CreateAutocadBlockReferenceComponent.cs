@@ -9,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that adds AutoCAD Block References to a document.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.2.29")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateComponentBase
 {
 

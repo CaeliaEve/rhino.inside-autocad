@@ -7,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD linetype which matches the name.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.2.29")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class GetAutocadLineTypeByNameComponent : LineType_BaseComponent
 {
     /// <inheritdoc />
