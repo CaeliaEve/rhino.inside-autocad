@@ -277,6 +277,19 @@
 				<File Id="Rhino.Inside.AutoCAD.Civil.GrasshopperLibraryNET8.dll" Source="$(var.AssembliesDirectoryNET8)Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll" Vital="yes" />
 				<File Id="Rhino.Inside.AutoCAD.Civil.InteropNET8.dll" Source="$(var.AssembliesDirectoryNET8)Rhino.Inside.AutoCAD.Civil.Interop.dll" Vital="yes" />
 
+				<!-- WCF client assemblies for LAN Zoo licensing. Net8 ONLY: the Interop csproj copies these
+				     into the NET8 output alone, and .NET Framework (NET48) hosts already provide
+				     System.ServiceModel via the GAC. RhinoCoreExtension loads the base + matching Http
+				     transport from this folder at runtime, choosing the 6.0 / 8.0 / 8.1 family by the host's
+				     AutoCAD version, so all three families must be present. -->
+				<File Id="System.ServiceModelNET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Http.6.0NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Http.6.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Http.8.0NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Http.8.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Http.8.1NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Http.8.1.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Primitives.6.0NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Primitives.6.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Primitives.8.0NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Primitives.8.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Primitives.8.1NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Primitives.8.1.dll" Vital="yes" />
+
 			</Component>
 		</DirectoryRef>
 	</Fragment>
