@@ -13,11 +13,12 @@ steps:
     fetchDepth: 0
 
   - script: |
-      git config user.email "azure-pipeline@yourorg.com"
+      git config user.email "azure-pipeline@bimorph.com"
       git config user.name "Azure Pipeline"
     displayName: 'Configure Git'
 
   - script: |
-      git remote add github https://$(GITHUB_PAT)@$(GITHUB_REPO)
-      git push github HEAD:refs/heads/main --force
+      git push https://x-access-token:$(GITHUB_PAT)@$(GITHUB_REPO) HEAD:refs/heads/main --force
     displayName: 'Push to GitHub'
+    env:
+      GITHUB_PAT: $(GITHUB_PAT)
