@@ -11,4 +11,10 @@ public interface ISettingsManager
     /// The core settings shared by all applications.
     /// </summary>
     public ISettings Core { get; }
+
+    /// <summary>
+    /// The store for the user-scoped settings which persist between sessions.
+    /// </summary>
+    /// <seealso cref="IUserSettings"/>
+    public IUserSettingsStore User { get; }
 }
