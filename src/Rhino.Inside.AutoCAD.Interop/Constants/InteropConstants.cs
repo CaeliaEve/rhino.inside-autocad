@@ -46,6 +46,41 @@ public class InteropConstants
     /// </summary>
     public const string GrasshopperCivilLibraryFileName = "Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll";
 
+    /// <summary>
+    /// The name of the private Grasshopper method which registers a component library with
+    /// the component server.
+    /// </summary>
+    /// <remarks>
+    /// Value: "LoadGHA", on <c>Grasshopper.Kernel.GH_ComponentServer</c>. Not part of the
+    /// public Grasshopper SDK, so it is resolved by reflection and matched on its parameter
+    /// shape rather than assumed to keep one signature across Rhino versions.
+    /// </remarks>
+    /// <seealso cref="GrasshopperLibraryFileName"/>
+    public const string LoadGhaMethodName = "LoadGHA";
+
+    /// <summary>
+    /// The file extension Grasshopper recognises as a component assembly.
+    /// </summary>
+    /// <remarks>
+    /// Value: ".gha". Grasshopper derives <c>GH_ExternalFile.FileType</c> from the
+    /// extension, and Rhino 9 refuses to register a file it does not classify as an
+    /// assembly. Rhino 8 accepted a ".dll" as well; Rhino 9 does not.
+    /// </remarks>
+    /// <seealso cref="GrasshopperLibrariesFolderName"/>
+    public const string GrasshopperAssemblyExtension = ".gha";
+
+    /// <summary>
+    /// The folder, beneath the user application data folder, holding the ".gha" mirrors of
+    /// the component libraries.
+    /// </summary>
+    /// <remarks>
+    /// Value: "Libraries". The mirrors live here rather than beside the originals because
+    /// the installation folder is not reliably writable, and they are what gets handed to
+    /// Grasshopper for registration.
+    /// </remarks>
+    /// <seealso cref="GrasshopperAssemblyExtension"/>
+    public const string GrasshopperLibrariesFolderName = "Libraries";
+
 
     /// <summary>
     /// The temporary directory path used for file-based conversions. This directory is

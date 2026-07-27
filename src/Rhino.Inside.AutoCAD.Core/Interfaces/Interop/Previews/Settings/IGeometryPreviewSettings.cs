@@ -6,9 +6,14 @@
 public interface IGeometryPreviewSettings
 {
     /// <summary>
-    /// Gets the color index used for the preview geometry.
+    /// Gets or sets the AutoCAD Color Index used for the preview geometry.
     /// </summary>
-    int ColorIndex { get; }
+    /// <remarks>
+    /// Setting this only changes the previews drawn from here on. Existing previews are
+    /// restyled by <see cref="IPreviewServer.RefreshAppearance"/>, and the material named by
+    /// <see cref="MaterialName"/> has to be recreated with <see cref="CreateMaterial"/>.
+    /// </remarks>
+    int ColorIndex { get; set; }
 
     /// <summary>
     /// Gets the transparency level used for the preview geometry.

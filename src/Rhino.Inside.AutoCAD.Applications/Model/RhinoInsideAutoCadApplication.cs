@@ -4,6 +4,7 @@ using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Rhino.Inside.AutoCAD.Applications;
 
@@ -31,43 +32,43 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
     public IBrepConverterRunner BrepConverterRunner { get; }
 
     /// <summary>
-    /// Constructs a new <see cref="IRhinoInsideAutoCadApplication"/>
+    /// Constructs a new <see cref="IRhinoInsideAutoCadApplication"/> from an already
+    /// bootstrapped application.
     /// </summary>
-    public RhinoInsideAutoCadApplication()
+    /// <remarks>
+    /// Constructing this touches RhinoCommon, so the caller must already have bound the app
+    /// domain to a Rhino installation with <see cref="RhinoCoreExtension.BindTo"/>. The
+    /// plugin does not load at all when that is not possible, which is why nothing here is
+    /// conditional on Rhino being present.
+    /// </remarks>
+    /// <param name="bootstrapper">The bootstrapper for the host application.</param>
+    /// <param name="applicationConfig">The application configuration settings.</param>
+    public RhinoInsideAutoCadApplication(IBootstrapper bootstrapper,
+        IApplicationConfig applicationConfig)
     {
-        var applicationConfig = new RhinoInsideAutoCadApplicationConfig();
-
-        var bootstrapConfig = new AutocadBootstrapperConfig(applicationConfig);
-
-        var bootstrapper = new Bootstrapper(bootstrapConfig);
-
         var applicationDirectories = bootstrapper.InstallationDirectories;
 
-        var settingManager = new SettingManager(applicationDirectories);
-
-        var rhinoInstance = new RhinoInstance(applicationDirectories);
-
-        var autocadInstance = new AutoCadInstance(bootstrapper.Dispatcher);
-
-        var grasshopperInstance = new GrasshopperInstance(applicationDirectories, autocadInstance.IsCivil3d);
-
-        var brepConverterRunner = new BrepConverterRunner();
-
-        var rhinoInsideManager = new RhinoInsideManager(rhinoInstance, grasshopperInstance, autocadInstance);
-
-        this.SettingsManager = settingManager;
+        this.SettingsManager = new SettingManager(applicationDirectories);
 
         this.Bootstrapper = bootstrapper;
 
         this.ApplicationConfig = applicationConfig;
 
-        this.RhinoInsideManager = rhinoInsideManager;
+        var rhinoInstance = new RhinoInstance(applicationDirectories);
+
+        var autocadInstance = new AutoCadInstance(bootstrapper.Dispatcher);
+
+        var grasshopperInstance = new GrasshopperInstance(applicationDirectories,
+            autocadInstance.IsCivil3d);
+
+        this.RhinoInsideManager = new RhinoInsideManager(rhinoInstance, grasshopperInstance,
+            autocadInstance, this.SettingsManager.User.Settings);
+
+        this.BrepConverterRunner = new BrepConverterRunner();
 
         this.LoadMaterialDesign(applicationDirectories);
 
         this.SupportDialogManager = new SupportDialogManager(this);
-
-        this.BrepConverterRunner = brepConverterRunner;
     }
 
     /// <summary>

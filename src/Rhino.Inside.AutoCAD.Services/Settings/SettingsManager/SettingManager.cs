@@ -10,6 +10,9 @@ public class SettingManager : ISettingsManager
     /// <inheritdoc />
     public ISettings Core { get; }
 
+    /// <inheritdoc />
+    public IUserSettingsStore User { get; }
+
     /// <summary>
     /// Constructor for the <see cref="SettingManager"/>.
     /// </summary>
@@ -21,5 +24,8 @@ public class SettingManager : ISettingsManager
 
         this.Core = coreSettingImporter.Import(installationDirectories);
 
+        // The same instance the startup path already read the Rhino version choice from,
+        // so a change made on the settings page is seen without a reload.
+        this.User = UserSettingsStore.Instance;
     }
 }

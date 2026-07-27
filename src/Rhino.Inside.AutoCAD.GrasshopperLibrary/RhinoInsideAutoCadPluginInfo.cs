@@ -1,5 +1,11 @@
 ﻿using Grasshopper.Kernel;
 
+// AutoCAD has already loaded this assembly as a managed module by the time Grasshopper is
+// asked to register it, so Grasshopper must bind to that instance rather than load a second
+// copy from bytes. A COFF load would give the components different type identities to the
+// ones the rest of the plugin holds.
+[assembly: GH_Loading(GH_LoadingDemand.ForceDirect)]
+
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>

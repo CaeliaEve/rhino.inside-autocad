@@ -1,4 +1,6 @@
-﻿using Autodesk.AutoCAD.Geometry;
+﻿using Autodesk.AutoCAD.Colors;
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.GraphicsInterface;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
@@ -177,6 +179,27 @@ public class PreviewServer : IPreviewServer
         }
     }
 
+    /// <summary>
+    /// Applies the preview settings to the given entity.
+    /// </summary>
+    private void ApplySettings(IEntity entity, IGeometryPreviewSettings previewSettings)
+    {
+        var autocadEntity = entity.Unwrap();
+
+        var materialId = previewSettings.MaterialId.Unwrap();
+
+        autocadEntity.ColorIndex = previewSettings.ColorIndex;
+
+        autocadEntity.LineWeight = LineWeight.LineWeight050;
+
+        autocadEntity.Transparency = new Transparency(previewSettings.Transparency);
+
+        if (materialId.IsValid)
+        {
+            autocadEntity.MaterialId = materialId;
+        }
+    }
+
     /// <inheritdoc />
     public void DeselectAll()
     {
@@ -189,7 +212,7 @@ public class PreviewServer : IPreviewServer
 
             foreach (var entity in entities)
             {
-                _previewSettings.ApplyTo(entity);
+                 this.ApplySettings(entity, _previewSettings);
             }
 
             if (this.Visible)
@@ -197,5 +220,16 @@ public class PreviewServer : IPreviewServer
                 this.AddTransientEntities(entities);
             }
         }
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Restyling an entity does not redraw it, so the transients are erased and added back to
+    /// force AutoCAD to draw them again. The caller is left to restore the visibility state,
+    /// as adding transients back shows previews which are currently toggled off.
+    /// </remarks>
+    public void RefreshAppearance()
+    {
+        this.DeselectAll();
     }
 }
