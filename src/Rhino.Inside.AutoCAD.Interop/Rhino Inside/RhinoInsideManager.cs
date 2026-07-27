@@ -34,23 +34,33 @@ public class RhinoInsideManager : IRhinoInsideManager
     /// <summary>
     /// Constructs a new <see cref="IRhinoInsideManager"/> instance.
     /// </summary>
+    /// <param name="rhinoInstance">The Rhino instance to manage.</param>
+    /// <param name="grasshopperInstance">The Grasshopper instance to manage.</param>
+    /// <param name="autoCadInstance">The AutoCAD instance to manage.</param>
+    /// <param name="userSettings">
+    /// The user settings the preview colors are read from. Only read here: later changes
+    /// reach the previews through <see cref="UpdatePreviewColors"/>.
+    /// </param>
     public RhinoInsideManager(IRhinoInstance rhinoInstance, IGrasshopperInstance grasshopperInstance,
-        IAutoCadInstance autoCadInstance)
+        IAutoCadInstance autoCadInstance, IUserSettings userSettings)
     {
         var previewGeometryConverter = new PreviewGeometryConverter(autoCadInstance);
 
         _rhinoConvertibleFactory = new RhinoConvertibleFactory();
 
         var selectedPreviewSettings = new GeometryPreviewSettings(128,
-            "Rhino.Inside.AutoCAD.Preview.Selected.Material", 2);
+            "Rhino.Inside.AutoCAD.Preview.Selected.Material",
+            userSettings.SelectedPreviewColorIndex);
 
         var rhinoPreviewSettings = new GeometryPreviewSettings(128,
-            "Rhino.Inside.AutoCAD.Preview.Rhino.Material", 4);
+            "Rhino.Inside.AutoCAD.Preview.Rhino.Material",
+            userSettings.RhinoPreviewColorIndex);
 
         this.RhinoPreviewServer = new RhinoObjectPreviewServer(rhinoPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
 
         var grasshopperPreviewSettings = new GeometryPreviewSettings(128,
-            "Rhino.Inside.AutoCAD.Preview.Grasshopper.Material", 1);
+            "Rhino.Inside.AutoCAD.Preview.Grasshopper.Material",
+            userSettings.GrasshopperPreviewColorIndex);
 
         this.GrasshopperPreviewServer = new GrasshopperObjectPreviewServer(
             grasshopperPreviewSettings, selectedPreviewSettings, previewGeometryConverter);
@@ -97,6 +107,37 @@ public class RhinoInsideManager : IRhinoInsideManager
         this.RhinoPreviewServer.UnSelectedSettings.CreateMaterial(document);
 
         this.GrasshopperPreviewServer.UnSelectedSettings.CreateMaterial(document);
+    }
+
+    /// <inheritdoc />
+    public void UpdatePreviewColors(int rhinoColorIndex, int grasshopperColorIndex,
+        int selectedColorIndex)
+    {
+        if (ApplicationState.IsShuttingDown) return;
+
+        this.RhinoPreviewServer.UnSelectedSettings.ColorIndex = rhinoColorIndex;
+
+        this.GrasshopperPreviewServer.UnSelectedSettings.ColorIndex = grasshopperColorIndex;
+
+        // The two servers share one settings instance for the selected state, so it is only
+        // set once.
+        this.RhinoPreviewServer.SelectedSettings.ColorIndex = selectedColorIndex;
+
+        var document = this.AutoCadInstance.ActiveDocument;
+
+        // Each color has its own material, so the one for the new color has to exist in this
+        // document before the previews are redrawn. Without an open document there is nothing
+        // to draw into either, and the material is created when a document is next activated.
+        if (document != null)
+        {
+            this.RhinoPreviewServer.UnSelectedSettings.CreateMaterial(document);
+
+            this.GrasshopperPreviewServer.UnSelectedSettings.CreateMaterial(document);
+        }
+
+        this.RhinoPreviewServer.RefreshAppearance();
+
+        this.GrasshopperPreviewServer.RefreshAppearance();
     }
 
     /// <summary>

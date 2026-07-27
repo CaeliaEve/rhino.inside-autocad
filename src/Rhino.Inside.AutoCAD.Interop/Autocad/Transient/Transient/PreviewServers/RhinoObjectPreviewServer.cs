@@ -67,6 +67,16 @@ public class RhinoObjectPreviewServer : IRhinoObjectPreviewServer
     }
 
     /// <inheritdoc />
+    public void RefreshAppearance()
+    {
+        _previewServer.RefreshAppearance();
+
+        // Refreshing adds the transients back, which would show previews the user has
+        // toggled off, so the visibility state is reapplied.
+        this.UpdateTransientElements();
+    }
+
+    /// <inheritdoc />
     public void ToggleVisibility()
     {
         this.Visible = !this.Visible;

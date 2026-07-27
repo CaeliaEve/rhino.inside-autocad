@@ -45,4 +45,15 @@ public interface IPreviewServer
     /// Deselects all the entities in the preview server by applying the unselected settings to them.
     /// </summary>
     public void DeselectAll();
+
+    /// <summary>
+    /// Reapplies the preview settings to every entity in the <see cref="IObjectRegister"/> and
+    /// redraws them, so a change to the settings is seen without waiting for the previews to
+    /// expire.
+    /// </summary>
+    /// <remarks>
+    /// The register does not record which objects are selected, so entities drawn with the
+    /// selected settings revert to the unselected ones until the next selection change.
+    /// </remarks>
+    void RefreshAppearance();
 }

@@ -203,4 +203,15 @@ public class PreviewServer : IPreviewServer
             this.AddTransientEntities(entities);
         }
     }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Restyling an entity does not redraw it, so the transients are erased and added back to
+    /// force AutoCAD to draw them again. The caller is left to restore the visibility state,
+    /// as adding transients back shows previews which are currently toggled off.
+    /// </remarks>
+    public void RefreshAppearance()
+    {
+        this.DeselectAll();
+    }
 }

@@ -2,14 +2,40 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.GraphicsInterface;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Services;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <inheritdoc cref="IGeometryPreviewSettings"/>
 public class GeometryPreviewSettings : IGeometryPreviewSettings
 {
+    private readonly string _materialBaseName;
+
+    private int _colorIndex;
+
     /// <inheritdoc/>
-    public int ColorIndex { get; }
+    /// <remarks>
+    /// Clamped to the range AutoCAD accepts, so a color index typed into the user settings
+    /// file by hand cannot make <see cref="EntityColor"/> throw somewhere far from here.
+    /// </remarks>
+    public int ColorIndex
+    {
+        get => _colorIndex;
+        set
+        {
+            var colorIndex = Clamp(value);
+
+            if (colorIndex == _colorIndex)
+                return;
+
+            _colorIndex = colorIndex;
+
+            // The material held here was created for the previous color and is named after
+            // it, so it is dropped until CreateMaterial makes one for the new color. Previews
+            // drawn in the meantime skip the material rather than use the wrong one.
+            this.MaterialId = AutocadObjectIdWrapper.DefaultId;
+        }
+    }
 
     /// <inheritdoc/>
     public byte Transparency { get; }
@@ -18,18 +44,38 @@ public class GeometryPreviewSettings : IGeometryPreviewSettings
     public IObjectId MaterialId { get; private set; }
 
     /// <inheritdoc/>
-    public string MaterialName { get; }
+    /// <remarks>
+    /// The color index is part of the name because <see cref="CreateMaterial"/> reuses any
+    /// material already in the document's dictionary under this name. Were the name fixed, a
+    /// color the user changed would never reach shaded previews in a document the old
+    /// material had already been created in.
+    /// </remarks>
+    public string MaterialName => $"{_materialBaseName}.{this.ColorIndex}";
 
     /// <summary>
     /// Constructs a new <see cref="GeometryPreviewSettings"/>
     /// </summary>
-    public GeometryPreviewSettings(byte transparency, string materialName, int colorIndex)
+    /// <param name="transparency">The transparency to draw previews with.</param>
+    /// <param name="materialBaseName">
+    /// The name of the preview material, which <see cref="MaterialName"/> qualifies with the
+    /// current <see cref="ColorIndex"/>.
+    /// </param>
+    /// <param name="colorIndex">The AutoCAD Color Index to draw previews in.</param>
+    public GeometryPreviewSettings(byte transparency, string materialBaseName, int colorIndex)
     {
-        this.ColorIndex = colorIndex;
+        _materialBaseName = materialBaseName;
+        _colorIndex = Clamp(colorIndex);
         this.Transparency = transparency;
         this.MaterialId = AutocadObjectIdWrapper.DefaultId;
-        this.MaterialName = materialName;
     }
+
+    /// <summary>
+    /// Returns the given color index constrained to the range of AutoCAD Color Index values
+    /// which name a color.
+    /// </summary>
+    private static int Clamp(int colorIndex) =>
+        Math.Min(ApplicationConstants.MaxAciColorIndex,
+            Math.Max(ApplicationConstants.MinAciColorIndex, colorIndex));
 
     /// <inheritdoc/>
     public void CreateMaterial(IAutocadDocument document)

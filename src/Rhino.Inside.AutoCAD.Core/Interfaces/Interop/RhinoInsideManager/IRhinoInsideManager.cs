@@ -60,6 +60,21 @@ public interface IRhinoInsideManager
     IGrasshopperObjectPreviewServer GrasshopperPreviewServer { get; }
 
     /// <summary>
+    /// Draws the previews in the given AutoCAD Color Indices from here on, and redraws the
+    /// previews which are already on screen in them.
+    /// </summary>
+    /// <remarks>
+    /// Called when the user changes the colors on the settings page. Persisting the choice is
+    /// the caller's job; this only applies it to the running session.
+    /// </remarks>
+    /// <param name="rhinoColorIndex">The color of unselected Rhino previews.</param>
+    /// <param name="grasshopperColorIndex">The color of unselected Grasshopper previews.</param>
+    /// <param name="selectedColorIndex">The color of selected previews of either kind.</param>
+    /// <seealso cref="IUserSettings.RhinoPreviewColorIndex"/>
+    void UpdatePreviewColors(int rhinoColorIndex, int grasshopperColorIndex,
+        int selectedColorIndex);
+
+    /// <summary>
     /// Shuts down the Rhino.Inside.AutoCAD manager, ensuring all document are saved and
     /// releasing any resources.
     /// </summary>

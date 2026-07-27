@@ -89,6 +89,17 @@ public class GrasshopperObjectPreviewServer : IGrasshopperObjectPreviewServer
         _wireframePreviewServer.RemoveObject(rhinoObjectId);
     }
 
+    /// <inheritdoc />
+    public void RefreshAppearance()
+    {
+        _shadedPreviewServer.RefreshAppearance();
+        _wireframePreviewServer.RefreshAppearance();
+
+        // Refreshing adds the transients back, which would show previews the current preview
+        // mode hides, so the mode is reapplied.
+        this.UpdateTransientElements();
+    }
+
     /// <summary>
     /// Clears all preview objects from both shaded and wireframe servers and disposes entities.
     /// Used during application shutdown to ensure clean disposal.
