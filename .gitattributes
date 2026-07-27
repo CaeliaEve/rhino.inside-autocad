@@ -1,0 +1,56 @@
+# Line ending normalisation.
+#
+# Git stores every text file with LF in the repository and converts on checkout.
+# This is a Visual Studio solution built on Windows, so sources are checked out
+# with CRLF. Without this file the working tree (CRLF) and the index (LF)
+# disagree and every file shows as modified on machines whose core.autocrlf is
+# not set - notably WSL and CI containers.
+#
+# After adding or changing this file, run once and commit the result:
+#     git add --renormalize .
+
+# Detect text files automatically; leave binaries untouched.
+* text=auto
+
+# Source and project files - CRLF in the working tree.
+*.cs        text eol=crlf diff=csharp
+*.vb        text eol=crlf
+*.xaml      text eol=crlf
+*.resx      text eol=crlf
+*.csproj    text eol=crlf
+*.vbproj    text eol=crlf
+*.wixproj   text eol=crlf
+*.props     text eol=crlf
+*.sln       text eol=crlf merge=union
+*.DotSettings text eol=crlf
+
+# Windows scripts break if checked out with LF.
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Installer, deployment and configuration files.
+*.wxs       text eol=crlf
+*.wxi       text eol=crlf
+*.wxl       text eol=crlf
+*.nuspec    text eol=crlf
+*.cuix      text eol=crlf
+*.mnr       text eol=crlf
+*.atc       text eol=crlf
+*.pkt       text eol=crlf
+*.config    text eol=crlf
+
+# Cross-platform formats - LF, so CI and shell tooling read them correctly.
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.sh        text eol=lf
+*.json      text eol=crlf
+*.xml       text eol=crlf
+*.md        text eol=crlf
+*.txt       text eol=crlf
+
+# Binary files - never normalise or diff.
+*.png       binary
+*.ico       binary
+*.dll       binary
+*.rtf       binary
