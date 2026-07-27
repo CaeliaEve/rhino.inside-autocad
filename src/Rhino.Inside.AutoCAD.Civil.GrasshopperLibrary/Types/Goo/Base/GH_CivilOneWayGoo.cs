@@ -40,7 +40,7 @@ public abstract class GH_CivilOneWayGoo<TWrapperType, TRhinoType>
     where TWrapperType : Entity
     where TRhinoType : class, IRhinoAdapter
 {
-    private const string ReferenceHandleDictionaryName = "AutocadReferenceHandle";
+    private const string ReferenceHandleDictionaryName = GrasshopperKeys.AutocadReferenceHandle;
 
     private TRhinoType? _cachedRhinoGeometry;
     private TWrapperType? _cachedValueForGeometry;

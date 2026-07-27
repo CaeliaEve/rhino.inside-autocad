@@ -26,7 +26,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 public class GH_AutocadBrepProxy : GH_GeometricGoo<RhinoBrep>, IGH_AutocadReferenceDatabaseObject,
     IGH_PreviewData, IGH_AutocadGeometryPreview, IAutocadBakeable
 {
-    private const string _referenceHandleDictionaryName = "AutocadReferenceHandle";
+    private const string _referenceHandleDictionaryName = GrasshopperKeys.AutocadReferenceHandle;
 
     /// <summary>
     /// Creates a new <see cref="GH_AutocadBrepProxy"/> instance from the specified

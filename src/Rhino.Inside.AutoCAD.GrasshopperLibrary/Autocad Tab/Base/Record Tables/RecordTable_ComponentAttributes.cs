@@ -1,8 +1,7 @@
-using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
-using Grasshopper.Kernel.Attributes;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -13,8 +12,10 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// data) render entirely as standard. Selection, warning, error and locked states keep
 /// their standard Grasshopper colours.
 /// </summary>
-public class RecordTable_ComponentAttributes : GH_ComponentAttributes
+public class RecordTable_ComponentAttributes : CanvasButtonComponentAttributes
 {
+    private const string RefreshButtonText = GrasshopperMessages.RefreshButton;
+
     /// <summary>
     /// The pale blue palette applied to the capsule while the component's data is stale.
     /// </summary>
@@ -24,51 +25,46 @@ public class RecordTable_ComponentAttributes : GH_ComponentAttributes
         Color.Black);
 
     private readonly IStaleDataComponent _staleOwner;
-    private readonly CanvasButton _refreshButton;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RecordTable_ComponentAttributes"/> class.
     /// </summary>
     /// <param name="owner">The owner component. Must implement <see cref="IStaleDataComponent"/>.</param>
     public RecordTable_ComponentAttributes(GH_Component owner)
-        : base(owner)
+        : base(owner, CreateRefreshButton(owner))
     {
         _staleOwner = (IStaleDataComponent)owner;
-        _refreshButton = new CanvasButton("Refresh", () => _staleOwner.StaleTracker?.Refresh());
+    }
+
+    /// <summary>
+    /// Creates the Refresh button for the specified owner. A static factory because the
+    /// button must be supplied to the base constructor.
+    /// </summary>
+    private static ICanvasButton CreateRefreshButton(GH_Component owner)
+    {
+        var staleOwner = (IStaleDataComponent)owner;
+
+        // The tracker is resolved on click rather than now, because it is composed
+        // after the attributes are constructed (in the component constructor).
+        var refreshButton = new CanvasButton(
+            RefreshButtonText,
+            () => staleOwner.StaleTracker?.Refresh());
+
+        return refreshButton;
     }
 
     /// <summary>
     /// True while the owner's data is stale. The tracker is read dynamically because it
     /// is composed after the attributes are constructed (in the component constructor).
     /// </summary>
-    private bool IsStale => _staleOwner.StaleTracker?.IsStale == true;
+    protected override bool IsButtonVisible => _staleOwner.StaleTracker?.IsStale == true;
 
     /// <inheritdoc />
-    protected override void Layout()
+    protected override void RenderComponent(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
     {
-        base.Layout();
-
-        if (this.IsStale)
+        if (channel != GH_CanvasChannel.Objects || this.IsButtonVisible == false)
         {
-            // Add space for the Refresh button below the component
-            var bounds = this.Bounds;
-            bounds.Height += _refreshButton.Height;
-            this.Bounds = bounds;
-
-            _refreshButton.Layout(this.Bounds);
-        }
-        else
-        {
-            _refreshButton.ClearLayout();
-        }
-    }
-
-    /// <inheritdoc />
-    protected override void Render(GH_Canvas canvas, Graphics graphics, GH_CanvasChannel channel)
-    {
-        if (channel != GH_CanvasChannel.Objects || this.IsStale == false)
-        {
-            base.Render(canvas, graphics, channel);
+            base.RenderComponent(canvas, graphics, channel);
             return;
         }
 
@@ -83,36 +79,12 @@ public class RecordTable_ComponentAttributes : GH_ComponentAttributes
             GH_Skin.palette_normal_standard = StaleStyle;
             GH_Skin.palette_hidden_standard = StaleStyle;
 
-            base.Render(canvas, graphics, channel);
+            base.RenderComponent(canvas, graphics, channel);
         }
         finally
         {
             GH_Skin.palette_normal_standard = normalStandard;
             GH_Skin.palette_hidden_standard = hiddenStandard;
         }
-
-        _refreshButton.Render(graphics, this.Selected, this.Owner.Locked);
-    }
-
-    /// <inheritdoc />
-    public override GH_ObjectResponse RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
-    {
-        if (this.IsStale)
-        {
-            var response = _refreshButton.RespondToMouseDown(sender, e);
-            if (response != null) return response.Value;
-        }
-
-        return base.RespondToMouseDown(sender, e);
-    }
-
-    /// <inheritdoc />
-    public override GH_ObjectResponse RespondToMouseUp(GH_Canvas sender, GH_CanvasMouseEvent e)
-    {
-        // Delegated unconditionally so a pressed button always releases its mouse capture.
-        var response = _refreshButton.RespondToMouseUp(sender, e);
-        if (response != null) return response.Value;
-
-        return base.RespondToMouseUp(sender, e);
     }
 }

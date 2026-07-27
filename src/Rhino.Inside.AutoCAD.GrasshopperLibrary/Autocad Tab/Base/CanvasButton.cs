@@ -1,18 +1,16 @@
 using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
-/// <summary>
-/// A clickable button rendered at the bottom of a component capsule. Composed by
-/// component attributes classes to avoid duplicating the layout, render and mouse
-/// handling logic for on-canvas buttons.
-/// </summary>
-public class CanvasButton
+/// <inheritdoc cref="ICanvasButton"/>
+public class CanvasButton : ICanvasButton
 {
-    private const int ButtonHeight = 22;
-    private const int ButtonPadding = 3;
+    private const int ButtonHeight = CanvasButtonConstants.ButtonHeight;
+    private const int ButtonPadding = CanvasButtonConstants.ButtonPadding;
 
     private readonly string _text;
     private readonly Action _onClick;
@@ -20,10 +18,7 @@ public class CanvasButton
     private RectangleF _bounds;
     private bool _pressed;
 
-    /// <summary>
-    /// Gets the total vertical space the button occupies, including padding. Component
-    /// attributes should grow their bounds by this amount before calling <see cref="Layout"/>.
-    /// </summary>
+    /// <inheritdoc />
     public float Height => ButtonHeight + ButtonPadding * 2;
 
     /// <summary>
@@ -37,10 +32,7 @@ public class CanvasButton
         _onClick = onClick;
     }
 
-    /// <summary>
-    /// Positions the button at the bottom of the specified component bounds. The bounds
-    /// must already include the space reserved for the button (see <see cref="Height"/>).
-    /// </summary>
+    /// <inheritdoc />
     public void Layout(RectangleF componentBounds)
     {
         _bounds = new RectangleF(
@@ -50,18 +42,16 @@ public class CanvasButton
             ButtonHeight);
     }
 
-    /// <summary>
-    /// Clears the button bounds so it no longer renders or responds to the mouse.
-    /// Called when the button is hidden.
-    /// </summary>
+    /// <inheritdoc />
     public void ClearLayout()
     {
         _bounds = RectangleF.Empty;
     }
 
-    /// <summary>
-    /// Renders the button using a <see cref="GH_Capsule"/> for consistent Grasshopper styling.
-    /// </summary>
+    /// <inheritdoc />
+    /// <remarks>
+    /// Rendered as a <see cref="GH_Capsule"/> for consistent Grasshopper styling.
+    /// </remarks>
     public void Render(Graphics graphics, bool selected, bool locked)
     {
         // Guard against invalid button bounds (can happen if Layout hasn't been called yet)
@@ -82,11 +72,7 @@ public class CanvasButton
         capsule.Dispose();
     }
 
-    /// <summary>
-    /// Handles a mouse down event. Returns the response for the owning attributes to
-    /// forward, or null when the event was not over the button and the attributes
-    /// should fall back to their base behaviour.
-    /// </summary>
+    /// <inheritdoc />
     public GH_ObjectResponse? RespondToMouseDown(GH_Canvas sender, GH_CanvasMouseEvent e)
     {
         if (e.Button == System.Windows.Forms.MouseButtons.Left &&
@@ -100,11 +86,7 @@ public class CanvasButton
         return null;
     }
 
-    /// <summary>
-    /// Handles a mouse up event, invoking the click action when released over the button.
-    /// Returns the response for the owning attributes to forward, or null when the button
-    /// was not pressed and the attributes should fall back to their base behaviour.
-    /// </summary>
+    /// <inheritdoc />
     public GH_ObjectResponse? RespondToMouseUp(GH_Canvas sender, GH_CanvasMouseEvent e)
     {
         if (_pressed == false)

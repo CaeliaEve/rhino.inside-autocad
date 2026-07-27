@@ -103,11 +103,12 @@ public class TrackedBakeComponent : RhinoInsideAutocad_CreateComponentBase, IBak
         var settings = settingsGoo?.Value;
 
         var converterFactory = new RhinoConvertibleFactory();
+        var bakeableExtractor = new BakeableExtractor(converterFactory);
 
         var bakeables = new List<IAutocadBakeable>();
         foreach (var obj in objects)
         {
-            var bakeable = BakeableExtractor.ExtractBakeable(obj, converterFactory);
+            var bakeable = bakeableExtractor.ExtractBakeable(obj);
             if (bakeable != null)
             {
                 bakeables.Add(bakeable);

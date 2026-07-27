@@ -16,7 +16,9 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 [ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingComponent
 {
-    private const string DrivenButtonEnabledKey = "DrivenButtonEnabled";
+    private const string DrivenButtonEnabledKey = GrasshopperKeys.DrivenButtonEnabled;
+    private const string DrivenButtonMenuItemText = GrasshopperMessages.DrivenButtonMenuItem;
+    private const string DrivenButtonTooltipText = GrasshopperMessages.DrivenButtonTooltip;
     private const int BakeParamIndex = 3;
 
     private bool _drivenButtonEnabled = true;
@@ -122,11 +124,12 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
         var settings = settingsGoo?.Value;
 
         var converterFactory = new RhinoConvertibleFactory();
+        var bakeableExtractor = new BakeableExtractor(converterFactory);
 
         var bakeables = new List<IAutocadBakeable>();
         foreach (var obj in objects)
         {
-            var bakeable = BakeableExtractor.ExtractBakeable(obj, converterFactory);
+            var bakeable = bakeableExtractor.ExtractBakeable(obj);
             if (bakeable != null)
             {
                 bakeables.Add(bakeable);
@@ -184,12 +187,12 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
 
         var drivenButtonItem = Menu_AppendItem(
             menu,
-            "Driven Button",
+            DrivenButtonMenuItemText,
             this.OnDrivenButtonMenuClick,
             true,
             _drivenButtonEnabled
         );
-        drivenButtonItem.ToolTipText = "When enabled, a Bake button is shown on the component for manually triggering a bake. The Bake input always drives the component.";
+        drivenButtonItem.ToolTipText = DrivenButtonTooltipText;
     }
 
     /// <summary>

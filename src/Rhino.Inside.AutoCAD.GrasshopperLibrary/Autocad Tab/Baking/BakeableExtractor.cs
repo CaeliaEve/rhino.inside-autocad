@@ -18,18 +18,29 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// objects. Shared by the baking components (<see cref="AutocadBakeComponent"/> and
 /// <see cref="TrackedBakeComponent"/>).
 /// </summary>
-internal static class BakeableExtractor
+public class BakeableExtractor
 {
+    private readonly IRhinoConvertibleFactory _factory;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BakeableExtractor"/> class.
+    /// </summary>
+    /// <param name="factory">The factory used to convert Rhino geometry into bakeables.</param>
+    public BakeableExtractor(IRhinoConvertibleFactory factory)
+    {
+        _factory = factory;
+    }
+
     /// <summary>
     /// Wraps a Rhino <see cref="RhinoGeometryBase"/> in an <see cref="IAutocadBakeable"/>
     /// using the convertible factory, or returns <c>null</c> if it cannot be converted.
     /// </summary>
-    private static IAutocadBakeable? Convert(RhinoGeometryBase? geometry, IRhinoConvertibleFactory factory)
+    private IAutocadBakeable? Convert(RhinoGeometryBase? geometry)
     {
         if (geometry is null)
             return null;
 
-        if (factory.MakeConvertible(geometry, out var rhinoConvertible) == false)
+        if (_factory.MakeConvertible(geometry, out var rhinoConvertible) == false)
             return null;
 
         return new BakableRhinoConverter(rhinoConvertible!);
@@ -38,7 +49,7 @@ internal static class BakeableExtractor
     /// <summary>
     /// Extracts an <see cref="IAutocadBakeable"/> from the input object.
     /// </summary>
-    internal static IAutocadBakeable? ExtractBakeable(object? obj, IRhinoConvertibleFactory factory)
+    public IAutocadBakeable? ExtractBakeable(object? obj)
     {
         if (obj is IAutocadBakeable bakeable)
             return bakeable;
@@ -61,14 +72,14 @@ internal static class BakeableExtractor
                 // Breps) bake via GH_AutocadBrepProxy; everything else via the convertible factory.
                 var valueBakeableResult = value switch
                 {
-                    RhinoLine line => Convert(new RhinoLineCurve(line), factory),
-                    RhinoArc arc => Convert(new RhinoArcCurve(arc), factory),
-                    RhinoCircle circle => Convert(new RhinoArcCurve(circle), factory),
-                    RhinoRectangle3d rectangle => Convert(rectangle.ToNurbsCurve(), factory),
-                    RhinoPoint3d point => Convert(new RhinoPoint(point), factory),
+                    RhinoLine line => this.Convert(new RhinoLineCurve(line)),
+                    RhinoArc arc => this.Convert(new RhinoArcCurve(arc)),
+                    RhinoCircle circle => this.Convert(new RhinoArcCurve(circle)),
+                    RhinoRectangle3d rectangle => this.Convert(rectangle.ToNurbsCurve()),
+                    RhinoPoint3d point => this.Convert(new RhinoPoint(point)),
                     RhinoBox box => new GH_AutocadBrepProxy(box.ToBrep()),
                     RhinoBrep brep => new GH_AutocadBrepProxy(brep),
-                    RhinoGeometryBase nativeGeometry => Convert(nativeGeometry, factory),
+                    RhinoGeometryBase nativeGeometry => this.Convert(nativeGeometry),
                     _ => null
                 };
 

@@ -12,6 +12,7 @@
 		<Product>$(BimorphProduct)</Product>
 		<Copyright>$(BimorphCopyright)</Copyright>
 		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<ProduceReferenceAssembly>True</ProduceReferenceAssembly>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>

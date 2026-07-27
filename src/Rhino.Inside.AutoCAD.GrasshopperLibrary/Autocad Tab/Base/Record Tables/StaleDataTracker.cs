@@ -3,6 +3,7 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
@@ -15,7 +16,14 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// </summary>
 public class StaleDataTracker : IStaleDataTracker
 {
-    private const string AutoUpdateEnabledKey = "AutoUpdateEnabled";
+    private const string AutoUpdateEnabledKey = GrasshopperKeys.AutoUpdateEnabled;
+    private const string AutoUpdateMenuItemText = GrasshopperMessages.AutoUpdateMenuItem;
+    private const string AutoUpdateTooltipText = GrasshopperMessages.AutoUpdateStaleTooltip;
+    private const string StaleDataMessage = GrasshopperMessages.StaleDataMessage;
+    private const string StaleAddedFormat = GrasshopperMessages.StaleAddedFormat;
+    private const string StaleDeletedFormat = GrasshopperMessages.StaleDeletedFormat;
+    private const string StaleModifiedFormat = GrasshopperMessages.StaleModifiedFormat;
+    private const string StaleDescriptionFormat = GrasshopperMessages.StaleDescriptionFormat;
 
     private readonly GH_Component _owner;
     private readonly Func<IDbObject, bool> _isTrackedObject;
@@ -105,13 +113,12 @@ public class StaleDataTracker : IStaleDataTracker
 
         var autoUpdateItem = GH_DocumentObject.Menu_AppendItem(
             menu,
-            "Auto Update",
+            AutoUpdateMenuItemText,
             this.OnAutoUpdateMenuClick,
             true,
             _autoUpdateEnabled
         );
-        autoUpdateItem.ToolTipText = "When enabled, the component automatically updates when the AutoCAD document changes. " +
-                                     "When disabled, document changes mark the data as stale until Refresh is pressed.";
+        autoUpdateItem.ToolTipText = AutoUpdateTooltipText;
     }
 
     /// <summary>
@@ -174,7 +181,7 @@ public class StaleDataTracker : IStaleDataTracker
     /// </summary>
     private void UpdateStaleDisplay()
     {
-        _owner.Message = "Stale Data";
+        _owner.Message = StaleDataMessage;
 
         // Messages from the previous solve describe outdated data; replace them with
         // the stale remark. The next solve clears runtime messages automatically.
@@ -193,15 +200,17 @@ public class StaleDataTracker : IStaleDataTracker
     {
         var parts = new List<string>();
 
-        if (_addedIds.Count > 0) parts.Add($"{_addedIds.Count} added");
-        if (_deletedIds.Count > 0) parts.Add($"{_deletedIds.Count} deleted");
+        if (_addedIds.Count > 0) parts.Add(string.Format(StaleAddedFormat, _addedIds.Count));
+        if (_deletedIds.Count > 0) parts.Add(string.Format(StaleDeletedFormat, _deletedIds.Count));
 
         // An object that was also added or deleted this session reads as that change,
         // not as an additional modification.
         var modifiedCount = _modifiedIds.Except(_addedIds).Except(_deletedIds).Count();
-        if (modifiedCount > 0) parts.Add($"{modifiedCount} modified");
+        if (modifiedCount > 0) parts.Add(string.Format(StaleModifiedFormat, modifiedCount));
 
-        return $"Data is stale: {string.Join(", ", parts)}. Press Refresh to update.";
+        var description = string.Join(", ", parts);
+
+        return string.Format(StaleDescriptionFormat, description);
     }
 
     /// <summary>
