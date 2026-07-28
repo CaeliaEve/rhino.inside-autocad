@@ -123,7 +123,11 @@ public class GrasshopperMessages
     /// <summary>
     /// Tooltip for the Driven Button toggle on the bake component.
     /// </summary>
-    public const string DrivenButtonTooltip = "When enabled, a Bake button is shown on the component for manually triggering a bake. The Bake input always drives the component.";
+    /// <remarks>
+    /// The button and the Bake input are alternatives, never shown together, so the
+    /// tooltip describes the toggle as a swap between the two.
+    /// </remarks>
+    public const string DrivenButtonTooltip = "When enabled, a Bake button is shown on the component for manually triggering a bake. When disabled, the button is replaced by a Bake input that triggers the bake when it is true.";
 
     /// <summary>
     /// Tooltip for the Replace Previous Object toggle on creation components.
