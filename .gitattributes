@@ -34,10 +34,7 @@
 *.wxi       text eol=crlf
 *.wxl       text eol=crlf
 *.nuspec    text eol=crlf
-*.cuix      text eol=crlf
-*.mnr       text eol=crlf
 *.atc       text eol=crlf
-*.pkt       text eol=crlf
 *.config    text eol=crlf
 
 # Cross-platform formats - LF, so CI and shell tooling read them correctly.
@@ -50,7 +47,12 @@
 *.txt       text eol=crlf
 
 # Binary files - never normalise or diff.
+# The AutoCAD customisation and package files are zip archives despite their
+# extensions, so line ending conversion silently corrupts them.
 *.png       binary
 *.ico       binary
 *.dll       binary
 *.rtf       binary
+*.cuix      binary
+*.mnr       binary
+*.pkt       binary
