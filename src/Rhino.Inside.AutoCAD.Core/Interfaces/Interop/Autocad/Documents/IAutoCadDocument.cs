@@ -89,18 +89,6 @@ public interface IAutocadDocument
     void Regenerate();
 
     /// <summary>
-    /// Creates a shallow clone that wraps the same underlying AutoCAD document.
-    /// </summary>
-    /// <returns>
-    /// A new <see cref="IAutocadDocument"/> instance referencing the same AutoCAD document.
-    /// </returns>
-    /// <remarks>
-    /// The cloned wrapper has independent event subscriptions but shares the same
-    /// underlying AutoCAD document and database.
-    /// </remarks>
-    IAutocadDocument ShallowClone();
-
-    /// <summary>
     /// Retrieves a database object by its <see cref="IObjectId"/>.
     /// </summary>
     /// <param name="objectId">

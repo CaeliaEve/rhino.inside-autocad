@@ -41,6 +41,8 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
 
         var bootstrapper = new Bootstrapper(bootstrapConfig);
 
+        RhinoCoreExtension.Instance.StartUpLogger.Flush();
+
         var applicationDirectories = bootstrapper.InstallationDirectories;
 
         var settingManager = new SettingManager(applicationDirectories);

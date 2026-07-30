@@ -50,11 +50,15 @@ public class GH_AutocadDocument : GH_Goo<AutocadDocument>
     { }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The wrapped <see cref="IAutocadDocument"/> is a live view onto a single AutoCAD
+    /// document, so the duplicate shares it rather than copying it. Wrapping the same
+    /// document twice would re-subscribe the same native events, and Grasshopper duplicates
+    /// once per solve.
+    /// </remarks>
     public override IGH_Goo Duplicate()
     {
-        var clone = this.Value.ShallowClone();
-
-        return new GH_AutocadDocument(clone);
+        return new GH_AutocadDocument(this);
     }
 
     /// <inheritdoc />
@@ -97,6 +101,6 @@ public class GH_AutocadDocument : GH_Goo<AutocadDocument>
         if (this.Value == null)
             return "Null AutocadDocument";
 
-        return $"AutocadDocument [Name: {this.Value.FileMetadata.FileName}, Id: {this.Value.DocumentId} ]";
+        return $"AutocadDocument [Name: {this.Value.FileMetadata.FileName}, Id: {this.Value.DocumentId.DrawingId} ]";
     }
 }

@@ -26,4 +26,21 @@ public interface IStartUpLogger
     /// </summary>
     /// <returns></returns>
     string GetLastErrorMessage();
+
+    /// <summary>
+    /// Writes any messages collected before the main logging system was available into it.
+    /// </summary>
+    /// <remarks>
+    /// Messages added once the main logger is running are written through immediately, so
+    /// this only has work to do for those recorded earlier. It is safe to call at any time
+    /// and does nothing if the main logger is still unavailable. Call it as soon as the main
+    /// logger has been initialised, otherwise the earliest start-up failures — the ones most
+    /// likely to explain why the application did not load — are never recorded to disk.
+    /// <para>
+    /// Flushing does not consume anything: <see cref="HasError"/> and
+    /// <see cref="GetLastErrorMessage"/> continue to report every message added, so a
+    /// message that reaches the log is still shown to the user unchanged.
+    /// </para>
+    /// </remarks>
+    void Flush();
 }
