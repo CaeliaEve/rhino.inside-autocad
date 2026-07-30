@@ -17,6 +17,17 @@ public class LoggerService : ILoggerService
     private const string _loggerServiceNotInitialized = MessageConstants.LoggerServiceNotInitialized;
 
     /// <summary>
+    /// Returns whether the singleton instance is available.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Instance"/> throws before <see cref="Initialize"/> has run and after
+    /// <see cref="Shutdown"/> has cleared it, so callers that may run outside that window
+    /// must test this first. The null-conditional operator is no help there, because it is
+    /// the getter itself that throws.
+    /// </remarks>
+    public static bool IsInitialized => _instance != null;
+
+    /// <summary>
     /// Returns the singleton instance of the <see cref="ILogger"/>.
     /// </summary>
     public static ILoggerService Instance
@@ -93,6 +104,12 @@ public class LoggerService : ILoggerService
         var message = optionalExtraMessage;
 
         Log.Logger.Error(ex, message);
+    }
+
+    /// <inheritdoc />
+    public void LogError(string message)
+    {
+        Log.Logger.Error(message);
     }
 
     /// <inheritdoc />

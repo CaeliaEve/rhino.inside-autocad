@@ -2,6 +2,7 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Services;
 using System.Windows.Threading;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
@@ -14,6 +15,8 @@ public class AutoCadInstance : IAutoCadInstance
     private readonly Dispatcher _dispatcher;
 
     private readonly DocumentCollection? _documentManager;
+
+    private readonly IAutocadGuard _autocadGuard = new AutocadGuard();
 
     private readonly string _readOnlyNotSupported = MessageConstants.ReadOnlyNotSupported;
     private readonly string _fileUnitsNotSupported = MessageConstants.FileUnitsNotSupported;
@@ -141,7 +144,21 @@ public class AutoCadInstance : IAutoCadInstance
     /// <summary>
     /// Internal event handler which bubbles up the document modified event.
     /// </summary>
+    /// <remarks>
+    /// Guarded because it originates from an AutoCAD database reactor.
+    /// </remarks>
     private void OnDocumentChanged(object sender, IAutocadDocumentChangeEventArgs e)
+    {
+        if (ApplicationState.IsShuttingDown) return;
+
+        _autocadGuard.Run(() => this.HandleDocumentChanged(e), nameof(this.OnDocumentChanged));
+    }
+
+    /// <summary>
+    /// Bubbles up the document modified event, raising <see cref="UnitsChanged"/> first
+    /// when the unit system is among the changes.
+    /// </summary>
+    private void HandleDocumentChanged(IAutocadDocumentChangeEventArgs e)
     {
         if (e.Change.Contains(ChangeType.UnitsChanged))
         {
@@ -187,15 +204,29 @@ public class AutoCadInstance : IAutoCadInstance
     /// Event handler which fires when the <see cref=" DocumentCollection.DocumentActivated"/>
     /// is raised. Raises the <see cref="DocumentActivated"/> event.
     /// </summary>
+    /// <remarks>
+    /// AutoCAD raises this from a native reactor, so an escaping exception would terminate
+    /// the host rather than surface anywhere catchable. Subscribers of
+    /// <see cref="DocumentActivated"/> are invoked from within the guarded region and need
+    /// no guard of their own.
+    /// </remarks>
     protected void OnDocumentActivated(object sender, DocumentCollectionEventArgs e)
+    {
+        if (ApplicationState.IsShuttingDown) return;
+
+        _autocadGuard.Run(() => this.HandleDocumentActivated(e), nameof(this.OnDocumentActivated));
+    }
+
+    /// <summary>
+    /// Tracks a newly activated document and raises <see cref="DocumentActivated"/>.
+    /// </summary>
+    private void HandleDocumentActivated(DocumentCollectionEventArgs e)
     {
         var document = e.Document;
 
-        if (document != null && this.Documents.Any(d => d.Unwrap().Name == document.Name) == false)
+        if (document != null && this.IsTracked(document) == false)
         {
             var documentFile = new AutocadDocument(document, _dispatcher);
-
-            document.BeginDocumentClose += this.OnDocumentClosing;
 
             this.Documents.Add(documentFile);
 
@@ -209,17 +240,57 @@ public class AutoCadInstance : IAutoCadInstance
     /// Event handler which fires when the <see cref="Document.BeginDocumentClose"/>
     /// event is raised.
     /// </summary>
+    /// <remarks>
+    /// Skipped during shutdown, when <see cref="Shutdown"/> unsubscribes and clears every
+    /// document centrally, leaving this handler nothing to do.
+    /// </remarks>
     protected void OnDocumentClosing(object sender, DocumentBeginCloseEventArgs e)
     {
-        var document = sender as Document;
+        if (ApplicationState.IsShuttingDown) return;
 
-        var autoCadDocument = this.Documents.FirstOrDefault(d => d.Unwrap().Name == document.Name);
+        _autocadGuard.Run(() => this.HandleDocumentClosing(sender), nameof(this.OnDocumentClosing));
+    }
 
-        if (autoCadDocument != null)
-        {
-            document!.BeginDocumentClose -= this.OnDocumentClosing;
-            this.Documents.Remove(autoCadDocument);
-        }
+    /// <summary>
+    /// Stops tracking a document that is closing.
+    /// </summary>
+    private void HandleDocumentClosing(object sender)
+    {
+        if (sender is not Document document) return;
+
+        var autoCadDocument = this.FindTracked(document);
+
+        if (autoCadDocument == null) return;
+
+        this.UnsubscribeToDocumentEvents(autoCadDocument);
+
+        this.Documents.Remove(autoCadDocument);
+    }
+
+    /// <summary>
+    /// Returns whether an open AutoCAD document is already tracked.
+    /// </summary>
+    private bool IsTracked(Document document)
+    {
+        return this.FindTracked(document) != null;
+    }
+
+    /// <summary>
+    /// Returns the tracked wrapper for an open AutoCAD document, or <c>null</c> if it is not
+    /// tracked.
+    /// </summary>
+    /// <remarks>
+    /// Matches on <see cref="IAutocadDocumentId.RuntimeId"/> rather than the document's name.
+    /// A name is mutable, is a live call into AutoCAD for every tracked document, and can
+    /// throw when read from a document that is midway through being torn down — which is
+    /// reachable here, since this runs while a document is closing. The runtime identifier is
+    /// a cached value, so the scan touches no native state at all.
+    /// </remarks>
+    private IAutocadDocument? FindTracked(Document document)
+    {
+        var runtimeId = AutocadDocumentId.GetRuntimeId(document);
+
+        return this.Documents.FirstOrDefault(d => d.DocumentId.RuntimeId == runtimeId);
     }
 
     /// <summary>
@@ -228,10 +299,10 @@ public class AutoCadInstance : IAutoCadInstance
     /// </summary>
     private void Validate(List<IAutocadDocument> autoCadDocuments)
     {
+        var validationLogger = this.StartUpLogger;
+
         foreach (var autoCadDocument in autoCadDocuments)
         {
-            var validationLogger = this.StartUpLogger;
-
             var cadDocument = autoCadDocument.Unwrap();
 
             if (cadDocument.IsReadOnly)

@@ -39,11 +39,6 @@ public interface IAutocadTransactionManager
     IObjectId LinetypeTableId { get; }
 
     /// <summary>
-    /// Gets the <see cref="IObjectId"/> of the document's app registration table.
-    /// </summary>
-    IObjectId RegAppTableId { get; }
-
-    /// <summary>
     /// Returns the <see cref="IAutocadDatabase"/> associated with this transaction manager.
     /// </summary>
     IAutocadDatabase AutocadDatabase { get; }
@@ -63,14 +58,6 @@ public interface IAutocadTransactionManager
     /// access when adding new entities or modifying existing geometry.
     /// </remarks>
     IAutocadBlockTableRecord GetModelSpace(bool openForWrite = false);
-
-    /// <summary>
-    /// Persists the database, this can be used to save XData.
-    /// </summary>
-    /// <remarks>
-    /// Skipped for read-only documents or unsaved documents without a file path.
-    /// </remarks>
-    void SaveDatabase(IAutocadDocument document);
 
     /// <summary>
     /// Executes a function within a database transaction and returns the result.

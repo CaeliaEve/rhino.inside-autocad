@@ -1,135 +1,58 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using System.Runtime.CompilerServices;
+using Document = Autodesk.AutoCAD.ApplicationServices.Document;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <inheritdoc cref="IAutocadDocumentId"/>
 public class AutocadDocumentId : IAutocadDocumentId
 {
-    private const string _applicationName = InteropConstants.ApplicationName;
-    private const short _applicationNameKey = XRecordKeys.ApplicationNameKey;
-    private const short _documentIdKey = XRecordKeys.DocumentIdKey;
+    /// <summary>
+    /// Runtime identifiers, keyed weakly so that a document is not held alive by this table.
+    /// </summary>
+    private static readonly ConditionalWeakTable<Document, object> _runtimeIds = new();
+
+    /// <inheritdoc/>
+    public Guid DrawingId { get; }
+
+    /// <inheritdoc/>
+    public Guid RuntimeId { get; }
 
     /// <summary>
-    /// The registered Id of this document.
+    /// Constructs a new <see cref="IAutocadDocumentId"/>.
     /// </summary>
-    public Guid Id { get; }
-
-    /// <summary>
-    /// Constructs a new <see cref="IAutocadDocumentId"/>
-    /// </summary>
+    /// <param name="document">
+    /// The document to identify.
+    /// </param>
     public AutocadDocumentId(IAutocadDocument document)
     {
-        this.Register(document);
+        var nativeDocument = document.Unwrap();
 
-        if (this.TryGetExistingId(document, out var documentId) == false)
-        {
-            documentId = this.CreateNewId(document);
-        }
+        var fingerprint = nativeDocument.Database.FingerprintGuid;
 
-        this.Id = documentId;
+        this.RuntimeId = GetRuntimeId(nativeDocument);
+
+        this.DrawingId = Guid.TryParse(fingerprint, out var drawingId)
+            ? drawingId
+            : this.RuntimeId;
     }
 
     /// <summary>
-    /// Retrieves the document's unique identifier from model space XData if it already
-    /// exists, if not it returns false and an empty guid.
+    /// Returns the runtime identifier of an open AutoCAD document, minting one on first use.
     /// </summary>
-    private bool TryGetExistingId(IAutocadDocument document, out Guid id)
-    {
-        var transactionManagerWrapper = document.CreateTransactionManager();
-
-        id = transactionManagerWrapper.PerformTask(() =>
-        {
-            var blockModelSpace = transactionManagerWrapper.GetModelSpace().Unwrap();
-
-            var xData = blockModelSpace.XData == null
-                ? new ResultBuffer()
-                : blockModelSpace.XData;
-
-            var documentIdKey = (short)_documentIdKey;
-
-            var typedValues = xData.AsArray().Where(v => v.TypeCode == documentIdKey);
-
-            var documentGuid = Guid.Empty;
-            foreach (var typedValue in typedValues)
-            {
-                if (Guid.TryParse(typedValue.Value.ToString(), out documentGuid))
-                    break;
-            }
-
-            return documentGuid;
-
-        });
-
-        return id.Equals(Guid.Empty);
-    }
-
-    /// <summary>
-    /// Creates a document's unique identifier and stores it in the model space XData.
-    /// </summary>
-    private Guid CreateNewId(IAutocadDocument document)
-    {
-        var transactionManagerWrapper = document.CreateTransactionManager();
-
-        return transactionManagerWrapper.PerformTask(() =>
-        {
-            var blockModelSpace = transactionManagerWrapper.GetModelSpace().Unwrap();
-
-            var xData = blockModelSpace.XData == null
-                ? new ResultBuffer()
-                : blockModelSpace.XData;
-
-            var idKey = (short)_documentIdKey;
-
-            var documentId = Guid.NewGuid();
-
-            xData.Add(new Autodesk.AutoCAD.DatabaseServices.TypedValue((short)_applicationNameKey, _applicationName));
-            xData.Add(new Autodesk.AutoCAD.DatabaseServices.TypedValue(idKey, documentId.ToString()));
-
-            blockModelSpace.UpgradeOpen();
-
-            blockModelSpace.XData = xData;
-
-            transactionManagerWrapper.SaveDatabase(document);
-
-            return documentId;
-
-        });
-
-    }
-
-    /// <summary>
-    /// Registers Rhino.Inside.AutoCAD in the <see cref="RegAppTable"/>.
-    /// </summary>
+    /// <param name="document">
+    /// The native document to identify.
+    /// </param>
     /// <remarks>
-    /// Required before writing XData to the database.
+    /// Cached against the native document rather than assigned per wrapper, so that the
+    /// identifier can be obtained from a bare <see cref="Document"/> before any wrapper
+    /// exists. That is what allows callers to ask whether a document is already tracked
+    /// without constructing a wrapper in order to find out.
     /// </remarks>
-    private void Register(IAutocadDocument document)
+    public static Guid GetRuntimeId(Document document)
     {
-        var transactionManagerWrapper = document.CreateTransactionManager();
+        var runtimeId = _runtimeIds.GetValue(document, _ => Guid.NewGuid());
 
-        _ = transactionManagerWrapper.PerformTask(() =>
-        {
-            var transaction = transactionManagerWrapper.Unwrap();
-
-            var regAppTableId = transactionManagerWrapper.RegAppTableId.Unwrap();
-
-            var regAppTable = (RegAppTable)transaction.GetObject(regAppTableId, OpenMode.ForRead);
-
-            if (regAppTable.Has(_applicationName)) return true;
-
-            regAppTable.UpgradeOpen();
-
-            var regAppTableRecord = new RegAppTableRecord();
-
-            regAppTableRecord.Name = _applicationName;
-
-            regAppTable.Add(regAppTableRecord);
-
-            transaction.AddNewlyCreatedDBObject(regAppTableRecord, true);
-
-            return true;
-
-        });
+        return (Guid)runtimeId;
     }
 }

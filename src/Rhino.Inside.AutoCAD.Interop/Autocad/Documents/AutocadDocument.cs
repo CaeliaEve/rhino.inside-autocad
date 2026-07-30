@@ -15,6 +15,8 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
 
     private readonly Dispatcher _dispatcher;
 
+    private readonly IAutocadGuard _autocadGuard = new AutocadGuard();
+
     /// <summary>
     /// Accumulates document changes during command execution.
     /// </summary>
@@ -40,7 +42,11 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     public UnitSystem UnitSystem { get; private set; }
 
     /// <inheritdoc/>
-    public bool IsReadOnly { get; }
+    /// <remarks>
+    /// Read live from the document rather than cached at construction, so that consumers
+    /// running during construction cannot observe a stale <c>false</c>.
+    /// </remarks>
+    public bool IsReadOnly => _document.IsReadOnly;
 
     /// <summary>
     /// Initializes a new instance of <see cref="AutocadDocument"/>.
@@ -80,8 +86,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         database.ObjectAppended += this.OnObjectAppended;
         database.ObjectModified += this.OnObjectModified;
         database.ObjectErased += this.OnObjectErased;
-
-        this.IsReadOnly = document.IsReadOnly;
     }
 
     /// <summary>
@@ -105,6 +109,14 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     /// Ignores startup application commands.
     /// </remarks>
     private void OnCommandEnded(object sender, CommandEventArgs e)
+    {
+        _autocadGuard.Run(() => this.HandleCommandEnded(e), nameof(this.OnCommandEnded));
+    }
+
+    /// <summary>
+    /// Processes accumulated document changes once a command completes.
+    /// </summary>
+    private void HandleCommandEnded(CommandEventArgs e)
     {
         // On startup the first ending command is the application which is ignored.
         if (Enum.GetNames(typeof(ButtonApplicationId)).Any(appId => e.GlobalCommandName.Contains(appId)))
@@ -144,7 +156,8 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     /// </summary>
     private void OnObjectModified(object sender, ObjectEventArgs e)
     {
-        _documentChange?.AddObjectChange(ChangeType.ObjectModified, new AutocadDbObjectWrapper(e.DBObject));
+        _autocadGuard.Run(() => this.RecordObjectChange(ChangeType.ObjectModified, e.DBObject),
+            nameof(this.OnObjectModified));
     }
 
     /// <summary>
@@ -152,7 +165,8 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     /// </summary>
     private void OnObjectAppended(object sender, ObjectEventArgs e)
     {
-        _documentChange?.AddObjectChange(ChangeType.ObjectCreated, new AutocadDbObjectWrapper(e.DBObject));
+        _autocadGuard.Run(() => this.RecordObjectChange(ChangeType.ObjectCreated, e.DBObject),
+            nameof(this.OnObjectAppended));
     }
 
     /// <summary>
@@ -160,7 +174,22 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     /// </summary>
     private void OnObjectErased(object sender, ObjectErasedEventArgs e)
     {
-        _documentChange?.AddObjectChange(ChangeType.ObjectCreated, new AutocadDbObjectWrapper(e.DBObject));
+        _autocadGuard.Run(() => this.RecordObjectChange(ChangeType.ObjectErased, e.DBObject),
+            nameof(this.OnObjectErased));
+    }
+
+    /// <summary>
+    /// Adds a database object change to the change tracker.
+    /// </summary>
+    /// <remarks>
+    /// Reached from AutoCAD database reactors, which fire for every entity in a drawing
+    /// operation, so this is the highest-frequency managed/native boundary in the wrapper.
+    /// </remarks>
+    private void RecordObjectChange(ChangeType changeType, DBObject dbObject)
+    {
+        var dbObjectWrapper = new AutocadDbObjectWrapper(dbObject);
+
+        _documentChange?.AddObjectChange(changeType, dbObjectWrapper);
     }
 
     /// <inheritdoc/>
@@ -170,15 +199,27 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The dispatched work is guarded because this method is <c>async void</c>: it has no
+    /// caller to receive an exception, so one would be rethrown on the dispatcher and
+    /// terminate AutoCAD.
+    /// </remarks>
     public async void UpdateEditorScreen()
     {
-        await _dispatcher.InvokeAsync(_document.Editor.UpdateScreen, DispatcherPriority.ContextIdle);
+        await _dispatcher.InvokeAsync(
+            () => _autocadGuard.Run(_document.Editor.UpdateScreen, nameof(this.UpdateEditorScreen)),
+            DispatcherPriority.ContextIdle);
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Guarded for the same reason as <see cref="UpdateEditorScreen"/>.
+    /// </remarks>
     public async void Regenerate()
     {
-        await _dispatcher.InvokeAsync(_document.Editor.Regen, DispatcherPriority.ContextIdle);
+        await _dispatcher.InvokeAsync(
+            () => _autocadGuard.Run(_document.Editor.Regen, nameof(this.Regenerate)),
+            DispatcherPriority.ContextIdle);
     }
 
     /// <summary>
@@ -191,12 +232,6 @@ public class AutocadDocument : AutocadWrapperBase<Document>, IAutocadDocument
         DocumentChanged?.Invoke(this, eventArgs);
 
         _documentChange = new AutocadDocumentChange(this);
-    }
-
-    /// <inheritdoc/>
-    public IAutocadDocument ShallowClone()
-    {
-        return new AutocadDocument(_document, _dispatcher);
     }
 
     /// <inheritdoc/>
