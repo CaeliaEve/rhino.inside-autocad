@@ -1,5 +1,4 @@
 ﻿using Rhino.Inside.AutoCAD.Core.Interfaces;
-using System.Runtime.InteropServices;
 
 namespace Rhino.Inside.AutoCAD.Services;
 
@@ -8,9 +7,9 @@ public class InstallationDirectories : IInstallationDirectories
 {
     private const string _assemblyFolder = ApplicationConstants.AssemblyFolderName;
     private const string _resourcesFolderName = ApplicationConstants.ResourcesFolderName;
-    private const string _netFrameworkFilter = ApplicationConstants.NetFrameworkFilter;
     private const string _net48FolderName = ApplicationConstants.Net48FolderName;
     private const string _net8FolderName = ApplicationConstants.Net8FolderName;
+    private const string _net10FolderName = ApplicationConstants.Net10FolderName;
 
     /// <inheritdoc />
     public string RootInstallationLocation { get; }
@@ -52,15 +51,26 @@ public class InstallationDirectories : IInstallationDirectories
     }
 
     /// <summary>
-    /// Returns the framework folder name based on the current runtime framework.
-    /// In case of .NET Framework 4.8, returns "NET48", otherwise "NET8".
+    /// Returns the folder name of the deployed leg these assemblies were built for:
+    /// "NET48", "NET8" or "NET10".
     /// </summary>
+    /// <remarks>
+    /// Decided at compile time rather than from <c>RuntimeInformation.FrameworkDescription</c>,
+    /// because the runtime cannot tell the .NET legs apart: the NET8 leg is built to run
+    /// under .NET 10 as well, serving the 2025/2026 releases Autodesk moved to .NET 10
+    /// without changing their series. Reading the runtime instead sent the NET10 leg to the
+    /// NET8 folder, and since AutoCAD had already loaded the component libraries from NET10,
+    /// <see cref="System.Reflection.Assembly.LoadFrom(string)"/> refused the second copy and
+    /// the Grasshopper components never registered.
+    /// </remarks>
     public string GetFrameworkFolder()
     {
-        var description = RuntimeInformation.FrameworkDescription;
-
-        return description.StartsWith(_netFrameworkFilter, StringComparison.OrdinalIgnoreCase)
-            ? _net48FolderName
-            : _net8FolderName;
+#if NET10_0_OR_GREATER
+        return _net10FolderName;
+#elif NET8_0_OR_GREATER
+        return _net8FolderName;
+#else
+        return _net48FolderName;
+#endif
     }
 }

@@ -21,33 +21,35 @@ public class ApplicationConstants
     public const string AssemblyFolderName = "Win64";
 
     /// <summary>
-    /// Filter string used to detect .NET Framework runtime.
-    /// </summary>
-    /// <remarks>
-    /// Returns ".NET Framework" for .NET Framework 4.8, or ".NET" for .NET 8+.
-    /// Used during bootstrap to determine the correct assembly loading strategy.
-    /// </remarks>
-    /// <seealso cref="Net48FolderName"/>
-    /// <seealso cref="Net8FolderName"/>
-    public const string NetFrameworkFilter = ".NET Framework";
-
-    /// <summary>
     /// Folder name for .NET Framework 4.8 assemblies.
     /// </summary>
     /// <remarks>
     /// Value: "NET48". Used when running under AutoCAD versions targeting .NET Framework.
     /// </remarks>
     /// <seealso cref="Net8FolderName"/>
+    /// <seealso cref="Net10FolderName"/>
     public const string Net48FolderName = "NET48";
 
     /// <summary>
     /// Folder name for .NET 8 assemblies.
     /// </summary>
     /// <remarks>
-    /// Value: "NET8". Used when running under AutoCAD versions targeting .NET 8.
+    /// Value: "NET8". Used when running under AutoCAD versions targeting .NET 8, and under
+    /// the 2025/2026 releases Autodesk later moved to .NET 10 without changing their series.
     /// </remarks>
     /// <seealso cref="Net48FolderName"/>
+    /// <seealso cref="Net10FolderName"/>
     public const string Net8FolderName = "NET8";
+
+    /// <summary>
+    /// Folder name for .NET 10 assemblies.
+    /// </summary>
+    /// <remarks>
+    /// Value: "NET10". Used when running under AutoCAD 2027 (R26.0) and later.
+    /// </remarks>
+    /// <seealso cref="Net48FolderName"/>
+    /// <seealso cref="Net8FolderName"/>
+    public const string Net10FolderName = "NET10";
 
     /// <summary>
     /// Folder name for embedded application resources.

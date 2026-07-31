@@ -52,11 +52,17 @@
     <!--Logging : -Note Net4.8 is Higher-->
     <PackageVersion Include="Serilog" Version="4.2.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Serilog" Version="4.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
-    <!-- Serilog.Settings.Configuration 10.0.1 requires Serilog >= 4.3.0; NU1605 is an error here. -->
-    <PackageVersion Include="Serilog" Version="4.4.0" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
+    <!--
+      AutoCAD 2027 ships Serilog 4.0.0 in its own install folder, so the host has it loaded
+      before this plugin is; on .NET the app base wins and our copy is never bound. Every
+      Serilog package here must therefore satisfy 4.0.0, exactly as the NET8 leg does for
+      2025/2026. Serilog.Settings.Configuration 10.x wants >= 4.3.0 and its
+      SurrogateConfigurationMethods type initializer throws against 4.0.0.
+    -->
+    <PackageVersion Include="Serilog" Version="4.0.0" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Serilog.Settings.Configuration" Version="8.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
-    <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.1" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="8.0.0" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
