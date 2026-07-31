@@ -30,7 +30,7 @@ public class TrackedBakeComponent : RhinoInsideAutocad_CreateComponentBase, IBak
     public override Guid ComponentGuid => new Guid("A1847178-E9D4-4556-AC9F-91E50B6CE199");
 
     /// <inheritdoc />
-    protected override System.Drawing.Bitmap Icon => Properties.Resources.AutocadBakeComponent;
+    protected override System.Drawing.Bitmap Icon => Properties.Resources.AutocadBakeTrackedComponent;
 
     /// <inheritdoc />
     public int OutputParamTargetIndex => 0;
