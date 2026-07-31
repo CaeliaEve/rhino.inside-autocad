@@ -5,6 +5,7 @@ using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace Rhino.Inside.AutoCAD.UI.Resources.ViewModels;
@@ -55,6 +56,21 @@ public partial class SupportDialogViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     private string _rhinoInsideAutocadVersion = string.Empty;
+
+    /// <summary>
+    /// The .NET runtime hosting this process, for example ".NET 8.0.11" or
+    /// ".NET Framework 4.8.9300.0".
+    /// </summary>
+    /// <remarks>
+    /// Read from the process rather than passed in with the other versions: it is a
+    /// property of the host AutoCAD, not of anything this plugin loads. AutoCAD 2025 and
+    /// 2026 run on either .NET 8 or .NET 10 depending on how far the user has updated,
+    /// and the build alone does not tell them apart, so it is worth showing.
+    /// </remarks>
+    public string DotNetVersion { get; } =
+        string.IsNullOrWhiteSpace(RuntimeInformation.FrameworkDescription)
+            ? _notDetermined
+            : RuntimeInformation.FrameworkDescription;
 
     /// <summary>
     /// Indicates whether AutoCAD is up to date.

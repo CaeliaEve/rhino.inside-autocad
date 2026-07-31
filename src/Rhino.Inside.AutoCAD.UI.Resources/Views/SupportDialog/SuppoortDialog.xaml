@@ -623,6 +623,19 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <StackPanel Grid.Column="0"
+                                Grid.Row="5"
+                                Orientation="Horizontal">
+                        <TextBlock Text="Current .NET Version: "
+                                   Margin="3 0"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+
+                        <TextBlock Text="{Binding DotNetVersion}"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+                    </StackPanel>
+
                     <!-- The Action Button -->
                     <Button Grid.Row="6"
                             Content="Update Rhino.Inside.Autocad"
