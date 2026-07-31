@@ -46,7 +46,7 @@ public class TrackedBakeComponent : RhinoInsideAutocad_CreateComponentBase, IBak
     /// Initializes a new instance of the <see cref="TrackedBakeComponent"/> class.
     /// </summary>
     public TrackedBakeComponent()
-        : base("Tracked Bake", "AC-TBake",
+        : base("Tracked Bake to AutoCAD", "AC-TBake",
             "Bakes objects to AutoCAD's model space and tracks them, replacing previously baked objects when the inputs change",
             "AutoCAD", "Baking")
     {
