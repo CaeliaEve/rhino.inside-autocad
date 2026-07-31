@@ -20,6 +20,7 @@
 			<ComponentRef Id="Toolbar" />
 			<ComponentRef Id="Net48" />
 			<ComponentRef Id="Net8" />
+			<ComponentRef Id="Net10" />
 		</Feature>
 
 		<ui:WixUI

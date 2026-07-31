@@ -1,4 +1,4 @@
-#if DEBUGNET8 || RELEASENET8
+#if NET8_0_OR_GREATER
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 

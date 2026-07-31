@@ -50,28 +50,23 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
 
         var settingsManager = new SettingManager(applicationDirectories);
 
-        var applicationDirectories = bootstrapper.InstallationDirectories;
-
-        var settingManager = new SettingManager(applicationDirectories);
-
         var rhinoInstance = new RhinoInstance(applicationDirectories);
 
         var autocadInstance = new AutoCadInstance(bootstrapper.Dispatcher);
 
- 	var grasshopperInstance = new GrasshopperInstance(applicationDirectories,
+        var grasshopperInstance = new GrasshopperInstance(applicationDirectories,
             autocadInstance.IsCivil3d);
 
-
- 	var brepConverterRunner = new BrepConverterRunner();
-
         var rhinoInsideManager = new RhinoInsideManager(rhinoInstance, grasshopperInstance,
-	 autocadInstance,settingsManager.User.Settings);
-	this.Bootstrapper = bootstrapper;
+            autocadInstance, settingsManager.User.Settings);
 
-	this.ApplicationConfig = applicationConfig;
+        var brepConverterRunner = new BrepConverterRunner();
 
-	this.SettingManager = settingsManager;
+        this.Bootstrapper = bootstrapper;
 
+        this.ApplicationConfig = applicationConfig;
+
+        this.SettingsManager = settingsManager;
 
         this.RhinoInsideManager = rhinoInsideManager;
 
@@ -79,6 +74,7 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
 
         this.LoadMaterialDesign(applicationDirectories);
 
+        // Last: it captures this, so every property above must already be assigned.
         this.SupportDialogManager = new SupportDialogManager(this);
     }
 

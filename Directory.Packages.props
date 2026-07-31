@@ -10,6 +10,7 @@
     <!-- Civil3D API nugets -->
     <PackageVersion Include="Civil3D.NET" Version="13.6.1781" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Civil3D.NET" Version="13.8.1516" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <PackageVersion Include="Civil3D.NET" Version="13.9.628" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <!-- AutoCAD API nugets -->
     <PackageVersion Include="AutoCAD.NET.Model" Version="24.3.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="AutoCAD.NET.Core" Version="24.3.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
@@ -17,6 +18,9 @@
     <PackageVersion Include="AutoCAD.NET.Model" Version="25.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
     <PackageVersion Include="AutoCAD.NET.Core" Version="25.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
     <PackageVersion Include="AutoCAD.NET" Version="25.0.1" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <PackageVersion Include="AutoCAD.NET.Model" Version="26.0.0" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
+    <PackageVersion Include="AutoCAD.NET.Core" Version="26.0.0" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
+    <PackageVersion Include="AutoCAD.NET" Version="26.0.0" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <!-- Rhino API nugets -->
     <PackageVersion Include="RhinoCommon" Version="8.0.23304.9001" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="RhinoWindows" Version="7.36.23346.16351" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
@@ -24,6 +28,15 @@
     <PackageVersion Include="RhinoCommon" Version="8.26.25349.19001" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
     <PackageVersion Include="RhinoWindows" Version="8.27.25357.11371-rc" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
     <PackageVersion Include="Grasshopper" Version="8.26.25349.19001" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <!--
+      The NET10 leg compiles against the Rhino 8 API surface, exactly as the NET8 leg does.
+      That surface hosts Rhino 8 and Rhino 9 alike - which Rhino is loaded is decided at
+      runtime by RhinoInstallationLocator, not by this reference. 8.32 is the first service
+      release McNeel support in a .NET 10 host.
+    -->
+    <PackageVersion Include="RhinoCommon" Version="8.32.26160.13001" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
+    <PackageVersion Include="RhinoWindows" Version="8.32.26160.13001" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
+    <PackageVersion Include="Grasshopper" Version="8.32.26160.13001" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <!-- Material Design Themes -->
     <PackageVersion Include="MaterialDesignThemes" Version="4.9.0" />
     <!-- Infrastrucure -->
@@ -32,19 +45,25 @@
     <!-- Text.JSON nuget  : -Note Net4.8 is Higher-->
     <PackageVersion Include="System.Text.Json" Version="9.0.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="System.Text.Json" Version="8.0.5" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.10" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <!-- Deployment -->
     <PackageVersion Include="WixToolset.UI.wixext" Version="6.0.2" />
 	  <PackageVersion Include="Microsoft.Bcl.HashCode" version="1.1.1" />
     <!--Logging : -Note Net4.8 is Higher-->
     <PackageVersion Include="Serilog" Version="4.2.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Serilog" Version="4.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <!-- Serilog.Settings.Configuration 10.0.1 requires Serilog >= 4.3.0; NU1605 is an error here. -->
+    <PackageVersion Include="Serilog" Version="4.4.0" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Serilog.Settings.Configuration" Version="8.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.1" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageVersion Include="System.Drawing.Common" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.10" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
   </ItemGroup>
 </Project>

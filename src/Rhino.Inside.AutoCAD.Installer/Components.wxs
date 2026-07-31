@@ -136,6 +136,7 @@
 
 				<File Id="RhinoInsideAutocad_Toolbar_NET48.cuix" Name="RhinoInsideAutocad_Toolbar_NET48.cuix" DiskId="1" Source="$(var.ToolbarDirectory)RhinoInsideAutocad_Toolbar_NET48.cuix" Vital="yes" />
 				<File Id="RhinoInsideAutocad_Toolbar_NET8.cuix" Name="RhinoInsideAutocad_Toolbar_NET8.cuix" DiskId="1" Source="$(var.ToolbarDirectory)RhinoInsideAutocad_Toolbar_NET8.cuix" Vital="yes" />
+				<File Id="RhinoInsideAutocad_Toolbar_NET10.cuix" Name="RhinoInsideAutocad_Toolbar_NET10.cuix" DiskId="1" Source="$(var.ToolbarDirectory)RhinoInsideAutocad_Toolbar_NET10.cuix" Vital="yes" />
 		
 			</Component>
 		</DirectoryRef>
@@ -289,6 +290,68 @@
 				<File Id="System.ServiceModel.Primitives.6.0NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Primitives.6.0.dll" Vital="yes" />
 				<File Id="System.ServiceModel.Primitives.8.0NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Primitives.8.0.dll" Vital="yes" />
 				<File Id="System.ServiceModel.Primitives.8.1NET8.dll" Source="$(var.AssembliesDirectoryNET8)System.ServiceModel.Primitives.8.1.dll" Vital="yes" />
+
+			</Component>
+		</DirectoryRef>
+
+		<DirectoryRef Id="NET10Folder">
+			<!-- Assemblies -->
+			<Component Id="Net10" Guid="$(var.Net10Id)"
+			           Bitness="$(var.Bitness)">
+
+
+				<RegistryValue Root='HKCU'
+				               Key="$(var.RegistryKey)"
+				               Name='InstallationPath'
+				               Value="$(var.InstallLocationAssemblies)"
+				               Type='string'
+				               KeyPath='yes'/>
+
+				<RemoveRegistryKey Root="HKCU"
+				                   Key="$(var.RegistryKey)" Action="removeOnUninstall" />
+
+				<RemoveFolder Id='RemoveNet10Folder' On='uninstall' />
+
+				<!-- Net 10 Assemblies -->
+				<File Id="SerilogNET10.dll" Source="$(var.AssembliesDirectoryNET10)Serilog.dll" Vital="yes" />
+				<File Id="Serilog.Settings.ConfigurationNET10.dll" Source="$(var.AssembliesDirectoryNET10)Serilog.Settings.Configuration.dll" Vital="yes" />
+				<File Id="Serilog.Sinks.FileNET10.dll" Source="$(var.AssembliesDirectoryNET10)Serilog.Sinks.File.dll" Vital="yes" />
+				<File Id="CommunityToolkit.MvvmNET10.dll" Source="$(var.AssembliesDirectoryNET10)CommunityToolkit.Mvvm.dll" Vital="yes" />
+				<File Id="MaterialDesignColorsNET10.dll" Source="$(var.AssembliesDirectoryNET10)MaterialDesignColors.dll" Vital="yes" />
+				<File Id="MaterialDesignThemes.WpfNET10.dll" Source="$(var.AssembliesDirectoryNET10)MaterialDesignThemes.Wpf.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.Configuration.AbstractionsNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.Configuration.Abstractions.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.Configuration.BinderNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.Configuration.Binder.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.ConfigurationNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.Configuration.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.Configuration.FileExtensionsNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.Configuration.FileExtensions.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.Configuration.JsonNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.Configuration.Json.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.DependencyModelNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.DependencyModel.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.FileProviders.AbstractionsNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.FileProviders.Abstractions.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.FileProviders.PhysicalNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.FileProviders.Physical.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.FileSystemGlobbingNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.FileSystemGlobbing.dll" Vital="yes" />
+				<File Id="Microsoft.Extensions.PrimitivesNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Extensions.Primitives.dll" Vital="yes" />
+				<File Id="Microsoft.Xaml.BehaviorsNET10.dll" Source="$(var.AssembliesDirectoryNET10)Microsoft.Xaml.Behaviors.dll" Vital="yes" />
+				<File Id="NaturalSort.ExtensionNET10.dll" Source="$(var.AssembliesDirectoryNET10)NaturalSort.Extension.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.ApplicationsNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.Applications.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.CoreNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.Core.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.GrasshopperLibraryNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.GrasshopperLibrary.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.InteropNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.Interop.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.ServicesNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.Services.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.UI.ResourcesNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.UI.Resources.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.Civil.GrasshopperLibraryNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll" Vital="yes" />
+				<File Id="Rhino.Inside.AutoCAD.Civil.InteropNET10.dll" Source="$(var.AssembliesDirectoryNET10)Rhino.Inside.AutoCAD.Civil.Interop.dll" Vital="yes" />
+
+				<!-- WCF client assemblies for LAN Zoo licensing. Net8/Net10 ONLY: the Interop csproj copies these
+				     into the NET8 output alone, and .NET Framework (NET48) hosts already provide
+				     System.ServiceModel via the GAC. RhinoCoreExtension loads the base + matching Http
+				     transport from this folder at runtime, choosing the 6.0 / 8.0 / 8.1 family by the host's
+				     AutoCAD version, so all three families must be present. -->
+				<File Id="System.ServiceModelNET10.dll" Source="$(var.AssembliesDirectoryNET10)System.ServiceModel.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Http.6.0NET10.dll" Source="$(var.AssembliesDirectoryNET10)System.ServiceModel.Http.6.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Http.8.0NET10.dll" Source="$(var.AssembliesDirectoryNET10)System.ServiceModel.Http.8.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Http.8.1NET10.dll" Source="$(var.AssembliesDirectoryNET10)System.ServiceModel.Http.8.1.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Primitives.6.0NET10.dll" Source="$(var.AssembliesDirectoryNET10)System.ServiceModel.Primitives.6.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Primitives.8.0NET10.dll" Source="$(var.AssembliesDirectoryNET10)System.ServiceModel.Primitives.8.0.dll" Vital="yes" />
+				<File Id="System.ServiceModel.Primitives.8.1NET10.dll" Source="$(var.AssembliesDirectoryNET10)System.ServiceModel.Primitives.8.1.dll" Vital="yes" />
 
 			</Component>
 		</DirectoryRef>

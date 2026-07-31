@@ -68,7 +68,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
                 IsExpired = true;
             }
 
-#if DEBUGNET8 || DEGBUG
+#if DEBUG
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var asm in loadedAssemblies)
             {
@@ -85,6 +85,11 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             var applicationConfig = new RhinoInsideAutoCadApplicationConfig();
 
             var bootstrapper = new Bootstrapper(new AutocadBootstrapperConfig(applicationConfig));
+
+            // Bootstrapping initialises LoggerService, so anything RhinoCoreExtension
+            // recorded before this point is still only in memory. Drain it now, otherwise
+            // the earliest start-up failures never reach the log file.
+            RhinoCoreExtension.Instance.StartUpLogger.Flush();
 
             // Decide which Rhino to run, then register the AssemblyResolve handlers which
             // load it. Both must happen before any code references a RhinoCommon type,

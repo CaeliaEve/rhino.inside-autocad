@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>$(TargetFrameworkName)</TargetFramework>
-		<Configurations>Release;Debug;ReleaseNET8;DebugNET8</Configurations>
+		<Configurations>Release;Debug;ReleaseNET8;DebugNET8;ReleaseNET10;DebugNET10</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<OutputType>Library</OutputType>
 		<Nullable>enable</Nullable>
@@ -69,7 +69,7 @@
 	<!-- WCF client assemblies for LAN Zoo licensing on .NET 8 hosts. AutoCAD ships only
 	     System.ServiceModel.Primitives (6.0 in 2025, 8.0 and 8.1 in 2026), so the matching
 	     HTTP transport is shipped with the plugin and resolved at runtime by RhinoCoreExtension. -->
-	<ItemGroup Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'">
+	<ItemGroup Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8' Or '$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'">
 	  <None Include="WCF\System.ServiceModel.dll" CopyToOutputDirectory="PreserveNewest" Link="System.ServiceModel.dll" />
 	  <None Include="WCF\System.ServiceModel.Http.6.0.dll" CopyToOutputDirectory="PreserveNewest" Link="System.ServiceModel.Http.6.0.dll" />
 	  <None Include="WCF\System.ServiceModel.Primitives.6.0.dll" CopyToOutputDirectory="PreserveNewest" Link="System.ServiceModel.Primitives.6.0.dll" />
@@ -79,8 +79,8 @@
 	  <None Include="WCF\System.ServiceModel.Primitives.8.1.dll" CopyToOutputDirectory="PreserveNewest" Link="System.ServiceModel.Primitives.8.1.dll" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">
-		<DefineConstants>DEBUG;DEBUGNET8;TRACE</DefineConstants>
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'DebugNET10'">
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
 		<Optimize>false</Optimize>
 		<DebugType>full</DebugType>
 		<DebugSymbols>true</DebugSymbols>

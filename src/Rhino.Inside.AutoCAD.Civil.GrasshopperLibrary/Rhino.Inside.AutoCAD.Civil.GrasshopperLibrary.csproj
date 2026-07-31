@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>$(TargetFrameworkName)</TargetFramework>
 
-		<Configurations>Release;Debug;ReleaseNET8;DebugNET8</Configurations>
+		<Configurations>Release;Debug;ReleaseNET8;DebugNET8;ReleaseNET10;DebugNET10</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<OutputType>Library</OutputType>
 		<Nullable>enable</Nullable>
@@ -96,8 +96,8 @@
 		<StartAction>Program</StartAction>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8'">
-		<DefineConstants>DEBUG;DEBUGNET8;TRACE</DefineConstants>
+	<PropertyGroup Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'DebugNET10'">
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
 		<Optimize>false</Optimize>
 		<DebugType>full</DebugType>
 		<DebugSymbols>true</DebugSymbols>

@@ -85,7 +85,7 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     {
         SelectedInstallation = installation;
 
-#if DEBUGNET8
+#if DEBUG && NET8_0_OR_GREATER
         // DEBUG ONLY: Registered before the resolvers below so it observes every request.
         ZooLicenseDiagnostics.Install();
 #endif
@@ -95,7 +95,7 @@ public class RhinoCoreExtension : IRhinoCoreExtension
 
         RegisterAssemblyResolver(_rhinoCommonAssemblyName, installation.RhinoCommonPath);
 
-#if DEBUGNET8 || RELEASENET8
+#if NET8_0_OR_GREATER
         // Rhino.UI and Mono.Cecil sit alongside RhinoCommon in the netcore subfolder.
         var assemblyDir = installation.AssemblyDirectory;
 
@@ -222,7 +222,7 @@ public class RhinoCoreExtension : IRhinoCoreExtension
                 string.Format(_rhinoSchemeArgumentFormat, schemeName)
             };
 
-#if DEBUGNET8 || RELEASENET8
+#if NET8_0_OR_GREATER
             args.Add("/netcore");
 #else
             args.Add("/netfx");

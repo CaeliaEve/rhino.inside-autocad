@@ -21,7 +21,7 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     /// </summary>
     protected IComponentVersion Version { get; private set; }
 
-#if DEBUG || DEBUGNET8
+#if DEBUG
     /// <summary>
     /// Adds versioning information to the instance description in debug builds.
     /// </summary>

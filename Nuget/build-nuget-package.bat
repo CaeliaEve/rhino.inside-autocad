@@ -4,10 +4,11 @@ setlocal EnableDelayedExpansion
 rem ============================================================
 rem  build-nuget-package.bat
 rem
-rem  Builds two NuGet packages that bundle the six first-party
+rem  Builds three NuGet packages that bundle the six first-party
 rem  Rhino.Inside.AutoCAD assemblies:
 rem      Rhino.Inside.AutoCAD.NET48  (lib\net48)
 rem      Rhino.Inside.AutoCAD.NET8   (lib\net8.0-windows)
+rem      Rhino.Inside.AutoCAD.NET10  (lib\net10.0-windows)
 rem
 rem  Third-party libraries are declared as <dependencies> in the
 rem  .nuspec files (NOT bundled). Host APIs (RhinoCommon,
@@ -92,9 +93,10 @@ if not exist "%NUGET%" (
 echo NuGet     : %NUGET%
 
 rem ------------------------------------------------------------
-rem 3. Build both configurations.
-rem      Release      -> net48
-rem      ReleaseNET8  -> net8.0-windows
+rem 3. Build all three configurations.
+rem      Release       -> net48
+rem      ReleaseNET8   -> net8.0-windows
+rem      ReleaseNET10  -> net10.0-windows
 rem
 rem    Building Applications + Civil.Interop transitively builds
 rem    all six target projects via their ProjectReferences. The
@@ -105,6 +107,7 @@ rem    reason).
 rem ------------------------------------------------------------
 call :build Release      || goto :fail
 call :build ReleaseNET8  || goto :fail
+call :build ReleaseNET10 || goto :fail
 
 rem ------------------------------------------------------------
 rem 4. Stage the six first-party DLLs (only) per framework.
@@ -112,6 +115,7 @@ rem ------------------------------------------------------------
 if exist "%STAGING%" rd /s /q "%STAGING%"
 call :stage Release      net48           net48 || goto :fail
 call :stage ReleaseNET8  net8.0-windows  net8  || goto :fail
+call :stage ReleaseNET10 net10.0-windows net10 || goto :fail
 
 rem ------------------------------------------------------------
 rem 5. Pack.
@@ -124,11 +128,14 @@ echo --- Packing ---
 if errorlevel 1 ( echo ERROR: packing NET48 failed. & goto :fail )
 "%NUGET%" pack "%SCRIPT_DIR%Rhino.Inside.AutoCAD.NET8.nuspec" -BasePath "%STAGING%\net8" -Version %VERSION% -OutputDirectory "%OUTPUT%"
 if errorlevel 1 ( echo ERROR: packing NET8 failed. & goto :fail )
+"%NUGET%" pack "%SCRIPT_DIR%Rhino.Inside.AutoCAD.NET10.nuspec" -BasePath "%STAGING%\net10" -Version %VERSION% -OutputDirectory "%OUTPUT%"
+if errorlevel 1 ( echo ERROR: packing NET10 failed. & goto :fail )
 
 echo(
 echo === Done ===
 echo   %OUTPUT%\Rhino.Inside.AutoCAD.NET48.%VERSION%.nupkg
 echo   %OUTPUT%\Rhino.Inside.AutoCAD.NET8.%VERSION%.nupkg
+echo   %OUTPUT%\Rhino.Inside.AutoCAD.NET10.%VERSION%.nupkg
 echo(
 pause
 endlocal
