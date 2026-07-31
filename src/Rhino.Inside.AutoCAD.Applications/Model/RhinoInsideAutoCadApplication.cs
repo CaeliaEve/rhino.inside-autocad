@@ -4,7 +4,6 @@ using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Rhino.Inside.AutoCAD.Applications;
 
@@ -48,7 +47,7 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
     {
         var applicationDirectories = bootstrapper.InstallationDirectories;
 
-	var settingsManager = new SettingManager(applicationDirectories);
+        var settingsManager = new SettingManager(applicationDirectories);
 
         var rhinoInstance = new RhinoInstance(applicationDirectories);
 
@@ -57,11 +56,10 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
         var grasshopperInstance = new GrasshopperInstance(applicationDirectories,
             autocadInstance.IsCivil3d);
 
-	var brepConverterRunner = new BrepConverterRunner();
+        var brepConverterRunner = new BrepConverterRunner();
 
-	var rhinoInsideManager = new RhinoInsideManager(rhinoInstance, grasshopperInstance, 
-autocadInstance,settingsManager.User.Settings);
-
+        var rhinoInsideManager = new RhinoInsideManager(rhinoInstance, grasshopperInstance,
+            autocadInstance, settingsManager.User.Settings);
 
         this.SettingsManager = settingsManager;
 
@@ -69,8 +67,7 @@ autocadInstance,settingsManager.User.Settings);
 
         this.ApplicationConfig = applicationConfig;
 
-
-       this.RhinoInsideManager = rhinoInsideManager;
+        this.RhinoInsideManager = rhinoInsideManager;
 
         this.LoadMaterialDesign(applicationDirectories);
 
