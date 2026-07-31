@@ -18,7 +18,6 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperBase<TransactionMa
 {
     private readonly Document _document;
     private readonly Database _database;
-    private readonly DwgVersion _dwgVersion = DwgVersion.Current;
 
     /// <inheritdoc/>
     public IObjectId BlockTableId { get; }
@@ -31,9 +30,6 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperBase<TransactionMa
 
     /// <inheritdoc/>
     public IObjectId LinetypeTableId { get; }
-
-    /// <inheritdoc/>
-    public IObjectId RegAppTableId { get; }
 
     /// <inheritdoc/>
     public IAutocadDatabase AutocadDatabase => new AutocadDatabaseWrapper(_database);
@@ -57,8 +53,6 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperBase<TransactionMa
         _database = database;
 
         this.BlockTableId = new AutocadObjectIdWrapper(database.BlockTableId);
-
-        this.RegAppTableId = new AutocadObjectIdWrapper(database.RegAppTableId);
 
         this.LayoutDictionaryId = new AutocadObjectIdWrapper(database.LayoutDictionaryId);
 
@@ -89,18 +83,6 @@ public class AutocadTransactionManagerWrapper : AutocadWrapperBase<TransactionMa
         var blockTableRecord = (BlockTableRecord)blockModelSpaceId.GetObject(openMode);
 
         return new AutocadBlockTableRecordWrapper(blockTableRecord);
-    }
-
-    /// <inheritdoc/>
-    public void SaveDatabase(IAutocadDocument document)
-    {
-        var filePath = _database.Filename;
-
-        if (document.IsReadOnly || string.IsNullOrEmpty(filePath)) return;
-
-        var securityParameters = _database.SecurityParameters;
-
-        _database.SaveAs(filePath, true, _dwgVersion, securityParameters);
     }
 
     /// <inheritdoc/>

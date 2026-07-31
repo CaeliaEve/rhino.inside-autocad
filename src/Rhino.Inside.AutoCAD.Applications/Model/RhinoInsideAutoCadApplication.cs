@@ -48,11 +48,7 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
     {
         var applicationDirectories = bootstrapper.InstallationDirectories;
 
-        this.SettingsManager = new SettingManager(applicationDirectories);
-
-        this.Bootstrapper = bootstrapper;
-
-        this.ApplicationConfig = applicationConfig;
+	var settingsManager = new SettingManager(applicationDirectories);
 
         var rhinoInstance = new RhinoInstance(applicationDirectories);
 
@@ -61,14 +57,26 @@ public class RhinoInsideAutoCadApplication : IRhinoInsideAutoCadApplication
         var grasshopperInstance = new GrasshopperInstance(applicationDirectories,
             autocadInstance.IsCivil3d);
 
-        this.RhinoInsideManager = new RhinoInsideManager(rhinoInstance, grasshopperInstance,
-            autocadInstance, this.SettingsManager.User.Settings);
+	var brepConverterRunner = new BrepConverterRunner();
 
-        this.BrepConverterRunner = new BrepConverterRunner();
+	var rhinoInsideManager = new RhinoInsideManager(rhinoInstance, grasshopperInstance, 
+autocadInstance,settingsManager.User.Settings);
+
+
+        this.SettingsManager = settingsManager;
+
+        this.Bootstrapper = bootstrapper;
+
+        this.ApplicationConfig = applicationConfig;
+
+
+       this.RhinoInsideManager = rhinoInsideManager;
 
         this.LoadMaterialDesign(applicationDirectories);
 
         this.SupportDialogManager = new SupportDialogManager(this);
+
+        this.BrepConverterRunner = brepConverterRunner;
     }
 
     /// <summary>

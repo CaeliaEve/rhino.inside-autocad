@@ -20,11 +20,6 @@ public class InteropConstants
     public const UnitSystem FallbackUnitSystem = UnitSystem.Millimeters;
 
     /// <summary>
-    /// The internal name of the application.
-    /// </summary>
-    public const string ApplicationName = "RHINO.INSIDE.AUTOCAD";
-
-    /// <summary>
     /// The length in <see cref="IUnitConverter.RhinoUnits"/> of a pattern point
     /// in a <see cref="IAutocadLinetypeTableRecord"/> that is 0-length. The length is used to represent
     /// the point as a line internally.

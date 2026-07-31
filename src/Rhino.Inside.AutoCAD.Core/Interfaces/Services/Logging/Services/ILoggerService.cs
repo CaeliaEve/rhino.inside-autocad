@@ -19,6 +19,12 @@ public interface ILoggerService
     void LogError(Exception ex, string optionalExtraMessage = "");
 
     /// <summary>
+    /// Logs an error that has no associated exception, such as a failed validation.
+    /// </summary>
+    /// <param name="message">The message to log.</param>
+    void LogError(string message);
+
+    /// <summary>
     /// Shuts down the logger and releases resources.
     /// </summary>
     void Shutdown();
