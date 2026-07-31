@@ -36,4 +36,11 @@ public interface IGrasshopperObjectPreviewServer
     /// "IGrasshopperObjectPreviewServer"/>.
     /// </summary>
     void RemoveObject(Guid rhinoObjectId);
+
+    /// <summary>
+    /// Redraws every previewed entity with the current <see cref="UnSelectedSettings"/>,
+    /// so a change to those settings is seen immediately. The current
+    /// <see cref="PreviewMode"/> is preserved.
+    /// </summary>
+    void RefreshAppearance();
 }

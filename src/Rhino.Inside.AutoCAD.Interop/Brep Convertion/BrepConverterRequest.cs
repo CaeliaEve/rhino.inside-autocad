@@ -12,6 +12,9 @@ public class BrepConverterRequest : IBrepConverterRequest
     /// <inheritdoc />
     public Func<IBrepConverterResult, bool> Callback { get; }
 
+    /// <inheritdoc />
+    public IBakeSettings? Settings { get; }
+
     /// <summary>
     /// Constructs a new <see cref="IBrepConverterRequest"/>
     /// </summary>
@@ -21,9 +24,13 @@ public class BrepConverterRequest : IBrepConverterRequest
     /// <param name="callback">
     /// A callback function invoked once the conversion has occured.
     /// </param>
-    public BrepConverterRequest(Brep brep, Func<IBrepConverterResult, bool> callback)
+    /// <param name="settings">
+    /// Optional bake settings (layer, linetype, color) applied to the converted entities.
+    /// </param>
+    public BrepConverterRequest(Brep brep, Func<IBrepConverterResult, bool> callback, IBakeSettings? settings = null)
     {
         this.BrepToConvert = brep;
         this.Callback = callback;
+        this.Settings = settings;
     }
 }

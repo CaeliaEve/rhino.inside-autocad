@@ -1,29 +1,51 @@
+using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Parameters;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using System.Collections;
 using Exception = System.Exception;
-using RhinoArc = Rhino.Geometry.Arc;
-using RhinoArcCurve = Rhino.Geometry.ArcCurve;
-using RhinoBox = Rhino.Geometry.Box;
-using RhinoBrep = Rhino.Geometry.Brep;
-using RhinoCircle = Rhino.Geometry.Circle;
-using RhinoGeometryBase = Rhino.Geometry.GeometryBase;
-using RhinoLine = Rhino.Geometry.Line;
-using RhinoLineCurve = Rhino.Geometry.LineCurve;
-using RhinoPoint = Rhino.Geometry.Point;
-using RhinoPoint3d = Rhino.Geometry.Point3d;
-using RhinoRectangle3d = Rhino.Geometry.Rectangle3d;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 
 /// <summary>
 /// A Grasshopper component that bakes AutoCAD objects to the model space.
+/// The bake is triggered by the Bake button shown on the component when the
+/// "Driven Button" context menu toggle is enabled (the default), or by the "Bake"
+/// boolean input that takes the button's place when the toggle is disabled.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.17")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingComponent
 {
+    private const string DrivenButtonEnabledKey = GrasshopperKeys.DrivenButtonEnabled;
+    private const string DrivenButtonMenuItemText = GrasshopperMessages.DrivenButtonMenuItem;
+    private const string DrivenButtonTooltipText = GrasshopperMessages.DrivenButtonTooltip;
+    private const int BakeParamIndex = 3;
+
+    private bool _drivenButtonEnabled = true;
+
+    // Data dam: the Bake button only runs the bake on the solve it triggered
+    // (which sets _manualRunRequested). Any other expiration (input change) is
+    // driven by the Bake input alone.
+    private bool _manualRunRequested;
+
+    /// <summary>
+    /// Gets a value indicating whether the Bake button is shown on the component.
+    /// The button and the Bake input are alternatives: when the button is shown the
+    /// input is not registered, and when it is hidden the input takes its place.
+    /// </summary>
+    public bool DrivenButtonEnabled => _drivenButtonEnabled;
+
+    /// <summary>
+    /// Gets a value indicating whether the Bake input is currently registered.
+    /// </summary>
+    /// <remarks>
+    /// The input is the last of the component's parameters, so its presence is the
+    /// only thing that can lengthen the list beyond <see cref="BakeParamIndex"/>.
+    /// </remarks>
+    private bool HasBakeInput => this.Params.Input.Count > BakeParamIndex;
+
     /// <inheritdoc />
     public override Guid ComponentGuid => new Guid("C5D7E9F1-A3B5-4C7D-9E1F-3A5B7C9D1E3F");
 
@@ -44,6 +66,12 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
     }
 
     /// <inheritdoc />
+    public override void CreateAttributes()
+    {
+        m_attributes = new AutocadBakeComponentAttributes(this);
+    }
+
+    /// <inheritdoc />
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddParameter(new Param_AutocadDocument(GH_ParamAccess.item), "Document",
@@ -58,9 +86,60 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
             "S", "Optional bake settings (layer, linetype, color)", GH_ParamAccess.item);
         pManager[2].Optional = true;
 
-        pManager.AddBooleanParameter("Bake", "Bake",
-            "A boolean when true the Objects will be baked to AutoCAD", GH_ParamAccess.item);
+        // Registered only when the button is not shown: the field initialiser has already
+        // run by the time the base constructor calls this, so the toggle is readable here.
+        if (_drivenButtonEnabled == false)
+        {
+            var bakeParam = CreateBakeParam();
+            pManager.AddParameter(bakeParam);
+        }
+    }
 
+    /// <summary>
+    /// Creates the Bake input parameter.
+    /// </summary>
+    /// <remarks>
+    /// The parameter is registered and unregistered as the Driven Button toggle changes,
+    /// so it is described here rather than inline in <see cref="RegisterInputParams"/>
+    /// where only the initial registration would see it.
+    /// </remarks>
+    private static Param_Boolean CreateBakeParam()
+    {
+        var bakeParam = new Param_Boolean
+        {
+            Name = "Bake",
+            NickName = "Bake",
+            Description = "A boolean when true the Objects will be baked to AutoCAD",
+            Access = GH_ParamAccess.item,
+            Optional = true
+        };
+
+        return bakeParam;
+    }
+
+    /// <summary>
+    /// Registers or unregisters the Bake input so that exactly one of the input and the
+    /// Bake button is present on the component.
+    /// </summary>
+    private void SyncBakeInput()
+    {
+        var bakeInputRequired = _drivenButtonEnabled == false;
+
+        if (bakeInputRequired == this.HasBakeInput)
+            return;
+
+        if (bakeInputRequired)
+        {
+            var bakeParam = CreateBakeParam();
+            this.Params.RegisterInputParam(bakeParam, BakeParamIndex);
+        }
+        else
+        {
+            var bakeParam = this.Params.Input[BakeParamIndex];
+            this.Params.UnregisterInputParameter(bakeParam);
+        }
+
+        this.Params.OnParametersChanged();
     }
 
     /// <inheritdoc />
@@ -70,75 +149,21 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
             "Ids", "The ObjectIds of the baked objects", GH_ParamAccess.list);
     }
 
-    /// <summary>
-    /// Wraps a Rhino <see cref="RhinoGeometryBase"/> in an <see cref="IAutocadBakeable"/>
-    /// using the convertible factory, or returns <c>null</c> if it cannot be converted.
-    /// </summary>
-    private IAutocadBakeable? Convert(RhinoGeometryBase? geometry, IRhinoConvertibleFactory factory)
-    {
-        if (geometry is null)
-            return null;
-
-        if (factory.MakeConvertible(geometry, out var rhinoConvertible) == false)
-            return null;
-
-        return new BakableRhinoConverter(rhinoConvertible!);
-    }
-
-    /// <summary>
-    /// Extracts an <see cref="IAutocadBakeable"/> from the input object.
-    /// </summary>
-    private IAutocadBakeable? ExtractBakeable(object? obj, IRhinoConvertibleFactory factory)
-    {
-        if (obj is IAutocadBakeable bakeable)
-            return bakeable;
-
-        if (obj is Grasshopper.Kernel.Types.IGH_Goo goo)
-        {
-            var valueProperty = goo.GetType().GetProperty("Value");
-
-            if (valueProperty != null)
-            {
-                var value = valueProperty.GetValue(goo);
-
-                if (value is IAutocadBakeable valueBakeable)
-                    return valueBakeable;
-
-                // Several Grasshopper primitives expose a value-type struct as their Value
-                // (Line, Arc, Circle, Rectangle3d, Point3d, Box) which is not a GeometryBase.
-                // Normalize these into the appropriate bakeable, mirroring the conversions used
-                // by GrasshopperGeometryExtractor for previews. Breps (and Boxes, which become
-                // Breps) bake via GH_AutocadBrepProxy; everything else via the convertible factory.
-                var valueBakeableResult = value switch
-                {
-                    RhinoLine line => this.Convert(new RhinoLineCurve(line), factory),
-                    RhinoArc arc => this.Convert(new RhinoArcCurve(arc), factory),
-                    RhinoCircle circle => this.Convert(new RhinoArcCurve(circle), factory),
-                    RhinoRectangle3d rectangle => this.Convert(rectangle.ToNurbsCurve(), factory),
-                    RhinoPoint3d point => this.Convert(new RhinoPoint(point), factory),
-                    RhinoBox box => new GH_AutocadBrepProxy(box.ToBrep()),
-                    RhinoBrep brep => new GH_AutocadBrepProxy(brep),
-                    RhinoGeometryBase nativeGeometry => this.Convert(nativeGeometry, factory),
-                    _ => null
-                };
-
-                if (valueBakeableResult is not null)
-                    return valueBakeableResult;
-            }
-
-            if (goo is IAutocadBakeable gooBakeable)
-                return gooBakeable;
-
-        }
-
-        return null;
-    }
-
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        var run = false;
-        DA.GetData(3, ref run);
+        // The Bake button triggers a bake on the solve it requested; the Bake input,
+        // which is only registered when the button is hidden, drives every other solve.
+        var run = _manualRunRequested;
+        _manualRunRequested = false;
+
+        if (this.HasBakeInput)
+        {
+            var bakeInput = false;
+            DA.GetData(BakeParamIndex, ref bakeInput);
+
+            run |= bakeInput;
+        }
 
         if (run == false)
         {
@@ -166,11 +191,12 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
         var settings = settingsGoo?.Value;
 
         var converterFactory = new RhinoConvertibleFactory();
+        var bakeableExtractor = new BakeableExtractor(converterFactory);
 
         var bakeables = new List<IAutocadBakeable>();
         foreach (var obj in objects)
         {
-            var bakeable = this.ExtractBakeable(obj, converterFactory);
+            var bakeable = bakeableExtractor.ExtractBakeable(obj);
             if (bakeable != null)
             {
                 bakeables.Add(bakeable);
@@ -216,6 +242,107 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
          });
 
         DA.SetDataList(0, bakedIds);
+    }
+
+    /// <summary>
+    /// Appends additional menu items to the component's context menu.
+    /// </summary>
+    protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+    {
+        base.AppendAdditionalComponentMenuItems(menu);
+        Menu_AppendSeparator(menu);
+
+        var drivenButtonItem = Menu_AppendItem(
+            menu,
+            DrivenButtonMenuItemText,
+            this.OnDrivenButtonMenuClick,
+            true,
+            _drivenButtonEnabled
+        );
+        drivenButtonItem.ToolTipText = DrivenButtonTooltipText;
+    }
+
+    /// <summary>
+    /// Handles the click event for the Driven Button menu item, swapping the Bake button
+    /// for the Bake input or back.
+    /// </summary>
+    /// <remarks>
+    /// Recorded as an undo event because hiding the input removes it, taking any wire
+    /// with it. The solution is not recomputed: the newly registered input holds no data
+    /// and recomputing could otherwise re-bake with the Bake input held true.
+    /// </remarks>
+    private void OnDrivenButtonMenuClick(object? sender, EventArgs e)
+    {
+        this.RecordUndoEvent(DrivenButtonMenuItemText);
+
+        _drivenButtonEnabled = !_drivenButtonEnabled;
+
+        this.SyncBakeInput();
+
+        this.Attributes?.ExpireLayout();
+        Grasshopper.Instances.ActiveCanvas?.Invalidate();
+    }
+
+    /// <summary>
+    /// Triggers a manual bake of the component.
+    /// Called by the custom attributes when the Bake button is clicked.
+    /// </summary>
+    public void TriggerManualRun()
+    {
+        _manualRunRequested = true;
+        this.ExpireSolution(true);
+    }
+
+    /// <inheritdoc />
+    public override bool Read(GH_IReader reader)
+    {
+        if (!base.Read(reader))
+            return false;
+
+        _drivenButtonEnabled = true;
+        reader.TryGetBoolean(DrivenButtonEnabledKey, ref _drivenButtonEnabled);
+
+        this.ReconcileBakeInputWithButton();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Reconciles the restored parameters with the restored Driven Button state.
+    /// </summary>
+    /// <remarks>
+    /// Files written before the input and the button became alternatives hold both. The
+    /// input wins when something is wired to it, because dropping the parameter would
+    /// silently delete that wire; otherwise the button wins and the input is dropped.
+    /// Sources are still proxies while the document is being read, so both counts are
+    /// checked.
+    /// </remarks>
+    private void ReconcileBakeInputWithButton()
+    {
+        if (_drivenButtonEnabled && this.HasBakeInput)
+        {
+            var bakeParam = this.Params.Input[BakeParamIndex];
+            var isWired = bakeParam.SourceCount > 0 || bakeParam.ProxySourceCount > 0;
+
+            if (isWired)
+            {
+                _drivenButtonEnabled = false;
+                return;
+            }
+        }
+
+        this.SyncBakeInput();
+    }
+
+    /// <inheritdoc />
+    public override bool Write(GH_IWriter writer)
+    {
+        if (!base.Write(writer))
+            return false;
+
+        writer.SetBoolean(DrivenButtonEnabledKey, _drivenButtonEnabled);
+
+        return true;
     }
 
     /// <inheritdoc />

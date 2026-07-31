@@ -1,3 +1,5 @@
+using Rhino.Inside.AutoCAD.Core.Interfaces;
+
 namespace Rhino.Inside.AutoCAD.Services;
 
 /// <summary>
@@ -59,6 +61,62 @@ public class ApplicationConstants
     /// Value: "SettingsCore.json". Located in the <see cref="ResourcesFolderName"/> folder.
     /// </remarks>
     public const string SettingJsonName = "SettingsCore.json";
+
+    /// <summary>
+    /// Filename of the user settings JSON file.
+    /// </summary>
+    /// <remarks>
+    /// Value: "UserSettings.json". Located in the <see cref="ApplicationFolderName"/> folder
+    /// under AppData, not in the installation directory, so it survives an upgrade.
+    /// </remarks>
+    /// <seealso cref="ApplicationFolderName"/>
+    public const string UserSettingsJsonName = "UserSettings.json";
+
+    /// <summary>
+    /// The lowest AutoCAD Color Index which names a color.
+    /// </summary>
+    /// <remarks>
+    /// 0 is ByBlock and 256 is ByLayer, neither of which means anything to a transient
+    /// preview, so the configurable range stops short of both.
+    /// </remarks>
+    /// <seealso cref="MaxAciColorIndex"/>
+    public const int MinAciColorIndex = 1;
+
+    /// <summary>
+    /// The highest AutoCAD Color Index which names a color.
+    /// </summary>
+    /// <seealso cref="MinAciColorIndex"/>
+    public const int MaxAciColorIndex = 255;
+
+    /// <summary>
+    /// The AutoCAD Color Index the previews of Rhino geometry are drawn in until the user
+    /// chooses otherwise.
+    /// </summary>
+    /// <remarks>
+    /// Value: 4 (cyan).
+    /// </remarks>
+    /// <seealso cref="IUserSettings.RhinoPreviewColorIndex"/>
+    public const int DefaultRhinoPreviewColorIndex = 4;
+
+    /// <summary>
+    /// The AutoCAD Color Index the previews of Grasshopper geometry are drawn in until the
+    /// user chooses otherwise.
+    /// </summary>
+    /// <remarks>
+    /// Value: 1 (red).
+    /// </remarks>
+    /// <seealso cref="IUserSettings.GrasshopperPreviewColorIndex"/>
+    public const int DefaultGrasshopperPreviewColorIndex = 1;
+
+    /// <summary>
+    /// The AutoCAD Color Index selected previews are drawn in until the user chooses
+    /// otherwise.
+    /// </summary>
+    /// <remarks>
+    /// Value: 2 (yellow).
+    /// </remarks>
+    /// <seealso cref="IUserSettings.SelectedPreviewColorIndex"/>
+    public const int DefaultSelectedPreviewColorIndex = 2;
 
     /// <summary>
     /// Assembly filenames for Material Design WPF dependencies.
@@ -205,15 +263,26 @@ public class ApplicationConstants
         "pack://application:,,,/Rhino.Inside.AutoCAD.Applications;component/Icons/Large512/Grasshopper_Preview_Wireframe_Selected.png";
 
     /// <summary>
-    /// Windows Registry key path for Rhino 8 installation information.
+    /// Windows Registry key path, relative to HKEY_LOCAL_MACHINE, under which every
+    /// installed Rhino version registers itself.
     /// </summary>
     /// <remarks>
-    /// Used to locate the Rhino installation directory and plugins folder.
+    /// Value: "SOFTWARE\McNeel\Rhinoceros". Each installed version adds a subkey named
+    /// after its version, for example "8.0" or "9.0", containing the
+    /// <see cref="RhinoInstallSubKeyName"/> subkey. Enumerated by the
+    /// <see cref="Core.Interfaces.IRhinoInstallationLocator"/> to discover the versions
+    /// available on this machine.
     /// </remarks>
+    /// <seealso cref="RhinoInstallSubKeyName"/>
     /// <seealso cref="RhinoInstallPathValueName"/>
     /// <seealso cref="RhinoPluginsFolderValueName"/>
-    public const string RhinoRegistryKeyPath =
-        @"HKEY_LOCAL_MACHINE\SOFTWARE\McNeel\Rhinoceros\8.0\Install";
+    public const string RhinoRegistryKeyPath = @"SOFTWARE\McNeel\Rhinoceros";
+
+    /// <summary>
+    /// Name of the subkey beneath a Rhino version key holding the installation values.
+    /// </summary>
+    /// <seealso cref="RhinoRegistryKeyPath"/>
+    public const string RhinoInstallSubKeyName = "Install";
 
     /// <summary>
     /// Registry value name for the Rhino installation directory path.
@@ -226,6 +295,39 @@ public class ApplicationConstants
     /// </summary>
     /// <seealso cref="RhinoRegistryKeyPath"/>
     public const string RhinoPluginsFolderValueName = "Default Plug-ins Folder";
+
+    /// <summary>
+    /// Folder beneath the Rhino system directory containing the .NET Core assemblies.
+    /// </summary>
+    /// <remarks>
+    /// Value: "netcore". Rhino ships its .NET Framework assemblies in the system directory
+    /// root and its .NET Core assemblies in this subfolder; the NET8 build of this plugin
+    /// must bind to the latter.
+    /// </remarks>
+    public const string RhinoNetCoreFolderName = "netcore";
+
+    /// <summary>
+    /// Format string for a Rhino version's display name.
+    /// </summary>
+    /// <remarks>
+    /// Value: "Rhino {0}". The placeholder receives the major version number.
+    /// </remarks>
+    public const string RhinoDisplayNameFormat = "Rhino {0}";
+
+    /// <summary>
+    /// The Rhino major versions this build is able to host.
+    /// </summary>
+    /// <remarks>
+    /// Rhino 9 requires .NET Core, so it is only offered by the NET8 build which runs in
+    /// AutoCAD 2025 and later. The NET48 build, which runs in AutoCAD 2024, can only host
+    /// Rhino 8.
+    /// </remarks>
+    public static readonly IReadOnlyList<int> SupportedRhinoMajorVersions =
+#if NET8_0_OR_GREATER
+        [8, 9];
+#else
+        [8];
+#endif
 
     /// <summary>
     /// Assembly name for RhinoCommon (without file extension).
@@ -293,11 +395,33 @@ public class ApplicationConstants
     public const string RhinoInsideSchemeNameFormat = "Inside-{0}-{1}";
 
     /// <summary>
-    /// Error message displayed when Rhino 8 is not detected on the system.
+    /// Error message displayed when no supported Rhino version is detected on the system.
     /// </summary>
     /// <seealso cref="RhinoRegistryKeyPath"/>
+    /// <seealso cref="SupportedRhinoMajorVersions"/>
     public const string RhinoNotInstalledErrorMessage =
-        "Rhino 8 not installed or could not be found. The application requires Rhino 8 to run.";
+        "No supported version of Rhino was found. Rhino.Inside.AutoCAD requires Rhino 8 or later to run.";
+
+    /// <summary>
+    /// Error message recorded when the user cancels the Rhino version selection dialog.
+    /// </summary>
+    /// <remarks>
+    /// Rhino is not loaded for the remainder of the session. The choice is made once per
+    /// AutoCAD session because the assembly resolvers it drives cannot be re-registered,
+    /// so the user is directed to the settings page and a restart.
+    /// </remarks>
+    public const string RhinoVersionNotSelectedErrorMessage =
+        "Rhino.Inside.AutoCAD did not start because no Rhino version was selected. " +
+        "Restart AutoCAD to choose one.";
+
+    /// <summary>
+    /// Format string for the command line message written when the plugin declines to load.
+    /// </summary>
+    /// <remarks>
+    /// Value: "\nRhino.Inside.AutoCAD did not load: {0}\n". The placeholder receives the reason.
+    /// </remarks>
+    public const string ApplicationLoadAbortedMessageFormat =
+        "\nRhino.Inside.AutoCAD did not load: {0}\n";
 
     /// <summary>
     /// Error message displayed when RhinoCore initialization fails.

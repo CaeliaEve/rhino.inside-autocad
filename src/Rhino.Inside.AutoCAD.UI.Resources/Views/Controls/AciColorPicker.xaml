@@ -1,0 +1,79 @@
+﻿<UserControl x:Class="Rhino.Inside.AutoCAD.UI.Resources.Views.AciColorPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:Rhino.Inside.AutoCAD.UI.Resources.Views"
+             mc:Ignorable="d"
+             x:Name="_root">
+
+    <UserControl.Resources>
+        <controls:AciColorBrushConverter x:Key="AciColorBrushConverter" />
+    </UserControl.Resources>
+
+    <Grid>
+
+        <!-- Shows the current colour and opens the palette -->
+        <Button x:Name="_openButton"
+                Style="{DynamicResource MaterialDesignOutlinedButton}"
+                BorderThickness="1"
+                Padding="8,2,8,2"
+                MinWidth="110"
+                HorizontalContentAlignment="Left"
+                BorderBrush="{DynamicResource BorderGreyColorBrush}"
+                Foreground="{DynamicResource PrimaryTextBrush}"
+                Click="OpenButton_Click">
+            <StackPanel Orientation="Horizontal">
+                <Border Width="18"
+                        Height="18"
+                        BorderThickness="1"
+                        BorderBrush="{DynamicResource PrimaryTextBrush}"
+                        Background="{Binding SelectedColorIndex, ElementName=_root, Converter={StaticResource AciColorBrushConverter}}" />
+
+                <TextBlock Margin="8,0,0,0"
+                           VerticalAlignment="Center"
+                           Text="{Binding SelectedColorIndex, ElementName=_root, StringFormat='ACI {0}'}" />
+            </StackPanel>
+        </Button>
+
+        <!-- The AutoCAD Color Index palette -->
+        <Popup x:Name="_popup"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               Placement="Bottom"
+               HorizontalOffset="-180"
+               PlacementTarget="{Binding ElementName=_openButton}">
+
+            <Border Background="{DynamicResource BackgroundCardBrush}"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource BorderGreyColorBrush}"
+                    Padding="6">
+
+                <ItemsControl x:Name="_swatches">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="15" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="16"
+                                    Height="16"
+                                    Margin="1"
+                                    Cursor="Hand"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource BorderGreyColorBrush}"
+                                    Background="{Binding Brush}"
+                                    ToolTip="{Binding DisplayName}"
+                                    MouseLeftButtonUp="Swatch_MouseLeftButtonUp" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </Border>
+        </Popup>
+
+    </Grid>
+
+</UserControl>

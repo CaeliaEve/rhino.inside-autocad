@@ -9,7 +9,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that adds AutoCAD Block References to a document.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.21")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateComponentBase
 {
 
@@ -36,7 +36,8 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddParameter(new Param_AutocadDocument(GH_ParamAccess.item), "Document",
-            "Doc", "An AutoCAD Document. If not provided, the active document will be used.", GH_ParamAccess.item);
+            "Doc", "An AutoCAD Document. If not provided, the active document will be used.",
+            GH_ParamAccess.item);
         pManager[0].Optional = true;
 
         pManager.AddParameter(new Param_AutocadBlockTableRecord(GH_ParamAccess.item), "BlockDefinition",
@@ -46,23 +47,28 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
             "The insertion point(s) for the Block Reference(s), as Rhino Points", GH_ParamAccess.list);
 
         pManager.AddNumberParameter("Rotation", "Rot",
-            "The rotation angle in radians", GH_ParamAccess.item, 0.0);
+            "The rotation angle(s) in radians. Matched one-for-one with the insertion points; the last value is repeated if the list is shorter",
+            GH_ParamAccess.list);
         pManager[3].Optional = true;
 
-        pManager.AddParameter(new Param_AutocadScale(GH_ParamAccess.item), "Scale", "Scale", "The Scale of the Block Reference. This will take either one uniform number or three numbers for a non uniform scale",
-            GH_ParamAccess.item);
+        pManager.AddParameter(new Param_AutocadScale(GH_ParamAccess.list), "Scale", "Scale",
+            "The Scale(s) of the Block Reference(s). Each Scale will take either one uniform number or three numbers for a non uniform scale. Matched one-for-one with the insertion points; the last value is repeated if the list is shorter",
+            GH_ParamAccess.list);
         pManager[4].Optional = true;
 
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LayerId", "Layer",
-            "The layer object ID for the Block Reference", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.list), "LayerId", "Layer",
+            "The layer object ID(s) for the Block Reference(s). Matched one-for-one with the insertion points; the last value is repeated if the list is shorter",
+            GH_ParamAccess.list);
         pManager[5].Optional = true;
 
-        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.item), "Color", "Col",
-            "The color for the Block Reference", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_AutocadColor(GH_ParamAccess.list), "Color", "Col",
+            "The color(s) for the Block Reference(s). Matched one-for-one with the insertion points; the last value is repeated if the list is shorter",
+            GH_ParamAccess.list);
         pManager[6].Optional = true;
 
-        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.item), "LinetypeId", "LT",
-            "The linetype object ID for the Block Reference", GH_ParamAccess.item);
+        pManager.AddParameter(new Param_AutocadObjectId(GH_ParamAccess.list), "LinetypeId", "LT",
+            "The linetype object ID(s) for the Block Reference(s). Matched one-for-one with the insertion points; the last value is repeated if the list is shorter",
+            GH_ParamAccess.list);
         pManager[7].Optional = true;
     }
 
@@ -72,6 +78,25 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
         pManager.AddParameter(new Param_AutocadBlockReference(),
             "BlockReferences", "Refs", "The created AutoCAD Block Reference(s)",
             GH_ParamAccess.list);
+    }
+
+    /// <summary>
+    /// Returns the value at <paramref name="index"/>, repeating the last value if the list is
+    /// shorter, or <paramref name="fallback"/> if the list is empty.
+    /// </summary>
+    private T GetValueAtOrLast<T>(IReadOnlyList<T> list, int index, T fallback)
+        => list.Count == 0 ? fallback : list[Math.Min(index, list.Count - 1)];
+
+    /// <summary>
+    /// Adds a runtime warning when an optional list input's length is neither 1 nor the
+    /// insertion point count, since values are matched one-for-one with the insertion points.
+    /// </summary>
+    private void WarnIfLengthMismatch(int listCount, int pointCount, string inputName)
+    {
+        if (listCount > 1 && listCount != pointCount)
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
+                $"{inputName} list length ({listCount}) does not match the InsertionPoints length ({pointCount}). " +
+                "Values are matched one-for-one; the last value is repeated if the list is shorter, extra values are ignored.");
     }
 
     /// <inheritdoc />
@@ -99,28 +124,33 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
         var insertionPoints = new List<Rhino.Geometry.Point3d>();
         if (!DA.GetDataList(2, insertionPoints) || insertionPoints.Count == 0) return;
 
-        var rotation = 0.0;
-        var scale = new AutocadScale(1);
-        DA.GetData(3, ref rotation);
-        DA.GetData(4, ref scale);
+        var rotations = new List<double>();
+        var scales = new List<AutocadScale>();
+        var layerIds = new List<IObjectId?>();
+        var colors = new List<AutocadColorWrapper?>();
+        var linetypeIds = new List<IObjectId?>();
 
-        IObjectId? layerId = null;
-        AutocadColorWrapper? color = null;
-        IObjectId? linetypeId = null;
+        DA.GetDataList(3, rotations);
+        DA.GetDataList(4, scales);
+        DA.GetDataList(5, layerIds);
+        DA.GetDataList(6, colors);
+        DA.GetDataList(7, linetypeIds);
 
-        DA.GetData(5, ref layerId);
-        DA.GetData(6, ref color);
-        DA.GetData(7, ref linetypeId);
+        this.WarnIfLengthMismatch(rotations.Count, insertionPoints.Count, "Rotation");
+        this.WarnIfLengthMismatch(scales.Count, insertionPoints.Count, "Scale");
+        this.WarnIfLengthMismatch(layerIds.Count, insertionPoints.Count, "LayerId");
+        this.WarnIfLengthMismatch(colors.Count, insertionPoints.Count, "Color");
+        this.WarnIfLengthMismatch(linetypeIds.Count, insertionPoints.Count, "LinetypeId");
 
         // 2. Build input signature for change detection
         var signature = new InputSignatureBuilder()
             .Add(blockTableRecord.Id)
             .AddPoints(insertionPoints)
-            .Add(rotation)
-            .AddScale(scale)
-            .Add(layerId)
-            .AddColor(color)
-            .Add(linetypeId)
+            .AddDoubles(rotations)
+            .AddScales(scales)
+            .AddObjectIds(layerIds)
+            .AddColors(colors)
+            .AddObjectIds(linetypeIds)
             .Build();
 
         // 3. Check for reuse to prevent infinite loops
@@ -154,10 +184,18 @@ public class CreateAutocadBlockReferenceComponent : RhinoInsideAutocad_CreateCom
 
             var transaction = transactionManagerWrapper.Unwrap();
 
-            foreach (var rhinoPoint in insertionPoints)
+            var defaultScale = new AutocadScale(1);
+
+            for (var index = 0; index < insertionPoints.Count; index++)
             {
 
-                var insertionPoint = rhinoPoint.ToAutocadPoint3d();
+                var insertionPoint = insertionPoints[index].ToAutocadPoint3d();
+
+                var rotation = this.GetValueAtOrLast(rotations, index, 0.0);
+                var scale = this.GetValueAtOrLast(scales, index, defaultScale);
+                var layerId = this.GetValueAtOrLast(layerIds, index, null);
+                var color = this.GetValueAtOrLast(colors, index, null);
+                var linetypeId = this.GetValueAtOrLast(linetypeIds, index, null);
 
                 var blockReference = new BlockReference(
                     insertionPoint,

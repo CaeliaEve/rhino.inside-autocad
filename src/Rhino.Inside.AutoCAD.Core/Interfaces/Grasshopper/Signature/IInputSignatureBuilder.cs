@@ -44,6 +44,14 @@ public interface IInputSignatureBuilder
     IInputSignatureBuilder AddPoint(Rhino.Geometry.Point3d point);
 
     /// <summary>
+    /// Adds any Rhino geometry to the signature, dispatching to the most specific
+    /// method available (curve, mesh, point). Breps use bounding box corners,
+    /// face/edge/vertex counts, and sampled vertex positions; other geometry types
+    /// fall back to type name and bounding box corners.
+    /// </summary>
+    IInputSignatureBuilder AddGeometry(Rhino.Geometry.GeometryBase? geometry);
+
+    /// <summary>
     /// Adds a list of Rhino points to the signature.
     /// </summary>
     IInputSignatureBuilder AddPoints(IList<Rhino.Geometry.Point3d>? points);
@@ -57,6 +65,26 @@ public interface IInputSignatureBuilder
     /// Adds a color to the signature.
     /// </summary>
     IInputSignatureBuilder AddColor(IAutocadColor? color);
+
+    /// <summary>
+    /// Adds a list of double values to the signature with specified decimal precision.
+    /// </summary>
+    IInputSignatureBuilder AddDoubles(IReadOnlyList<double>? values, int decimals = 6);
+
+    /// <summary>
+    /// Adds a list of scale values to the signature.
+    /// </summary>
+    IInputSignatureBuilder AddScales(IReadOnlyList<IAutocadScale?>? scales);
+
+    /// <summary>
+    /// Adds a list of ObjectId references to the signature using their handle values.
+    /// </summary>
+    IInputSignatureBuilder AddObjectIds(IReadOnlyList<IObjectId?>? objectIds);
+
+    /// <summary>
+    /// Adds a list of colors to the signature.
+    /// </summary>
+    IInputSignatureBuilder AddColors(IReadOnlyList<IAutocadColor?>? colors);
 
     /// <summary>
     /// Builds and returns the final signature string.

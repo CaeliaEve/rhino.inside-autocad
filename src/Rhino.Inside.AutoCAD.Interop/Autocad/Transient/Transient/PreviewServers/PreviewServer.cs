@@ -20,6 +20,9 @@ public class PreviewServer : IPreviewServer
     /// <inheritdoc/>
     public IObjectRegister ObjectRegister { get; }
 
+    /// <inheritdoc/>
+    public bool Visible { get; private set; } = true;
+
     /// <summary>
     /// Constructs a new <see cref="IPreviewServer"/>
     /// </summary>
@@ -109,6 +112,8 @@ public class PreviewServer : IPreviewServer
     /// </summary>
     public void ClearServer()
     {
+        this.Visible = false;
+
         foreach (var entities in this.ObjectRegister)
         {
             this.RemoveTransientEntities(entities);
@@ -136,6 +141,8 @@ public class PreviewServer : IPreviewServer
     /// </summary>
     public void PopulateServer()
     {
+        this.Visible = true;
+
         foreach (var entities in this.ObjectRegister)
         {
             this.AddTransientEntities(entities);
@@ -153,7 +160,12 @@ public class PreviewServer : IPreviewServer
 
             this.ObjectRegister.RegisterObject(rhinoObjectId, entities);
 
-            this.AddTransientEntities(entities);
+            // Only draw when the server is visible; hidden servers keep the entities
+            // registered so PopulateServer can display them when visibility returns.
+            if (this.Visible)
+            {
+                this.AddTransientEntities(entities);
+            }
         }
     }
 
@@ -193,14 +205,31 @@ public class PreviewServer : IPreviewServer
     {
         foreach (var entities in this.ObjectRegister)
         {
-            this.RemoveTransientEntities(entities);
+            if (this.Visible)
+            {
+                this.RemoveTransientEntities(entities);
+            }
 
             foreach (var entity in entities)
             {
-                this.ApplySettings(entity, _previewSettings);
+                 this.ApplySettings(entity, _previewSettings);
             }
 
-            this.AddTransientEntities(entities);
+            if (this.Visible)
+            {
+                this.AddTransientEntities(entities);
+            }
         }
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Restyling an entity does not redraw it, so the transients are erased and added back to
+    /// force AutoCAD to draw them again. The caller is left to restore the visibility state,
+    /// as adding transients back shows previews which are currently toggled off.
+    /// </remarks>
+    public void RefreshAppearance()
+    {
+        this.DeselectAll();
     }
 }

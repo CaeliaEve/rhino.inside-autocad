@@ -157,6 +157,56 @@ public class InputSignatureBuilder : IInputSignatureBuilder
     }
 
     /// <inheritdoc />
+    public IInputSignatureBuilder AddGeometry(Rhino.Geometry.GeometryBase? geometry)
+    {
+        switch (geometry)
+        {
+            case null:
+                _stringBuilder.Append("null");
+                _stringBuilder.Append(_separator);
+                return this;
+            case Rhino.Geometry.Curve curve:
+                return this.AddCurve(curve);
+            case Rhino.Geometry.Mesh mesh:
+                return this.AddMesh(mesh);
+            case Rhino.Geometry.Point point:
+                return this.AddPoint(point.Location);
+        }
+
+        _stringBuilder.Append(geometry.GetType().Name);
+        _stringBuilder.Append(',');
+
+        var bbox = geometry.GetBoundingBox(false);
+        this.AddBoundingBox(bbox);
+
+        if (geometry is Rhino.Geometry.Brep brep)
+        {
+            _stringBuilder.Append(brep.Faces.Count);
+            _stringBuilder.Append(',');
+            _stringBuilder.Append(brep.Edges.Count);
+            _stringBuilder.Append(',');
+            _stringBuilder.Append(brep.Vertices.Count);
+            _stringBuilder.Append(',');
+
+            // Sample vertices for comparison (every Nth vertex based on size)
+            var step = Math.Max(1, brep.Vertices.Count / 10);
+            for (var i = 0; i < brep.Vertices.Count; i += step)
+            {
+                var pt = brep.Vertices[i].Location;
+                _stringBuilder.Append(pt.X.ToString("F4"));
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(pt.Y.ToString("F4"));
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(pt.Z.ToString("F4"));
+                _stringBuilder.Append(',');
+            }
+        }
+
+        _stringBuilder.Append(_separator);
+        return this;
+    }
+
+    /// <inheritdoc />
     public IInputSignatureBuilder AddPoints(IList<Rhino.Geometry.Point3d>? points)
     {
         if (points == null || points.Count == 0)
@@ -214,6 +264,124 @@ public class InputSignatureBuilder : IInputSignatureBuilder
             _stringBuilder.Append(',');
             _stringBuilder.Append(cadColor.Blue);
         }
+        _stringBuilder.Append(_separator);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IInputSignatureBuilder AddDoubles(IReadOnlyList<double>? values, int decimals = 6)
+    {
+        if (values == null || values.Count == 0)
+        {
+            _stringBuilder.Append("empty");
+            _stringBuilder.Append(_separator);
+            return this;
+        }
+
+        _stringBuilder.Append(values.Count);
+        _stringBuilder.Append(',');
+
+        foreach (var value in values)
+        {
+            _stringBuilder.Append(Math.Round(value, decimals));
+            _stringBuilder.Append(',');
+        }
+
+        _stringBuilder.Append(_separator);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IInputSignatureBuilder AddScales(IReadOnlyList<IAutocadScale?>? scales)
+    {
+        if (scales == null || scales.Count == 0)
+        {
+            _stringBuilder.Append("empty");
+            _stringBuilder.Append(_separator);
+            return this;
+        }
+
+        _stringBuilder.Append(scales.Count);
+        _stringBuilder.Append(',');
+
+        foreach (var scale in scales)
+        {
+            if (scale == null)
+            {
+                _stringBuilder.Append("null");
+            }
+            else
+            {
+                _stringBuilder.Append(scale.X.ToString("F6"));
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(scale.Y.ToString("F6"));
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(scale.Z.ToString("F6"));
+            }
+            _stringBuilder.Append(',');
+        }
+
+        _stringBuilder.Append(_separator);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IInputSignatureBuilder AddObjectIds(IReadOnlyList<IObjectId?>? objectIds)
+    {
+        if (objectIds == null || objectIds.Count == 0)
+        {
+            _stringBuilder.Append("empty");
+            _stringBuilder.Append(_separator);
+            return this;
+        }
+
+        _stringBuilder.Append(objectIds.Count);
+        _stringBuilder.Append(',');
+
+        foreach (var objectId in objectIds)
+        {
+            _stringBuilder.Append(objectId?.Value ?? 0L);
+            _stringBuilder.Append(',');
+        }
+
+        _stringBuilder.Append(_separator);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IInputSignatureBuilder AddColors(IReadOnlyList<IAutocadColor?>? colors)
+    {
+        if (colors == null || colors.Count == 0)
+        {
+            _stringBuilder.Append("empty");
+            _stringBuilder.Append(_separator);
+            return this;
+        }
+
+        _stringBuilder.Append(colors.Count);
+        _stringBuilder.Append(',');
+
+        foreach (var color in colors)
+        {
+            if (color == null)
+            {
+                _stringBuilder.Append("null");
+            }
+            else
+            {
+                var cadColor = color.Unwrap();
+
+                _stringBuilder.Append(color.ColorIndex);
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(cadColor.Red);
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(cadColor.Green);
+                _stringBuilder.Append(',');
+                _stringBuilder.Append(cadColor.Blue);
+            }
+            _stringBuilder.Append(',');
+        }
+
         _stringBuilder.Append(_separator);
         return this;
     }

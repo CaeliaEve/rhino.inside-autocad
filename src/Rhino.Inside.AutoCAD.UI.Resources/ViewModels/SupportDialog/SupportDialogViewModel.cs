@@ -1,6 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
 
@@ -16,6 +19,12 @@ public partial class SupportDialogViewModel : ObservableObject
     private const string _bimorphUrl = UIConstants.BimorphUrl;
     private const string _notDetermined = UIConstants.NotDetermined;
     private const string _openForVersion = UIConstants.OpenForVersion;
+    private const string _rhinoVersionRestartNote = UIConstants.RhinoVersionRestartNote;
+    private const string _previewColorsHeading = UIConstants.PreviewColorsHeading;
+    private const string _previewColorsDescription = UIConstants.PreviewColorsDescription;
+    private const string _rhinoPreviewColorLabel = UIConstants.RhinoPreviewColorLabel;
+    private const string _grasshopperPreviewColorLabel = UIConstants.GrasshopperPreviewColorLabel;
+    private const string _selectedPreviewColorLabel = UIConstants.SelectedPreviewColorLabel;
 
     /// <summary>
     /// The <see cref="Visibility"/> of the buttons in the dialog.
@@ -76,6 +85,236 @@ public partial class SupportDialogViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     private int _selectedTabIndex;
+
+    private readonly IUserSettingsStore _userSettingsStore;
+
+    private readonly IRhinoInsideManager _rhinoInsideManager;
+
+    /// <summary>
+    /// True while the settings are being read into this view model, during which changes
+    /// must not be written back.
+    /// </summary>
+    private readonly bool _isLoadingSettings;
+
+    /// <summary>
+    /// The Rhino installations found on this machine which the plugin can bind to.
+    /// </summary>
+    public ObservableCollection<IRhinoInstallation> RhinoInstallations { get; } = [];
+
+    /// <summary>
+    /// The note explaining that a change of Rhino version only takes effect on the next
+    /// AutoCAD session.
+    /// </summary>
+    public string RhinoVersionRestartNote => _rhinoVersionRestartNote;
+
+    /// <summary>
+    /// The Rhino version the plugin will bind to, saved as soon as it is changed.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanAlwaysUseRhinoVersion))]
+    private IRhinoInstallation? _selectedRhinoInstallation;
+
+    /// <summary>
+    /// True when <see cref="SelectedRhinoInstallation"/> is used without prompting,
+    /// otherwise false to be asked at every AutoCAD start.
+    /// </summary>
+    /// <remarks>
+    /// Clearing this is how a user who chose "Always use" gets the startup dialog back.
+    /// </remarks>
+    [ObservableProperty]
+    private bool _alwaysUseSelectedRhinoVersion;
+
+    /// <summary>
+    /// True when more than one Rhino version is installed, which is the only case in which
+    /// the startup dialog appears and so the only case in which the "always use" choice
+    /// means anything.
+    /// </summary>
+    public bool HasRhinoVersionChoice => this.RhinoInstallations.Count > 1;
+
+    /// <summary>
+    /// True when the user can stop being asked at startup, which needs both a choice worth
+    /// making and a version chosen to settle on.
+    /// </summary>
+    public bool CanAlwaysUseRhinoVersion =>
+        this.HasRhinoVersionChoice && this.SelectedRhinoInstallation != null;
+
+    /// <summary>
+    /// The heading of the preview colors section.
+    /// </summary>
+    public string PreviewColorsHeading => _previewColorsHeading;
+
+    /// <summary>
+    /// The description of the preview colors section.
+    /// </summary>
+    public string PreviewColorsDescription => _previewColorsDescription;
+
+    /// <summary>
+    /// The label of the Rhino preview color.
+    /// </summary>
+    public string RhinoPreviewColorLabel => _rhinoPreviewColorLabel;
+
+    /// <summary>
+    /// The label of the Grasshopper preview color.
+    /// </summary>
+    public string GrasshopperPreviewColorLabel => _grasshopperPreviewColorLabel;
+
+    /// <summary>
+    /// The label of the selected preview color.
+    /// </summary>
+    public string SelectedPreviewColorLabel => _selectedPreviewColorLabel;
+
+    /// <summary>
+    /// The AutoCAD Color Index unselected Rhino previews are drawn in, saved and applied as
+    /// soon as it is changed.
+    /// </summary>
+    [ObservableProperty]
+    private int _rhinoPreviewColorIndex;
+
+    /// <summary>
+    /// The AutoCAD Color Index unselected Grasshopper previews are drawn in, saved and
+    /// applied as soon as it is changed.
+    /// </summary>
+    [ObservableProperty]
+    private int _grasshopperPreviewColorIndex;
+
+    /// <summary>
+    /// The AutoCAD Color Index selected previews of either kind are drawn in, saved and
+    /// applied as soon as it is changed.
+    /// </summary>
+    [ObservableProperty]
+    private int _selectedPreviewColorIndex;
+
+    /// <summary>
+    /// Constructs a new <see cref="SupportDialogViewModel"/>.
+    /// </summary>
+    /// <param name="userSettingsStore">The store to read and write user settings through.</param>
+    /// <param name="rhinoInsideManager">The manager the preview colors are applied through.</param>
+    /// <param name="rhinoInstallations">The Rhino installations found on this machine.</param>
+    public SupportDialogViewModel(
+        IUserSettingsStore userSettingsStore,
+        IRhinoInsideManager rhinoInsideManager,
+        IReadOnlyList<IRhinoInstallation> rhinoInstallations)
+    {
+        _isLoadingSettings = true;
+
+        _userSettingsStore = userSettingsStore;
+
+        _rhinoInsideManager = rhinoInsideManager;
+
+        foreach (var installation in rhinoInstallations)
+            this.RhinoInstallations.Add(installation);
+
+        var settings = userSettingsStore.Settings;
+
+        _selectedRhinoInstallation = rhinoInstallations.FirstOrDefault(installation =>
+            string.Equals(installation.VersionKey, settings.PreferredRhinoVersion,
+                StringComparison.OrdinalIgnoreCase));
+
+        _alwaysUseSelectedRhinoVersion = settings.AlwaysUsePreferredRhinoVersion;
+
+        _rhinoPreviewColorIndex = settings.RhinoPreviewColorIndex;
+
+        _grasshopperPreviewColorIndex = settings.GrasshopperPreviewColorIndex;
+
+        _selectedPreviewColorIndex = settings.SelectedPreviewColorIndex;
+
+        _isLoadingSettings = false;
+    }
+
+    /// <summary>
+    /// Persists the newly chosen Rhino version.
+    /// </summary>
+    partial void OnSelectedRhinoInstallationChanged(IRhinoInstallation? value)
+    {
+        if (value == null)
+            return;
+
+        this.SaveRhinoVersionSettings();
+    }
+
+    /// <summary>
+    /// Persists the newly chosen prompting behaviour.
+    /// </summary>
+    partial void OnAlwaysUseSelectedRhinoVersionChanged(bool value)
+    {
+        this.SaveRhinoVersionSettings();
+    }
+
+    /// <summary>
+    /// Persists and applies the newly chosen Rhino preview color.
+    /// </summary>
+    partial void OnRhinoPreviewColorIndexChanged(int value)
+    {
+        this.SavePreviewColorSettings();
+    }
+
+    /// <summary>
+    /// Persists and applies the newly chosen Grasshopper preview color.
+    /// </summary>
+    partial void OnGrasshopperPreviewColorIndexChanged(int value)
+    {
+        this.SavePreviewColorSettings();
+    }
+
+    /// <summary>
+    /// Persists and applies the newly chosen selected preview color.
+    /// </summary>
+    partial void OnSelectedPreviewColorIndexChanged(int value)
+    {
+        this.SavePreviewColorSettings();
+    }
+
+    /// <summary>
+    /// Writes the preview colors back to disk and redraws the previews in them.
+    /// </summary>
+    private void SavePreviewColorSettings()
+    {
+        if (_isLoadingSettings)
+            return;
+
+        var settings = _userSettingsStore.Settings;
+
+        settings.RhinoPreviewColorIndex = this.RhinoPreviewColorIndex;
+
+        settings.GrasshopperPreviewColorIndex = this.GrasshopperPreviewColorIndex;
+
+        settings.SelectedPreviewColorIndex = this.SelectedPreviewColorIndex;
+
+        _userSettingsStore.Save();
+
+        // The choice is already saved, so a failure to redraw the previews now costs the user
+        // nothing more than waiting for the next AutoCAD session to see the new colors.
+        try
+        {
+            _rhinoInsideManager.UpdatePreviewColors(this.RhinoPreviewColorIndex,
+                this.GrasshopperPreviewColorIndex, this.SelectedPreviewColorIndex);
+        }
+        catch (Exception e)
+        {
+            LoggerService.Instance.LogError(e);
+        }
+    }
+
+    /// <summary>
+    /// Writes the Rhino version settings back to disk.
+    /// </summary>
+    private void SaveRhinoVersionSettings()
+    {
+        if (_isLoadingSettings)
+            return;
+
+        var settings = _userSettingsStore.Settings;
+
+        // Left as it was when nothing is selected, so clearing the selection cannot silently
+        // discard a saved preference.
+        if (this.SelectedRhinoInstallation != null)
+            settings.PreferredRhinoVersion = this.SelectedRhinoInstallation.VersionKey;
+
+        settings.AlwaysUsePreferredRhinoVersion =
+            this.AlwaysUseSelectedRhinoVersion && settings.PreferredRhinoVersion != null;
+
+        _userSettingsStore.Save();
+    }
 
     /// <summary>
     /// Updates the version information displayed in the dialog.

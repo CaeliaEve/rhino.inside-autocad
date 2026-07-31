@@ -4,6 +4,7 @@ using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
 using Rhino.Inside.AutoCAD.Services;
+using Rhino.Inside.AutoCAD.UI.Resources.Models;
 using System.Globalization;
 using System.Reflection;
 
@@ -20,6 +21,9 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     private const string _stackTraceMessageFormat = ApplicationConstants.StackTraceMessageFormat;
     private const string _expiredMessage = ApplicationConstants.ExpiredMessage;
     private const string _buildVersionMetadataPrefix = ApplicationConstants.BuildVersionMetadataPrefix;
+    private const string _rhinoNotInstalledErrorMessage = ApplicationConstants.RhinoNotInstalledErrorMessage;
+    private const string _rhinoVersionNotSelectedErrorMessage = ApplicationConstants.RhinoVersionNotSelectedErrorMessage;
+    private const string _applicationLoadAbortedMessageFormat = ApplicationConstants.ApplicationLoadAbortedMessageFormat;
 
     /// <summary>
     /// The singleton instance of the <see cref="IRhinoInsideAutoCadApplication"/>
@@ -30,6 +34,17 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// Indicates whether the application has expired.
     /// </summary>
     public static bool IsExpired { get; private set; }
+
+    /// <summary>
+    /// The reason the plugin did not finish loading, or null if it did.
+    /// </summary>
+    /// <remarks>
+    /// The command methods stay registered with AutoCAD whether or not
+    /// <see cref="Initialize"/> completed, so they report this rather than failing
+    /// obscurely. Set when no Rhino version could be bound, which is the one case the
+    /// plugin declines to load rather than running without Rhino.
+    /// </remarks>
+    public static string? LoadFailureMessage { get; private set; }
 
     /// <summary>
     /// Initialize the <see cref="IRhinoInsideAutoCadApplication"/>
@@ -64,12 +79,39 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             }
 #endif
 
-            // Force RhinoCoreExtension static constructor to run first
-            // This sets up the AssemblyResolve handler for RhinoCommon before
-            // any code tries to reference RhinoCommon types
-            _ = RhinoCoreExtension.Instance;
+            // Bootstrap before anything Rhino related. Nothing here references a RhinoCommon
+            // type, and it gives the Rhino version selection dialog below the logger, the
+            // WPF dispatcher and the Material Design assemblies it needs.
+            var applicationConfig = new RhinoInsideAutoCadApplicationConfig();
 
-            Application = new RhinoInsideAutoCadApplication();
+            var bootstrapper = new Bootstrapper(new AutocadBootstrapperConfig(applicationConfig));
+
+            // Decide which Rhino to run, then register the AssemblyResolve handlers which
+            // load it. Both must happen before any code references a RhinoCommon type,
+            // which the application constructor below does. The settings store must be the
+            // shared instance, so the version chosen here is the one the settings page
+            // later reads and writes.
+            var installationLocator = new RhinoInstallationLocator();
+
+            var userSettingsStore = UserSettingsStore.Instance;
+
+            var versionDialogManager = new RhinoVersionDialogManager();
+
+            var versionSelection = new RhinoVersionSelection(installationLocator,
+                userSettingsStore, versionDialogManager);
+
+            var installation = versionSelection.Resolve(out var anyVersionInstalled);
+
+            if (installation is null)
+            {
+                this.AbortLoad(editor, anyVersionInstalled);
+
+                return;
+            }
+
+            RhinoCoreExtension.BindTo(installation);
+
+            Application = new RhinoInsideAutoCadApplication(bootstrapper, applicationConfig);
 
             Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit += this.OnApplicationBeginQuit;
 
@@ -87,6 +129,31 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
             throw;
         }
+    }
+
+    /// <summary>
+    /// Stops the plugin loading because no Rhino version could be bound to this session.
+    /// </summary>
+    /// <remarks>
+    /// Reported on the command line rather than in a dialog: the usual way to get here is
+    /// the user cancelling the version selection, and answering a dialog with another
+    /// dialog helps nobody. The command methods surface
+    /// <see cref="LoadFailureMessage"/> if one is then used.
+    /// </remarks>
+    /// <param name="editor">The editor to write the reason to, if there is one.</param>
+    /// <param name="anyVersionInstalled">
+    /// True if a supported Rhino version is installed, meaning the user cancelled rather
+    /// than there being nothing to choose from.
+    /// </param>
+    private void AbortLoad(Autodesk.AutoCAD.EditorInput.Editor? editor,
+        bool anyVersionInstalled)
+    {
+        LoadFailureMessage = anyVersionInstalled
+            ? _rhinoVersionNotSelectedErrorMessage
+            : _rhinoNotInstalledErrorMessage;
+
+        editor?.WriteMessage(string.Format(_applicationLoadAbortedMessageFormat,
+            LoadFailureMessage));
     }
 
     /// <summary>

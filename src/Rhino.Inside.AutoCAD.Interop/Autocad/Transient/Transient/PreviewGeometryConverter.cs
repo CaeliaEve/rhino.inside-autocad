@@ -32,6 +32,8 @@ public class PreviewGeometryConverter : IPreviewGeometryConverter
     {
         if (this.TryGetActiveDocument(out var activeDocument) == false) return new List<IEntity>();
 
+        previewSettings.EnsureMaterial(activeDocument!);
+
         var transactionManagerWrapper = activeDocument.CreateTransactionManager();
 
         return transactionManagerWrapper.PerformTask(() =>

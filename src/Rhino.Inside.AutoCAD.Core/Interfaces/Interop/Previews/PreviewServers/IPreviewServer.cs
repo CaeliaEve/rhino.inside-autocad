@@ -11,6 +11,14 @@ public interface IPreviewServer
     IObjectRegister ObjectRegister { get; }
 
     /// <summary>
+    /// A value indicating whether the transient entities in this <see cref="IPreviewServer"/>
+    /// are currently displayed. Set to false by <see cref="ClearServer"/> and true by
+    /// <see cref="PopulateServer"/>; while false, newly added objects are registered but
+    /// not drawn.
+    /// </summary>
+    bool Visible { get; }
+
+    /// <summary>
     /// Adds the provided <paramref name="rhinoConvertibleSet"/> into this <see cref=
     /// "IPreviewServer"/>.
     /// </summary>
@@ -45,4 +53,15 @@ public interface IPreviewServer
     /// Deselects all the entities in the preview server by applying the unselected settings to them.
     /// </summary>
     public void DeselectAll();
+
+    /// <summary>
+    /// Reapplies the preview settings to every entity in the <see cref="IObjectRegister"/> and
+    /// redraws them, so a change to the settings is seen without waiting for the previews to
+    /// expire.
+    /// </summary>
+    /// <remarks>
+    /// The register does not record which objects are selected, so entities drawn with the
+    /// selected settings revert to the unselected ones until the next selection change.
+    /// </remarks>
+    void RefreshAppearance();
 }

@@ -52,13 +52,30 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <c>SolveInstance</c> method and return early if it returns <c>true</c>.
 /// </para>
 /// </remarks>
-public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutocad_ComponentBase
+public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutocad_ComponentBase, ITrackedObjectsComponent
 {
     // Serialization keys
-    private const string ReplaceEnabledKey = "ReplaceEnabled";
-    private const string SaveConnectionEnabledKey = "SaveConnectionEnabled";
-    private const string TrackedObjectHandlesKey = "TrackedObjectHandles";
-    private const string LastInputSignatureKey = "LastInputSignature";
+    private const string ReplaceEnabledKey = GrasshopperKeys.ReplaceEnabled;
+    private const string SaveConnectionEnabledKey = GrasshopperKeys.SaveConnectionEnabled;
+    private const string TrackedObjectHandlesKey = GrasshopperKeys.TrackedObjectHandles;
+    private const string LastInputSignatureKey = GrasshopperKeys.LastInputSignature;
+
+    // Context menu text
+    private const string ReplacePreviousObjectMenuItemText = GrasshopperMessages.ReplacePreviousObjectMenuItem;
+    private const string ReplacePreviousObjectTooltipText = GrasshopperMessages.ReplacePreviousObjectTooltip;
+    private const string SaveConnectionMenuItemText = GrasshopperMessages.SaveConnectionMenuItem;
+    private const string SaveConnectionTooltipText = GrasshopperMessages.SaveConnectionTooltip;
+    private const string ForgetConnectionsMenuItemText = GrasshopperMessages.ForgetConnectionsMenuItem;
+    private const string ForgetConnectionsTooltipText = GrasshopperMessages.ForgetConnectionsTooltip;
+    private const string DeleteConnectedObjectsMenuItemText = GrasshopperMessages.DeleteConnectedObjectsMenuItem;
+    private const string DeleteConnectedObjectsTooltipText = GrasshopperMessages.DeleteConnectedObjectsTooltip;
+
+    // Delete confirmation dialog
+    private const string SingleConnectedObjectText = GrasshopperMessages.SingleConnectedObject;
+    private const string ConnectedObjectsFormat = GrasshopperMessages.ConnectedObjectsFormat;
+    private const string DeleteConnectedObjectsPromptFormat = GrasshopperMessages.DeleteConnectedObjectsPromptFormat;
+
+    private readonly IObjectTrackingDisplay _trackingDisplay;
 
     // State tracking
     private bool _replaceEnabled = true;
@@ -79,6 +96,9 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     // Per-instance state for current solve cycle
     private bool _skipThisSolve = false;
 
+    /// <inheritdoc />
+    public int TrackedObjectCount => _lastCreatedObjectIds.Count + _pendingHandleValues.Count;
+
     /// <summary>
     /// Constructs a new instance of the <see cref="RhinoInsideAutocad_CreateComponentBase"/> class.
     /// </summary>
@@ -89,6 +109,13 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         string category,
         string subCategory) : base(name, nickname, description, category, subCategory)
     {
+        _trackingDisplay = new ObjectTrackingDisplay(this);
+    }
+
+    /// <inheritdoc />
+    public override void CreateAttributes()
+    {
+        m_attributes = new ObjectTrackingComponentAttributes(this);
     }
 
     /// <inheritdoc />
@@ -150,31 +177,41 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
         var replaceItem = Menu_AppendItem(
             menu,
-            "Replace Previous Object",
+            ReplacePreviousObjectMenuItemText,
             this.OnReplaceMenuClick,
             true,
             _replaceEnabled
         );
-        replaceItem.ToolTipText = "When enabled, previously created objects will be deleted before creating new ones.";
+        replaceItem.ToolTipText = ReplacePreviousObjectTooltipText;
 
         var saveConnectionItem = Menu_AppendItem(
             menu,
-            "Save Connection Between Sessions",
+            SaveConnectionMenuItemText,
             this.OnSaveConnectionMenuClick,
             true,
             _saveConnectionEnabled
         );
-        saveConnectionItem.ToolTipText = "When enabled, object connections persist when saving/loading the Grasshopper file.";
+        saveConnectionItem.ToolTipText = SaveConnectionTooltipText;
 
         Menu_AppendSeparator(menu);
 
-        var clearConnectionItem = Menu_AppendItem(
+        var hasTrackedObjects = _lastCreatedObjectIds.Count > 0 || _pendingHandleValues.Count > 0;
+
+        var forgetConnectionsItem = Menu_AppendItem(
             menu,
-            "Clear Connection",
-            this.OnClearConnectionMenuClick,
-            _lastCreatedObjectIds.Count > 0 || _pendingHandleValues.Count > 0
+            ForgetConnectionsMenuItemText,
+            this.OnForgetConnectionsMenuClick,
+            hasTrackedObjects
         );
-        clearConnectionItem.ToolTipText = "Clears all tracked object connections without deleting the objects.";
+        forgetConnectionsItem.ToolTipText = ForgetConnectionsTooltipText;
+
+        var deleteConnectedObjectsItem = Menu_AppendItem(
+            menu,
+            DeleteConnectedObjectsMenuItemText,
+            this.OnDeleteConnectedObjectsMenuClick,
+            hasTrackedObjects
+        );
+        deleteConnectedObjectsItem.ToolTipText = DeleteConnectedObjectsTooltipText;
     }
 
     /// <summary>
@@ -195,14 +232,43 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
     }
 
     /// <summary>
-    /// Handles the click event for the Clear Connection menu item.
+    /// Handles the click event for the Forget Connections menu item.
     /// </summary>
-    private void OnClearConnectionMenuClick(object? sender, EventArgs e)
+    private void OnForgetConnectionsMenuClick(object? sender, EventArgs e)
     {
-        _lastCreatedObjectIds.Clear();
-        _pendingHandleValues.Clear();
-        _lastInputSignature = null;
+        this.ClearTrackedObjects();
         this.ExpireSolution(true);
+    }
+
+    /// <summary>
+    /// Handles the click event for the Delete Connected Objects menu item.
+    /// Asks for confirmation, then deletes all tracked objects from the AutoCAD database.
+    /// The solution is deliberately not expired afterwards - a re-solve would immediately
+    /// recreate the objects the user just chose to delete.
+    /// </summary>
+    private void OnDeleteConnectedObjectsMenuClick(object? sender, EventArgs e)
+    {
+        var count = this.TrackedObjectCount;
+
+        if (count == 0)
+            return;
+
+        var objectDescription = count == 1
+            ? SingleConnectedObjectText
+            : string.Format(ConnectedObjectsFormat, count);
+
+        var prompt = string.Format(DeleteConnectedObjectsPromptFormat, objectDescription);
+
+        var result = MessageBox.Show(
+            prompt,
+            DeleteConnectedObjectsMenuItemText,
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning);
+
+        if (result != DialogResult.Yes)
+            return;
+
+        this.DeleteAllTrackedObjects();
     }
 
     /// <summary>
@@ -464,6 +530,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
 
         // Clear BEFORE attempting deletion
         _lastCreatedObjectIds.Clear();
+        _trackingDisplay.Update();
 
         // Delete objects grouped by document
         foreach (var kvp in objectsByDocument)
@@ -529,6 +596,9 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         }
 
         _pendingHandleValues.Clear();
+
+        // Count can shrink if some handles failed to resolve
+        _trackingDisplay.Update();
     }
 
     /// <summary>
@@ -541,6 +611,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
             return;
 
         _lastCreatedObjectIds.Add(new AutocadObjectIdWrapper(objectId));
+        _trackingDisplay.Update();
     }
 
     /// <summary>
@@ -552,6 +623,7 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
         _lastCreatedObjectIds.Clear();
         _pendingHandleValues.Clear();
         _lastInputSignature = null;
+        _trackingDisplay.Update();
     }
 
     /// <inheritdoc />
@@ -592,6 +664,8 @@ public abstract class RhinoInsideAutocad_CreateComponentBase : RhinoInsideAutoca
                 }
             }
         }
+
+        _trackingDisplay.Update();
 
         return true;
     }

@@ -83,6 +83,19 @@ public class GrasshopperChangeResponder : IGrasshopperChangeResponder
 
                             break;
                         }
+                    // Must precede the IReferenceComponent case: stale-tracking components
+                    // in manual mode accumulate the change instead of expiring. When the
+                    // pattern fails (no tracker, or Auto Update enabled) the component
+                    // falls through to the IReferenceComponent case below.
+                    case IStaleDataComponent { StaleTracker: { AutoUpdateEnabled: false } staleTracker } staleComponent:
+                        {
+                            if (staleTracker.NotifyDocumentChanged(documentChange))
+                            {
+                                grasshopperChange.ExpiredObjects.Add(staleComponent);
+                            }
+
+                            break;
+                        }
                     case IReferenceComponent persistentComponent:
                         {
                             if (persistentComponent.NeedsToBeExpired(documentChange))

@@ -1,4 +1,4 @@
-﻿using Autodesk.AutoCAD.Runtime;
+using Autodesk.AutoCAD.Runtime;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Interop;
@@ -31,13 +31,28 @@ public class RhinoInsideAutoCadCommands
     private const string _downloadUrl = ApplicationConstants.DownloadUrl;
 
     /// <summary>
-    /// Checks if the application has expired and shows the expiration dialog if it has.
+    /// Checks whether the application is unusable, reporting why if it is.
     /// </summary>
-    private static bool CheckApplicationHasExpired()
+    /// <remarks>
+    /// The command methods stay registered with AutoCAD even when the plugin declined to
+    /// load, so a command can be reached with no application behind it. That is reported
+    /// as the load failure it is rather than through the expiration dialog.
+    /// </remarks>
+    /// <returns>True if the command must not run.</returns>
+    private static bool CheckApplicationIsUnusable()
     {
+        if (RhinoInsideAutoCadExtension.LoadFailureMessage is { } loadFailureMessage)
+        {
+            Autodesk.AutoCAD.ApplicationServices.Core.Application
+                .ShowAlertDialog(loadFailureMessage);
+
+            return true;
+        }
+
         if (RhinoInsideAutoCadExtension.Application is null || RhinoInsideAutoCadExtension.IsExpired)
         {
             ShowExpirationDialog();
+
             return true;
         }
 
@@ -57,7 +72,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO", CommandFlags.Modal)]
     public static void RHINO()
     {
-        if (_isLaunching || CheckApplicationHasExpired())
+        if (_isLaunching || CheckApplicationIsUnusable())
             return;
 
         _isLaunching = true;
@@ -73,7 +88,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER", CommandFlags.Modal)]
     public static void GRASSHOPPER()
     {
-        if (_isLaunching || CheckApplicationHasExpired())
+        if (_isLaunching || CheckApplicationIsUnusable())
             return;
 
         _isLaunching = true;
@@ -94,7 +109,7 @@ public class RhinoInsideAutoCadCommands
     public static void TOGGLE_RHINO_PREVIEW()
     {
 
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
@@ -118,7 +133,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_OFF", CommandFlags.Modal)]
     public static void GRASSHOPPER_PREVIEW_OFF()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
@@ -133,7 +148,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_SHADED", CommandFlags.Modal)]
     public static void GRASSHOPPER_PREVIEW_SHADED()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
@@ -148,7 +163,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_WIREFRAME", CommandFlags.Modal)]
     public static void GRASSHOPPER_PREVIEW_WIREFRAME()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
@@ -163,7 +178,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_RECOMPUTE", CommandFlags.Modal)]
     public static void GRASSHOPPER_RECOMPUTE()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
@@ -180,7 +195,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_TOGGLE_SOLVER", CommandFlags.Modal)]
     public static void GRASSHOPPER_TOGGLE_SOLVER()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
@@ -214,7 +229,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "OPEN_RHINO_VIEWPORT", CommandFlags.Modal)]
     public static void OPEN_RHINO_VIEWPORT()
     {
-        if (_isLaunching || CheckApplicationHasExpired())
+        if (_isLaunching || CheckApplicationIsUnusable())
             return;
 
         _isLaunching = true;
@@ -235,7 +250,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_PACKAGE_MANGER", CommandFlags.Modal)]
     public static void RHINO_PACKAGE_MANGER()
     {
-        if (_isLaunching || CheckApplicationHasExpired())
+        if (_isLaunching || CheckApplicationIsUnusable())
             return;
 
         _isLaunching = true;
@@ -256,7 +271,7 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PLAYER", CommandFlags.Modal)]
     public static void GRASSHOPPER_PLAYER()
     {
-        if (_isLaunching || CheckApplicationHasExpired())
+        if (_isLaunching || CheckApplicationIsUnusable())
             return;
 
         _isLaunching = true;
@@ -277,45 +292,56 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE_ABOUT", CommandFlags.Modal)]
     public static void RHINO_INSIDE_ABOUT()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
 
-        application.SupportDialogManager.Show(SupportDialogTab.About);
+        application!.SupportDialogManager.Show(SupportDialogTab.About);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE_SUPPORT", CommandFlags.Modal)]
     public static void RHINO_INSIDE_SUPPORT()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
 
-        application.SupportDialogManager.Show(SupportDialogTab.Support);
+        application!.SupportDialogManager.Show(SupportDialogTab.Support);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE_UPDATE", CommandFlags.Modal)]
     public static void RHINO_INSIDE_UPDATE()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
 
-        application.SupportDialogManager.Show(SupportDialogTab.Update);
+        application!.SupportDialogManager.Show(SupportDialogTab.Update);
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE_SETTINGS", CommandFlags.Modal)]
+    public static void RHINO_INSIDE_SETTINGS()
+    {
+        if (CheckApplicationIsUnusable())
+            return;
+
+        var application = RhinoInsideAutoCadExtension.Application;
+
+        application!.SupportDialogManager.Show(SupportDialogTab.Settings);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE_CONVERT_BREP", CommandFlags.Transparent)]
     public static void RHINO_INSIDE_CONVERT_BREP()
     {
-        if (CheckApplicationHasExpired())
+        if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
 
-        var brepConverterRunner = application.BrepConverterRunner;
+        var brepConverterRunner = application!.BrepConverterRunner;
 
         brepConverterRunner.Run();
 

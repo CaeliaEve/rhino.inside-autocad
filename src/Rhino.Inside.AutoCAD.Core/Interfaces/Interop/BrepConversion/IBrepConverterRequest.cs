@@ -17,4 +17,10 @@ public interface IBrepConverterRequest
     /// process, both successful and unsuccessful.
     /// </summary>
     Func<IBrepConverterResult, bool> Callback { get; }
+
+    /// <summary>
+    /// Optional bake settings (layer, linetype, color) to apply to the converted
+    /// entities. When null the defaults are used: layer 0 with ByLayer properties.
+    /// </summary>
+    IBakeSettings? Settings { get; }
 }
