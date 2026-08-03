@@ -286,7 +286,7 @@ stages:
           $ErrorActionPreference = 'Stop'
 
           $clientDir = "$(Agent.TempDirectory)\TrustedSigningClient"
-          nuget install Microsoft.Trusted.Signing.Client -OutputDirectory $clientDir -NonInteractive
+          nuget install Microsoft.ArtifactSigning.Client -OutputDirectory $clientDir -NonInteractive
           if ($LASTEXITCODE -ne 0) { exit 1 }
           $dlib = Get-ChildItem $clientDir -Recurse -Filter 'Azure.CodeSigning.Dlib.dll' |
             Where-Object { $_.FullName -match '\\x64\\' } | Select-Object -First 1
