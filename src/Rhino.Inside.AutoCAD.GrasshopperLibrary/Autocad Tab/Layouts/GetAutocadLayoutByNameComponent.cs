@@ -1,4 +1,4 @@
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -7,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD layout which matches the name.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class GetAutocadLayoutByNameComponent : Layout_BaseComponent
 {
     /// <inheritdoc />
@@ -24,6 +24,7 @@ public class GetAutocadLayoutByNameComponent : Layout_BaseComponent
             "Returns the AutoCAD layout which matches the name",
             "AutoCAD", "Layouts")
     {
+        this.EnableStaleTracking();
     }
 
     /// <inheritdoc />

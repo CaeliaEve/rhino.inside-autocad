@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>$(TargetFrameworkName)</TargetFramework>
-		<Configurations>Release;Debug;ReleaseNET8;DebugNET8</Configurations>
+		<Configurations>Release;Debug;ReleaseNET8;DebugNET8;ReleaseNET10;DebugNET10</Configurations>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<OutputType>Library</OutputType>
 		<UseWPF>true</UseWPF>

@@ -2,7 +2,9 @@
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Services;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -20,6 +22,21 @@ public class GrasshopperInstance : IGrasshopperInstance
     private const string _grasshopperCivilLibraryFileName = InteropConstants.GrasshopperCivilLibraryFileName;
     private const string _loadGhaMethodNotFound = MessageConstants.LoadGhaMethodNotFound;
     private const string _grasshopperInitializationFailed = MessageConstants.GrasshopperInitializationFailed;
+    private const string _grasshopperLibraryLoadFailedFormat = MessageConstants.GrasshopperLibraryLoadFailedFormat;
+    private const string _grasshopperHostDiagnosticFormat = MessageConstants.GrasshopperHostDiagnosticFormat;
+    private const string _loadGhaResolvedFormat = MessageConstants.LoadGhaResolvedFormat;
+    private const string _grasshopperLibraryDiagnosticFormat = MessageConstants.GrasshopperLibraryDiagnosticFormat;
+    private const string _grasshopperLibraryTypesLoadedFormat = MessageConstants.GrasshopperLibraryTypesLoadedFormat;
+    private const string _grasshopperLibraryTypeLoadFailedFormat = MessageConstants.GrasshopperLibraryTypeLoadFailedFormat;
+    private const string _grasshopperLibraryRegisteredFormat = MessageConstants.GrasshopperLibraryRegisteredFormat;
+    private const string _grasshopperLibraryAlreadyRegisteredFormat = MessageConstants.GrasshopperLibraryAlreadyRegisteredFormat;
+    private const string _loadGhaMethodName = InteropConstants.LoadGhaMethodName;
+    private const string _loadGhaReturnedFormat = MessageConstants.LoadGhaReturnedFormat;
+    private const string _grasshopperLoadingExceptionsFormat = MessageConstants.GrasshopperLoadingExceptionsFormat;
+    private const string _grasshopperLoadingExceptionFormat = MessageConstants.GrasshopperLoadingExceptionFormat;
+    private const string _grasshopperAssemblyExtension = InteropConstants.GrasshopperAssemblyExtension;
+    private const string _grasshopperLibrariesFolderName = InteropConstants.GrasshopperLibrariesFolderName;
+    private const string _applicationFolderName = ApplicationConstants.ApplicationFolderName;
 
     private IGrasshopperSelectionTracker? _selectionTracker;
     private GH_Canvas? _activeCanvas;
@@ -71,43 +88,278 @@ public class GrasshopperInstance : IGrasshopperInstance
     private void LoadGrasshopperLibrary()
     {
         var assembliesFolder = _installationDirectories.VersionedAssemblies;
-        var grasshopperLibraryPath = System.IO.Path.Combine(assembliesFolder, _grasshopperLibraryFileName);
-        var grasshopperCivilLibraryPath = System.IO.Path.Combine(assembliesFolder, _grasshopperCivilLibraryFileName);
+        var grasshopperLibraryPath = Path.Combine(assembliesFolder, _grasshopperLibraryFileName);
+        var grasshopperCivilLibraryPath = Path.Combine(assembliesFolder, _grasshopperCivilLibraryFileName);
 
-        var assembly = Assembly.LoadFrom(grasshopperLibraryPath);
+        var logger = LoggerService.Instance;
 
-        var assemblyInfo = new GH_AssemblyInfoStub(assembly);
+        this.LogGrasshopperHost(logger, assembliesFolder);
 
-        var comparer = new GH_AssemblyInfoStubComparer();
+        var loadGhaMethod = this.ResolveLoadGhaMethod();
 
-        if (Instances.ComponentServer.Libraries.Contains(assemblyInfo, comparer) ==
-            false)
+        if (loadGhaMethod == null)
         {
-            var loadGhaMethod = typeof(GH_ComponentServer).GetMethod(
-                "LoadGHA", BindingFlags.NonPublic | BindingFlags.Instance);
+            throw new TargetException(_loadGhaMethodNotFound);
+        }
 
-            if (loadGhaMethod == null)
-            {
-                throw new TargetException(_loadGhaMethodNotFound);
-            }
+        logger.LogMessage(string.Format(_loadGhaResolvedFormat, loadGhaMethod));
 
-            try
-            {
-                loadGhaMethod.Invoke(Instances.ComponentServer,
-                    [new GH_ExternalFile(grasshopperLibraryPath), false]
-                );
+        this.LoadLibrary(loadGhaMethod, grasshopperLibraryPath, logger);
 
-                if (_loadCivil)
-                {
-                    loadGhaMethod.Invoke(Instances.ComponentServer,
-                        [new GH_ExternalFile(grasshopperCivilLibraryPath), false]
-                    );
-                }
-            }
-            catch (TargetInvocationException e)
-            {
-                throw e.InnerException;
-            }
+        // Guarded separately from the main library. Nesting this inside the main library's
+        // "already registered?" check meant the Civil components never loaded once the main
+        // library was registered.
+        if (_loadCivil)
+        {
+            this.LoadLibrary(loadGhaMethod, grasshopperCivilLibraryPath, logger);
+        }
+    }
+
+    /// <summary>
+    /// Registers a single component library with the Grasshopper component server.
+    /// </summary>
+    /// <param name="loadGhaMethod">The resolved <c>GH_ComponentServer.LoadGHA</c> method.</param>
+    /// <param name="libraryPath">The full path of the component library to register.</param>
+    /// <param name="logger">The logger to record diagnostics to.</param>
+    private void LoadLibrary(MethodInfo loadGhaMethod, string libraryPath, ILoggerService logger)
+    {
+        var grasshopperAssemblyPath = this.MirrorAsGrasshopperAssembly(libraryPath);
+
+        var externalFile = new GH_ExternalFile(grasshopperAssemblyPath);
+
+        logger.LogMessage(string.Format(_grasshopperLibraryDiagnosticFormat,
+            grasshopperAssemblyPath, File.Exists(grasshopperAssemblyPath),
+            externalFile.FileType));
+
+        // Loaded from the original, not the mirror. Assembly.LoadFrom resolves both to the
+        // one assembly already in the process, so this is only about being explicit.
+        var assembly = Assembly.LoadFrom(libraryPath);
+
+        // Before anything that can throw, so the diagnosis survives a later failure.
+        this.LogLibraryTypes(assembly, logger);
+
+        var libraryName = Path.GetFileName(libraryPath);
+
+        if (IsRegistered(assembly))
+        {
+            logger.LogMessage(string.Format(_grasshopperLibraryAlreadyRegisteredFormat,
+                libraryName));
+
+            return;
+        }
+
+        var countBefore = Instances.ComponentServer.Libraries.Count;
+
+        object? loaded = null;
+
+        try
+        {
+            loaded = loadGhaMethod.Invoke(Instances.ComponentServer,
+                this.BuildLoadGhaArguments(loadGhaMethod, externalFile));
+        }
+        catch (TargetInvocationException e) when (e.InnerException != null)
+        {
+            ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+        }
+
+        // LoadGHA reports refusal by returning false rather than by throwing, so this is
+        // the difference between "registered nothing" and "declined to register".
+        logger.LogMessage(string.Format(_loadGhaReturnedFormat, loaded, libraryName));
+
+        logger.LogMessage(string.Format(_grasshopperLibraryRegisteredFormat,
+            libraryName,
+            countBefore,
+            Instances.ComponentServer.Libraries.Count,
+            IsRegistered(assembly)));
+
+        this.LogLoadingExceptions(logger);
+    }
+
+    /// <summary>
+    /// Returns the path of a ".gha" copy of the given component library, creating or
+    /// refreshing it when it is missing or out of date.
+    /// </summary>
+    /// <remarks>
+    /// A ".gha" is just a renamed assembly, but the extension is not cosmetic to
+    /// Grasshopper: <c>GH_ExternalFile.FileType</c> is derived from it, and Rhino 9 declines
+    /// to register a file it classifies as anything other than an assembly. Rhino 8 loaded
+    /// the ".dll" happily, which is why this was not needed before.
+    /// <para>
+    /// The libraries cannot simply be renamed at build time because AutoCAD loads the same
+    /// files as managed modules through PackageContents.xml, which requires ".dll". Having
+    /// both on disk costs nothing at runtime: the assembly is already loaded from the
+    /// original, and <see cref="Assembly.LoadFrom(string)"/> resolves the copy to that same
+    /// assembly rather than loading a second one.
+    /// </para>
+    /// </remarks>
+    /// <param name="libraryPath">The full path of the component library.</param>
+    /// <returns>The full path of the ".gha" copy.</returns>
+    private string MirrorAsGrasshopperAssembly(string libraryPath)
+    {
+        var mirrorDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            _applicationFolderName,
+            _grasshopperLibrariesFolderName);
+
+        Directory.CreateDirectory(mirrorDirectory);
+
+        var mirrorPath = Path.Combine(mirrorDirectory,
+            Path.GetFileNameWithoutExtension(libraryPath) + _grasshopperAssemblyExtension);
+
+        var library = new FileInfo(libraryPath);
+        var mirror = new FileInfo(mirrorPath);
+
+        // Refreshed on every upgrade, so the mirror never serves components from a build
+        // the user has replaced.
+        if (mirror.Exists &&
+            mirror.Length == library.Length &&
+            mirror.LastWriteTimeUtc == library.LastWriteTimeUtc)
+            return mirrorPath;
+
+        File.Copy(libraryPath, mirrorPath, true);
+
+        File.SetLastWriteTimeUtc(mirrorPath, library.LastWriteTimeUtc);
+
+        return mirrorPath;
+    }
+
+    /// <summary>
+    /// Records the loading exceptions Grasshopper collected.
+    /// </summary>
+    /// <remarks>
+    /// Grasshopper does not throw when it rejects a library; it records the reason here and
+    /// returns false, which is why this is read after every registration attempt.
+    /// </remarks>
+    /// <param name="logger">The logger to record diagnostics to.</param>
+    private void LogLoadingExceptions(ILoggerService logger)
+    {
+        var loadingExceptions = Instances.ComponentServer.LoadingExceptions;
+
+        if (loadingExceptions == null || loadingExceptions.Count == 0)
+            return;
+
+        var detail = string.Join(Environment.NewLine, loadingExceptions
+            .Where(loadingException => loadingException != null)
+            .Select(loadingException => string.Format(_grasshopperLoadingExceptionFormat,
+                loadingException.Type, loadingException.Name, loadingException.Message)));
+
+        logger.LogMessage(string.Format(_grasshopperLoadingExceptionsFormat,
+            loadingExceptions.Count, detail));
+    }
+
+    /// <summary>
+    /// Returns true when the component server already holds the given assembly.
+    /// </summary>
+    /// <param name="assembly">The component library assembly.</param>
+    private static bool IsRegistered(Assembly assembly)
+    {
+        return Instances.ComponentServer.Libraries.Contains(
+            new GH_AssemblyInfoStub(assembly), new GH_AssemblyInfoStubComparer());
+    }
+
+    /// <summary>
+    /// Resolves the private <c>GH_ComponentServer.LoadGHA</c> method used to register a
+    /// component library.
+    /// </summary>
+    /// <remarks>
+    /// Searched by name and parameter shape rather than with a plain
+    /// <see cref="Type.GetMethod(string, BindingFlags)"/> call, which throws
+    /// <see cref="AmbiguousMatchException"/> as soon as a Rhino release adds an overload.
+    /// Falls back to the single-parameter form so a dropped trailing argument does not
+    /// break registration either.
+    /// </remarks>
+    /// <returns>The method, or null when no usable overload exists.</returns>
+    private MethodInfo? ResolveLoadGhaMethod()
+    {
+        var candidates = typeof(GH_ComponentServer)
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Where(method => method.Name == _loadGhaMethodName)
+            .ToList();
+
+        return candidates.FirstOrDefault(method =>
+                   HasParameters(method, typeof(GH_ExternalFile), typeof(bool))) ??
+               candidates.FirstOrDefault(method =>
+                   HasParameters(method, typeof(GH_ExternalFile)));
+    }
+
+    /// <summary>
+    /// Returns true when the method takes exactly the given parameter types.
+    /// </summary>
+    /// <param name="method">The method to test.</param>
+    /// <param name="parameterTypes">The parameter types to match.</param>
+    private static bool HasParameters(MethodInfo method, params Type[] parameterTypes)
+    {
+        var parameters = method.GetParameters();
+
+        if (parameters.Length != parameterTypes.Length)
+            return false;
+
+        return !parameters.Where((parameter, index) =>
+            parameter.ParameterType != parameterTypes[index]).Any();
+    }
+
+    /// <summary>
+    /// Builds the argument list for the resolved <c>LoadGHA</c> overload.
+    /// </summary>
+    /// <param name="loadGhaMethod">The resolved method.</param>
+    /// <param name="externalFile">The component library to register.</param>
+    private object[] BuildLoadGhaArguments(MethodInfo loadGhaMethod, GH_ExternalFile externalFile)
+    {
+        return loadGhaMethod.GetParameters().Length == 1
+            ? [externalFile]
+            : [externalFile, false];
+    }
+
+    /// <summary>
+    /// Records which Grasshopper the plugin bound to and where its component libraries are
+    /// being loaded from.
+    /// </summary>
+    /// <param name="logger">The logger to record diagnostics to.</param>
+    /// <param name="assembliesFolder">The folder holding the component libraries.</param>
+    private void LogGrasshopperHost(ILoggerService logger, string assembliesFolder)
+    {
+        var grasshopperAssembly = typeof(GH_ComponentServer).Assembly;
+
+        logger.LogMessage(string.Format(_grasshopperHostDiagnosticFormat,
+            grasshopperAssembly.FullName, grasshopperAssembly.Location, assembliesFolder));
+    }
+
+    /// <summary>
+    /// Records whether a component library can expose its types.
+    /// </summary>
+    /// <remarks>
+    /// Grasshopper discovers components by reflecting over the assembly's types and
+    /// registers nothing, silently, when that throws - which presents as a canvas with the
+    /// Rhino.Inside.AutoCAD tabs missing and no error anywhere. Forcing the same reflection
+    /// here turns that into a log entry naming the member which moved between Rhino
+    /// versions.
+    /// </remarks>
+    /// <param name="assembly">The component library assembly.</param>
+    /// <param name="logger">The logger to record diagnostics to.</param>
+    private void LogLibraryTypes(Assembly assembly, ILoggerService logger)
+    {
+        try
+        {
+            var types = assembly.GetTypes();
+
+            logger.LogMessage(string.Format(_grasshopperLibraryTypesLoadedFormat,
+                assembly.FullName, types.Length));
+        }
+        catch (ReflectionTypeLoadException e)
+        {
+            var loaderExceptions = string.Join(Environment.NewLine, e.LoaderExceptions
+                .Where(loaderException => loaderException != null)
+                .Select(loaderException => loaderException!.Message)
+                .Distinct());
+
+            var message = string.Format(_grasshopperLibraryTypeLoadFailedFormat,
+                assembly.FullName, loaderExceptions);
+
+            logger.LogError(e, message);
+
+            // Registration will carry on and quietly add nothing, so this is the only point
+            // at which the user can be told why the components are about to be missing.
+            RhinoApp.WriteLine(message);
         }
     }
 
@@ -141,11 +393,29 @@ public class GrasshopperInstance : IGrasshopperInstance
     }
 
     /// <summary>
-    /// Registers event handlers when a new Grasshopper canvas is created.
+    /// Loads the component libraries and registers event handlers when a new Grasshopper
+    /// canvas is created.
     /// </summary>
+    /// <remarks>
+    /// Grasshopper raises this while building the canvas, and the launch path in
+    /// <c>RhinoLauncher</c> has long since returned, so an escaping exception would be
+    /// reported nowhere and leave the canvas half wired up. Failing to register the
+    /// components is reported and survivable; the canvas itself still works.
+    /// </remarks>
     private void OnCanvasCreated(GH_Canvas canvas)
     {
-        this.LoadGrasshopperLibrary();
+        try
+        {
+            this.LoadGrasshopperLibrary();
+        }
+        catch (Exception e)
+        {
+            var message = string.Format(_grasshopperLibraryLoadFailedFormat, e.Message);
+
+            LoggerService.Instance.LogError(e, message);
+
+            RhinoApp.WriteLine(message);
+        }
 
         _activeCanvas = Grasshopper.Instances.ActiveCanvas;
         _activeCanvas.DocumentChanged += this.OnDocumentChanged;
@@ -388,7 +658,6 @@ public class GrasshopperInstance : IGrasshopperInstance
     public void Shutdown()
     {
         System.Diagnostics.Debug.WriteLine("=== GrasshopperInstance.Shutdown() START ===");
-
 
         this.RemoveDocumentSubscriptions();
 

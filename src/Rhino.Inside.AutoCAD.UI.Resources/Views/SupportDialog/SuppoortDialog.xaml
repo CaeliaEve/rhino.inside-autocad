@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:Rhino.Inside.AutoCAD.UI.Resources.Views"
         mc:Ignorable="d"
        Height="800"
         Width="600"
@@ -622,6 +623,19 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <StackPanel Grid.Column="0"
+                                Grid.Row="5"
+                                Orientation="Horizontal">
+                        <TextBlock Text="Current .NET Version: "
+                                   Margin="3 0"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+
+                        <TextBlock Text="{Binding DotNetVersion}"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+                    </StackPanel>
+
                     <!-- The Action Button -->
                     <Button Grid.Row="6"
                             Content="Update Rhino.Inside.Autocad"
@@ -665,6 +679,156 @@
                                Foreground="{StaticResource PrimaryTextBrush}" />
                 </TabItem.Header>
 
+                <Grid Margin="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <!-- Rhino version heading -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Rhino version description -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Always use checkbox -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Restart note -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Divider -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Preview colours heading -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Preview colours description -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Rhino preview colour -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Grasshopper preview colour -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Selected preview colour -->
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Rhino Version -->
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="0"
+                               Text="Rhino Version"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontWeight="Bold"
+                               Style="{StaticResource MaterialDesignBodyLargeTextBlock}" />
+
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="1"
+                               Text="The version of Rhino that Rhino.Inside.AutoCAD runs. When more than one version is installed you are asked which to use each time AutoCAD starts."
+                               TextWrapping="Wrap"
+                               Margin="0 0 10 0"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+
+                    <!-- The Rhino version selector -->
+                    <ComboBox Grid.Column="1"
+                              Grid.Row="0"
+                              Grid.RowSpan="2"
+                              MinWidth="150"
+                              Margin="0,0,10,0"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center"
+                              DisplayMemberPath="DisplayName"
+                              ItemsSource="{Binding RhinoInstallations}"
+                              SelectedItem="{Binding SelectedRhinoInstallation}" />
+
+                    <!-- Stop asking at startup -->
+                    <CheckBox Grid.Column="0"
+                              Grid.Row="2"
+                              Grid.ColumnSpan="2"
+                              Margin="0,14,10,0"
+                              Content="Always use this version and stop asking at startup"
+                              Foreground="{StaticResource PrimaryTextBrush}"
+                              IsEnabled="{Binding CanAlwaysUseRhinoVersion}"
+                              IsChecked="{Binding AlwaysUseSelectedRhinoVersion}" />
+
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="3"
+                               Grid.ColumnSpan="2"
+                               Text="{Binding RhinoVersionRestartNote}"
+                               TextWrapping="Wrap"
+                               FontStyle="Italic"
+                               FontSize="10"
+                               Margin="0,10,10,0"
+                               Foreground="{StaticResource SecondaryTextBrush}" />
+
+                    <Border Grid.Column="0"
+                            Grid.Row="4"
+                            Grid.ColumnSpan="2"
+                            BorderThickness="0.5"
+                            BorderBrush="{StaticResource BorderGreyColorBrush}"
+                            VerticalAlignment="Center"
+                            Margin="10,10,10,10" />
+
+                    <!-- Preview Colours -->
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="5"
+                               Text="{Binding PreviewColorsHeading}"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontWeight="Bold"
+                               Style="{StaticResource MaterialDesignBodyLargeTextBlock}" />
+
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="6"
+                               Grid.ColumnSpan="2"
+                               Text="{Binding PreviewColorsDescription}"
+                               TextWrapping="Wrap"
+                               Margin="0 0 10 0"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+
+                    <!-- The unselected Rhino preview colour -->
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="7"
+                               Margin="0,14,10,0"
+                               VerticalAlignment="Center"
+                               Text="{Binding RhinoPreviewColorLabel}"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+
+                    <views:AciColorPicker Grid.Column="1"
+                                          Grid.Row="7"
+                                          Margin="0,14,10,0"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          SelectedColorIndex="{Binding RhinoPreviewColorIndex}" />
+
+                    <!-- The unselected Grasshopper preview colour -->
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="8"
+                               Margin="0,10,10,0"
+                               VerticalAlignment="Center"
+                               Text="{Binding GrasshopperPreviewColorLabel}"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+
+                    <views:AciColorPicker Grid.Column="1"
+                                          Grid.Row="8"
+                                          Margin="0,10,10,0"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          SelectedColorIndex="{Binding GrasshopperPreviewColorIndex}" />
+
+                    <!-- The selected preview colour, shared by both -->
+                    <TextBlock Grid.Column="0"
+                               Grid.Row="9"
+                               Margin="0,10,10,0"
+                               VerticalAlignment="Center"
+                               Text="{Binding SelectedPreviewColorLabel}"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               Style="{StaticResource MaterialDesignBodyMediumTextBlock}" />
+
+                    <views:AciColorPicker Grid.Column="1"
+                                          Grid.Row="9"
+                                          Margin="0,10,10,0"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          SelectedColorIndex="{Binding SelectedPreviewColorIndex}" />
+
+                </Grid>
 
             </TabItem>
         </TabControl>

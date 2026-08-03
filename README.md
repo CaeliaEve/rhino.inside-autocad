@@ -1,4 +1,4 @@
-<img src="src\Rhino.Inside.AutoCAD.Applications\Icons\RhinoInsideLogo.ico" width="128px"/>
+<img src="src\Rhino.Inside.AutoCAD.Applications\Icons\RhinoInsideAutoCADLogo.png" width="128px"/>
 
 # Rhino.Inside® AutoCAD & Rhino.Inside® Civil3d
 
@@ -20,9 +20,21 @@ This project is in early Alpha testing, and it is not recommended for use in a p
 ## Supported Versions
 
 This project currently only supports:
-- Rhino 8
-- AutoCAD 2024, AutoCAD 2025, AutoCAD 2026
-- or Civil3d 2024, Civil3d 2025, Civil3d 2026
+- Rhino 8, with AutoCAD 2024, AutoCAD 2025, AutoCAD 2026, AutoCAD 2027 or Civil3d 2024, Civil3d 2025,
+  Civil3d 2026, Civil3d 2027
+- Rhino 9, with AutoCAD 2025, AutoCAD 2026, AutoCAD 2027 or Civil3d 2025, Civil3d 2026, Civil3d 2027
+
+Rhino 9 requires .NET Core, so it cannot be hosted by AutoCAD 2024 or Civil3d 2024, which run on
+.NET Framework.
+
+Autodesk moved the 2025 and 2026 releases from .NET 8 to .NET 10 (AutoCAD 2026.1.2 and the
+equivalent 2025 update). Both are supported: the same build runs under either runtime, so no
+action is needed when you take that update. Rhino 8 users should be on 8.32 or newer, which is
+the first service release Rhino support in a .NET 10 host.
+
+If more than one supported Rhino version is installed, you are asked which one to use the first
+time Rhino.Inside.AutoCAD starts in a session. Choose "Always use" to save the choice and skip
+the prompt in future sessions.
 
 For full compatibility make sure your applications are up to date.
 

@@ -1,4 +1,4 @@
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -7,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD documents currently open in the AutoCAD session.
 /// </summary>
-[ComponentVersion(introduced: "1.0.0", updated: "1.0.20")]
+[ComponentVersion(introduced: "1.0.0", updated: "1.3.0")]
 public class GetAutocadLayerByNameComponent : Layer_BaseComponent
 {
     /// <inheritdoc />
@@ -25,6 +25,7 @@ public class GetAutocadLayerByNameComponent : Layer_BaseComponent
             "Returns the the AutoCAD layer which matches the name",
             "AutoCAD", "Layers")
     {
+        this.EnableStaleTracking();
     }
 
     /// <inheritdoc />

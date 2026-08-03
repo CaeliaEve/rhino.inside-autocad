@@ -18,7 +18,7 @@ public abstract class GH_AutocadGeometricGoo<TWrapperType, TRhinoType>
 where TWrapperType : Entity
 where TRhinoType : class, IRhinoAdapter
 {
-    private const string _referenceHandleDictionaryName = "AutocadReferenceHandle";
+    private const string _referenceHandleDictionaryName = GrasshopperKeys.AutocadReferenceHandle;
 
     private TRhinoType? _cachedRhinoGeometry;
     private TWrapperType? _cachedValueForGeometry;

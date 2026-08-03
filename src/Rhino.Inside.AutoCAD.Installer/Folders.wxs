@@ -11,6 +11,7 @@
 							<Directory Id='Win64Folder' Name='Win64'>
 								<Directory Id='NET48Folder' Name='NET48'/>
 								<Directory Id='NET8Folder' Name='NET8'/>
+								<Directory Id='NET10Folder' Name='NET10'/>
 							</Directory>
 						</Directory>
 						<Directory Id='IconsFolder' Name='Icons'/>

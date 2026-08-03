@@ -11,9 +11,6 @@ namespace Rhino.Inside.AutoCAD.Interop;
 /// <inheritdoc cref="IRhinoCoreExtension"/>
 public class RhinoCoreExtension : IRhinoCoreExtension
 {
-    private const string _rhinoRegistryKeyPath = ApplicationConstants.RhinoRegistryKeyPath;
-    private const string _rhinoInstallPathValueName = ApplicationConstants.RhinoInstallPathValueName;
-    private const string _rhinoPluginsFolderValueName = ApplicationConstants.RhinoPluginsFolderValueName;
     private const string _rhinoCommonAssemblyName = ApplicationConstants.RhinoCommonAssemblyName;
     private const string _grasshopperAssemblyName = ApplicationConstants.GrasshopperAssemblyName;
     private const string _grasshopperIoAssemblyName = ApplicationConstants.GrasshopperIOAssemblyName;
@@ -23,7 +20,6 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     private const string _rhinoNoSplashArgument = ApplicationConstants.RhinoNoSplashArgument;
     private const string _rhinoSchemeArgumentFormat = ApplicationConstants.RhinoSchemeArgumentFormat;
     private const string _rhinoInsideSchemeNameFormat = ApplicationConstants.RhinoInsideSchemeNameFormat;
-    private const string _rhinoNotInstalledErrorMessage = ApplicationConstants.RhinoNotInstalledErrorMessage;
     private const string _rhinoCoreInitializationFailedErrorMessage = ApplicationConstants.RhinoCoreInitializationFailedErrorMessage;
     private const string _wcfErrorMessage = Services.MessageConstants.WcfErrorMessage;
     private const string _systemPrimitiveDll = ApplicationConstants.SystemPrimitiveDll;
@@ -35,36 +31,25 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     private static RhinoCore? _rhinoCore;
 
     /// <summary>
-    /// True if Rhino is installed otherwise false.
-    /// </summary>
-    private static readonly bool _rhinoInstallDirectoryExists;
-
-    /// <summary>
     /// The <see cref="RhinoCoreExtension"/> singleton instance.
     /// </summary>
     public static RhinoCoreExtension Instance { get; }
+
+    /// <summary>
+    /// The Rhino installation this session is bound to.
+    /// </summary>
+    /// <remarks>
+    /// Null only before <see cref="BindTo"/> has been called. The plugin does not finish
+    /// loading unless the binding succeeds, so by the time any command can run this is set.
+    /// </remarks>
+    /// <seealso cref="BindTo"/>
+    public static IRhinoInstallation? SelectedInstallation { get; private set; }
 
     /// <inheritdoc />
     public IStartUpLogger StartUpLogger { get; }
 
     /// <inheritdoc />
     public IRhinoWindowManager WindowManager { get; }
-
-    /// <summary>
-    /// Gets the Rhino system directory in the local machines registry.
-    /// </summary>
-    static readonly string _systemDir = (string)Microsoft.Win32.Registry.GetValue
-    (
-        _rhinoRegistryKeyPath, _rhinoInstallPathValueName, string.Empty
-    );
-
-    /// <summary>
-    /// Gets the Rhino system directory in the local machines registry.
-    /// </summary>
-    static readonly string _pluginDir = (string)Microsoft.Win32.Registry.GetValue
-    (
-        _rhinoRegistryKeyPath, _rhinoPluginsFolderValueName, string.Empty
-    );
 
     /// <summary>
     /// Constructs a new <see cref="RhinoCoreExtension"/> instance.
@@ -76,41 +61,54 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     }
 
     /// <summary>
-    /// Uses assembly resolver to load the Rhino assembly once per app domain.
+    /// Creates the singleton. Deliberately does no work beyond that: the resolver
+    /// registration below shows UI on the way to deciding which paths to register, and
+    /// running that under the CLR's class initialization lock risks deadlock.
     /// </summary>
     static RhinoCoreExtension()
     {
         Instance = new RhinoCoreExtension();
-        _rhinoInstallDirectoryExists = Directory.Exists(_systemDir);
-        if (_rhinoInstallDirectoryExists)
-        {
+    }
 
-#if DEBUGNET8 || RELEASENET8
+    /// <summary>
+    /// Binds this app domain to a Rhino installation by registering the assembly resolvers
+    /// which load its assemblies.
+    /// </summary>
+    /// <remarks>
+    /// Must be called exactly once, before any RhinoCommon, Grasshopper or Eto type is
+    /// touched. The resolvers bake in the paths of the given installation and cannot be
+    /// re-pointed afterwards, which is why changing version needs an AutoCAD restart.
+    /// </remarks>
+    /// <param name="installation">The installation to bind to.</param>
+    /// <seealso cref="RhinoVersionSelection.Resolve"/>
+    public static void BindTo(IRhinoInstallation installation)
+    {
+        SelectedInstallation = installation;
 
-#if DEBUGNET8
-            // DEBUG ONLY: Registered before the resolvers below so it observes every request.
-            ZooLicenseDiagnostics.Install();
+#if DEBUG && NET8_0_OR_GREATER
+        // DEBUG ONLY: Registered before the resolvers below so it observes every request.
+        ZooLicenseDiagnostics.Install();
 #endif
-            RegisterAssemblyResolver(_rhinoCommonAssemblyName, Path.Combine(_systemDir, "netcore", _rhinoCommonDllName));
-            RegisterAssemblyResolver("Rhino.UI", Path.Combine(_systemDir, "netcore", "Rhino.UI.dll"));
-            RegisterAssemblyResolver("Mono.Cecil", Path.Combine(_systemDir, "netcore", "Mono.Cecil.dll"));
 
-            LoadWcfAssemblies();
-#else
-            RegisterAssemblyResolver(_rhinoCommonAssemblyName, Path.Combine(_systemDir, _rhinoCommonDllName));
+        var systemDir = installation.SystemDirectory;
+        var pluginDir = installation.PluginsDirectory;
 
+        RegisterAssemblyResolver(_rhinoCommonAssemblyName, installation.RhinoCommonPath);
+
+#if NET8_0_OR_GREATER
+        // Rhino.UI and Mono.Cecil sit alongside RhinoCommon in the netcore subfolder.
+        var assemblyDir = installation.AssemblyDirectory;
+
+        RegisterAssemblyResolver("Rhino.UI", Path.Combine(assemblyDir, "Rhino.UI.dll"));
+        RegisterAssemblyResolver("Mono.Cecil", Path.Combine(assemblyDir, "Mono.Cecil.dll"));
+
+        LoadWcfAssemblies();
 #endif
 
-            RegisterAssemblyResolver(_grasshopperAssemblyName, Path.Combine(_pluginDir, _grasshopperDllRelativePath));
+        RegisterAssemblyResolver(_grasshopperAssemblyName, Path.Combine(pluginDir, _grasshopperDllRelativePath));
 
-            RegisterAssemblyResolver(_grasshopperIoAssemblyName, Path.Combine(_pluginDir, _grasshopperIoDllRelativePath));
-            RegisterAssemblyResolver("Eto", Path.Combine(_systemDir, "Eto.dll"));
-
-        }
-        else
-        {
-            Instance.StartUpLogger.AddError(_rhinoNotInstalledErrorMessage);
-        }
+        RegisterAssemblyResolver(_grasshopperIoAssemblyName, Path.Combine(pluginDir, _grasshopperIoDllRelativePath));
+        RegisterAssemblyResolver("Eto", Path.Combine(systemDir, "Eto.dll"));
     }
 
     /// <summary>
@@ -224,7 +222,7 @@ public class RhinoCoreExtension : IRhinoCoreExtension
                 string.Format(_rhinoSchemeArgumentFormat, schemeName)
             };
 
-#if DEBUGNET8 || RELEASENET8
+#if NET8_0_OR_GREATER
             args.Add("/netcore");
 #else
             args.Add("/netfx");

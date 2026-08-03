@@ -1,4 +1,4 @@
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -7,7 +7,7 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <summary>
 /// A Grasshopper component that returns the AutoCAD Block Table Record which matches the name.
 /// </summary>
-[ComponentVersion(introduced: "1.2.24")]
+[ComponentVersion(introduced: "1.2.24", updated: "1.3.0")]
 public class GetAutocadBlockTableRecordByNameComponent : Block_BaseComponent
 {
     /// <inheritdoc />
@@ -25,6 +25,7 @@ public class GetAutocadBlockTableRecordByNameComponent : Block_BaseComponent
             "Returns the AutoCAD Block Table Record which matches the name",
             "AutoCAD", "Blocks")
     {
+        this.EnableStaleTracking();
     }
 
     /// <inheritdoc />

@@ -30,6 +30,14 @@ stages:
         packageType: 'sdk'
         version: '8.0.x'
 
+    # The NET10 leg (AutoCAD/Civil 3D 2027) needs its own SDK; the NET48 and NET8 legs
+    # still build with 8.x above.
+    - task: UseDotNet@2
+      displayName: 'Install .NET SDK 10.x'
+      inputs:
+        packageType: 'sdk'
+        version: '10.0.x'
+
     # 0. EXTRACT VERSION
     - task: PowerShell@2
       displayName: 'Extract Version'
@@ -124,6 +132,22 @@ stages:
             --self-contained false /p:NoWarn=NU1605 /p:CopyLocalLockFileAssemblies=true
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
+    # 4b. PUBLISH NET10
+    - task: PowerShell@2
+      displayName: 'Publish NET10 Projects'
+      inputs:
+        targetType: 'inline'
+        script: |
+          dotnet publish "src/Rhino.Inside.AutoCAD.GrasshopperLibrary/Rhino.Inside.AutoCAD.GrasshopperLibrary.csproj" `
+            --configuration ReleaseNET10 --framework net10.0-windows --output "publish/net10" `
+            --self-contained false /p:NoWarn=NU1605 /p:CopyLocalLockFileAssemblies=true
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+          dotnet publish "src/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.csproj" `
+            --configuration ReleaseNET10 --framework net10.0-windows --output "publish/net10" `
+            --self-contained false /p:NoWarn=NU1605 /p:CopyLocalLockFileAssemblies=true
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
     # 5. STAGE ALL FILES FOR WIX
     - task: PowerShell@2
       displayName: 'Stage Files for Installer'
@@ -142,11 +166,14 @@ stages:
           New-Item -ItemType Directory -Force -Path "$stagePath\Resources" | Out-Null
           New-Item -ItemType Directory -Force -Path "$stagePath\$version\Win64\NET48" | Out-Null
           New-Item -ItemType Directory -Force -Path "$stagePath\$version\Win64\NET8" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$stagePath\$version\Win64\NET10" | Out-Null
 
-          # Copy Assets
+          # Copy Assets. PackageContents.xml and the toolbars are owned by the Applications
+          # project, not the Installer project; the installer must fail loudly if they are
+          # missing, since WiX would otherwise package a stale copy from the staging folder.
           Copy-Item "src/Rhino.Inside.AutoCAD.Installer/Icons/*" "$stagePath\Icons\" -Recurse -Force -ErrorAction SilentlyContinue
-          Copy-Item "src/Rhino.Inside.AutoCAD.Installer/Toolbar/*" "$stagePath\Toolbar\" -Force -ErrorAction SilentlyContinue
-          Copy-Item "src/Rhino.Inside.AutoCAD.Installer/PackageContents.xml" "$stagePath\" -Force -ErrorAction SilentlyContinue
+          Copy-Item "src/Rhino.Inside.AutoCAD.Applications/Toolbar/*" "$stagePath\Toolbar\" -Force
+          Copy-Item "src/Rhino.Inside.AutoCAD.Applications/PackageContents.xml" "$stagePath\" -Force
           Copy-Item "src/Rhino.Inside.AutoCAD.Installer/Resources/*" "$stagePath\Resources\" -Force -ErrorAction SilentlyContinue
 
           # Copy DLLs from publish
@@ -156,21 +183,29 @@ stages:
           Get-ChildItem "publish/net8/*.dll" | Where-Object { $_.Name -notmatch $excludePattern } | ForEach-Object {
             Copy-Item $_.FullName "$stagePath\$version\Win64\NET8\" -Force
           }
+          Get-ChildItem "publish/net10/*.dll" | Where-Object { $_.Name -notmatch $excludePattern } | ForEach-Object {
+            Copy-Item $_.FullName "$stagePath\$version\Win64\NET10\" -Force
+          }
 
           # Copy missing DLLs from NuGet cache
-          function Copy-FromNuGet($DllName, $PackageName, $DestNet48, $DestNet8) {
+          function Copy-FromNuGet($DllName, $PackageName, $DestNet48, $DestNet8, $DestNet10) {
             $packagePath = Join-Path $nugetCache $PackageName.ToLower()
             if (-not (Test-Path $packagePath)) { return }
-            
+
             if (-not (Test-Path $DestNet48)) {
-              $dll = Get-ChildItem -Path $packagePath -Recurse -Filter $DllName -EA SilentlyContinue | 
+              $dll = Get-ChildItem -Path $packagePath -Recurse -Filter $DllName -EA SilentlyContinue |
                 Where-Object { $_.FullName -match '(netstandard2\.0|net4)' } | Select-Object -First 1
               if ($dll) { Copy-Item $dll.FullName $DestNet48 -Force }
             }
             if (-not (Test-Path $DestNet8)) {
-              $dll = Get-ChildItem -Path $packagePath -Recurse -Filter $DllName -EA SilentlyContinue | 
+              $dll = Get-ChildItem -Path $packagePath -Recurse -Filter $DllName -EA SilentlyContinue |
                 Where-Object { $_.FullName -match '(net8|net7|net6|netstandard2\.)' } | Select-Object -First 1
               if ($dll) { Copy-Item $dll.FullName $DestNet8 -Force }
+            }
+            if (-not (Test-Path $DestNet10)) {
+              $dll = Get-ChildItem -Path $packagePath -Recurse -Filter $DllName -EA SilentlyContinue |
+                Where-Object { $_.FullName -match '(net10|net9|net8|netstandard2\.)' } | Select-Object -First 1
+              if ($dll) { Copy-Item $dll.FullName $DestNet10 -Force }
             }
           }
 
@@ -187,11 +222,12 @@ stages:
           }
 
           foreach ($entry in $requiredFromNuGet.GetEnumerator()) {
-            Copy-FromNuGet $entry.Key $entry.Value "$stagePath\$version\Win64\NET48\$($entry.Key)" "$stagePath\$version\Win64\NET8\$($entry.Key)"
+            Copy-FromNuGet $entry.Key $entry.Value "$stagePath\$version\Win64\NET48\$($entry.Key)" "$stagePath\$version\Win64\NET8\$($entry.Key)" "$stagePath\$version\Win64\NET10\$($entry.Key)"
           }
 
           Write-Host "NET48: $((@(Get-ChildItem "$stagePath\$version\Win64\NET48\*.dll")).Count) DLLs"
           Write-Host "NET8: $((@(Get-ChildItem "$stagePath\$version\Win64\NET8\*.dll")).Count) DLLs"
+          Write-Host "NET10: $((@(Get-ChildItem "$stagePath\$version\Win64\NET10\*.dll")).Count) DLLs"
 
     # 6. ADD INSTALLER PROJECT BACK TO SOLUTION
     - task: PowerShell@2

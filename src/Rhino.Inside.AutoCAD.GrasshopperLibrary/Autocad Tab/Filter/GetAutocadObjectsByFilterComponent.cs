@@ -14,7 +14,9 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 [ComponentVersion(introduced: "1.0.9", updated: "1.2.24")]
 public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBase, IReferenceComponent
 {
-    private const string AutoUpdateEnabledKey = "AutoUpdateEnabled";
+    private const string AutoUpdateEnabledKey = GrasshopperKeys.AutoUpdateEnabled;
+    private const string AutoUpdateMenuItemText = GrasshopperMessages.AutoUpdateMenuItem;
+    private const string AutoUpdateTooltipText = GrasshopperMessages.AutoUpdateFilterTooltip;
 
     private readonly GooConverter _gooConverter;
     private bool _autoUpdateEnabled;
@@ -218,12 +220,12 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
 
         var autoUpdateItem = Menu_AppendItem(
             menu,
-            "Auto Update",
+            AutoUpdateMenuItemText,
             this.OnAutoUpdateMenuClick,
             true,
             _autoUpdateEnabled
         );
-        autoUpdateItem.ToolTipText = "When enabled, the component automatically updates when AutoCAD document changes. When disabled, use the Update button to manually refresh.";
+        autoUpdateItem.ToolTipText = AutoUpdateTooltipText;
     }
 
     /// <summary>

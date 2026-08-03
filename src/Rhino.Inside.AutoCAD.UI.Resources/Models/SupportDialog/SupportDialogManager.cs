@@ -84,7 +84,7 @@ public class SupportDialogManager : ISupportDialogManager
 
         var grasshopperVersion = rhinoInsideManager.RhinoInstance.ApplicationVersion;
 
-        _supportDialogViewModel.UpdateVersionInfo(autocadVersion, rhinoVersion, grasshopperVersion, rhinoInsideVersion);
+        _supportDialogViewModel!.UpdateVersionInfo(autocadVersion, rhinoVersion, grasshopperVersion, rhinoInsideVersion);
 
     }
 
@@ -96,7 +96,13 @@ public class SupportDialogManager : ISupportDialogManager
     {
         if (_dialog == null || !_dialog.IsVisible)
         {
-            var viewModel = new SupportDialogViewModel();
+            // Rescanned each time the dialog opens so a Rhino installed or removed since
+            // AutoCAD started is reflected on the settings page.
+            var installations = new RhinoInstallationLocator().Locate();
+
+            var viewModel = new SupportDialogViewModel(_application.SettingsManager.User,
+                _application.RhinoInsideManager, installations);
+
             viewModel.SelectedTabIndex = (int)tab;
             _supportDialogViewModel = viewModel;
             _dialog = new SupportDialog(viewModel);

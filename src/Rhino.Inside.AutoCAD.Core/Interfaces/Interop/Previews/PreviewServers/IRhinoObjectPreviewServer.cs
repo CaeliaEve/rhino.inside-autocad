@@ -45,4 +45,11 @@ public interface IRhinoObjectPreviewServer
     /// Deselects all the transient entities which are in the <see cref="IObjectRegister"/>
     /// </summary>
     void DeselectAll();
+
+    /// <summary>
+    /// Redraws every previewed entity with the current <see cref="UnSelectedSettings"/>,
+    /// so a change to those settings is seen immediately. The current visibility state is
+    /// preserved.
+    /// </summary>
+    void RefreshAppearance();
 }
