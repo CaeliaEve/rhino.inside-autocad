@@ -274,18 +274,68 @@ stages:
         AZURE_TENANT_ID: $(AZURE_TENANT_ID)
 
     # 8.2 SIGN MSI WITH AZURE TRUSTED SIGNING
-    - task: TrustedSigning@0
+    # Signed via signtool + the Trusted Signing dlib rather than the TrustedSigning@0
+    # task: the task cannot set a signature description (signtool /d), and without one
+    # the UAC elevation prompt shows Windows Installer's randomly-named cached copy
+    # (e.g. "1f3c4d.msi") instead of the product name.
+    - task: PowerShell@2
       displayName: 'Sign MSI with Trusted Signing'
       inputs:
-        Endpoint: $(AZURE_ENDPOINT)
-        TrustedSigningAccountName: $(AZURE_CODE_SIGNING_NAME)
-        CertificateProfileName: $(AZURE_CERT_PROFILE_NAME)
-        FilesFolder: $(Build.ArtifactStagingDirectory)
-        FilesFolderFilter: msi
+        targetType: 'inline'
+        script: |
+          $ErrorActionPreference = 'Stop'
+
+          $clientDir = "$(Agent.TempDirectory)\TrustedSigningClient"
+          nuget install Microsoft.Trusted.Signing.Client -OutputDirectory $clientDir -NonInteractive
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $dlib = Get-ChildItem $clientDir -Recurse -Filter 'Azure.CodeSigning.Dlib.dll' |
+            Where-Object { $_.FullName -match '\\x64\\' } | Select-Object -First 1
+          if (-not $dlib) { Write-Error 'Azure.CodeSigning.Dlib.dll (x64) not found' }
+
+          $metadataFile = "$(Agent.TempDirectory)\signing-metadata.json"
+          $metadata = @{
+            Endpoint               = "$(AZURE_ENDPOINT)"
+            CodeSigningAccountName = "$(AZURE_CODE_SIGNING_NAME)"
+            CertificateProfileName = "$(AZURE_CERT_PROFILE_NAME)"
+          } | ConvertTo-Json
+          [System.IO.File]::WriteAllText($metadataFile, $metadata)
+
+          # Trusted Signing needs signtool from Windows SDK 10.0.22621 or later.
+          $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\10.*\x64\signtool.exe' |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { Write-Error 'signtool.exe not found' }
+
+          foreach ($msi in Get-ChildItem "$(Build.ArtifactStagingDirectory)\*.msi") {
+            & $signtool.FullName sign /fd SHA256 /tr 'http://timestamp.acs.microsoft.com' /td SHA256 `
+              /d 'Rhino.Inside.AutoCAD Installer' /du 'https://bimorph.com' `
+              /dlib $dlib.FullName /dmdf $metadataFile $msi.FullName
+            if ($LASTEXITCODE -ne 0) { Write-Error "Signing failed for $($msi.Name)" }
+          }
       env:
         AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
         AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
         AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+
+    # 8.3 VERIFY SIGNATURE
+    # Release gate: an unsigned MSI must never reach the artifact/GitHub release,
+    # since unsigned MSIs elevate as "Unknown publisher" with a random cached name.
+    - task: PowerShell@2
+      displayName: 'Verify MSI Signature'
+      inputs:
+        targetType: 'inline'
+        script: |
+          $msis = @(Get-ChildItem "$(Build.ArtifactStagingDirectory)\*.msi")
+          if ($msis.Count -eq 0) { Write-Error 'No MSI found to verify'; exit 1 }
+          $failed = $false
+          foreach ($msi in $msis) {
+            $sig = Get-AuthenticodeSignature $msi.FullName
+            Write-Host "$($msi.Name): $($sig.Status) - $($sig.SignerCertificate.Subject)"
+            if ($sig.Status -ne 'Valid') {
+              Write-Host "##vso[task.logissue type=error]MSI is not validly signed: $($msi.Name) ($($sig.Status))"
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish MSI Artifact'

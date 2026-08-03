@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <?include "Include.wxi"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<Fragment>
@@ -10,7 +10,7 @@
 				<RegistryValue Root='HKCU'
 				               Key="$(var.RegistryKey)"
 				               Name='InstallationPath'
-				               Value="$(var.InstallLocation)"
+				               Value="[ROOTDIRECTORY]"
 				               Type='string'
 				               KeyPath='yes'/>
 
@@ -36,7 +36,7 @@
 				<RegistryValue Root='HKCU'
 				               Key="$(var.RegistryKey)"
 				               Name='InstallationPath'
-				               Value="$(var.InstallLocation)Icons"
+				               Value="[IconsFolder]"
 				               Type='string'
 				               KeyPath='yes'/>
 
@@ -100,7 +100,7 @@
 				<RegistryValue Root='HKCU'
 				               Key="$(var.RegistryKey)"
 				               Name='InstallationPath'
-				               Value="$(var.InstallLocation)Resources"
+				               Value="[ResourcesFolder]"
 				               Type='string'
 				               KeyPath='yes'/>
 
@@ -125,7 +125,7 @@
 				<RegistryValue Root='HKCU'
 				               Key="$(var.RegistryKey)"
 				               Name='InstallationPath'
-				               Value="$(var.InstallLocation)Toolbar"
+				               Value="[ToolbarFolder]"
 				               Type='string'
 				               KeyPath='yes'/>
 
@@ -151,7 +151,7 @@
 				<RegistryValue Root='HKCU'
 				               Key="$(var.RegistryKey)"
 				               Name='InstallationPath'
-				               Value="$(var.InstallLocationAssemblies)"
+				               Value="[NET48Folder]"
 				               Type='string'
 				               KeyPath='yes'/>
 
@@ -223,7 +223,7 @@
 				<RegistryValue Root='HKCU'
 				               Key="$(var.RegistryKey)"
 				               Name='InstallationPath'
-				               Value="$(var.InstallLocationAssemblies)"
+				               Value="[NET8Folder]"
 				               Type='string'
 				               KeyPath='yes'/>
 
@@ -303,7 +303,7 @@
 				<RegistryValue Root='HKCU'
 				               Key="$(var.RegistryKey)"
 				               Name='InstallationPath'
-				               Value="$(var.InstallLocationAssemblies)"
+				               Value="[NET10Folder]"
 				               Type='string'
 				               KeyPath='yes'/>
 
