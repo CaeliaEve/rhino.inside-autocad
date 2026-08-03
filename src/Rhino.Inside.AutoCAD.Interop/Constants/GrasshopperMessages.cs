@@ -118,7 +118,8 @@ public class GrasshopperMessages
     /// Tooltip for the Auto Update toggle on the filter query component.
     /// </summary>
     /// <seealso cref="AutoUpdateStaleTooltip"/>
-    public const string AutoUpdateFilterTooltip = "When enabled, the component automatically updates when AutoCAD document changes. When disabled, use the Update button to manually refresh.";
+    public const string AutoUpdateFilterTooltip = "When enabled, the component automatically updates when the AutoCAD document changes. " +
+                                                  "When disabled, use the Query button to manually refresh.";
 
     /// <summary>
     /// Tooltip for the Driven Button toggle on the bake component.

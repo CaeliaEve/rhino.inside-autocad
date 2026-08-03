@@ -239,7 +239,7 @@ public class GetAutocadObjectsByFilterComponent : RhinoInsideAutocad_ComponentBa
 
     /// <summary>
     /// Triggers a manual update of the component.
-    /// Called by the custom attributes when the Update button is clicked.
+    /// Called by the custom attributes when the Query button is clicked.
     /// </summary>
     public void TriggerManualUpdate()
     {
