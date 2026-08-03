@@ -30,7 +30,6 @@
       ToolbarId=D6EC6E9F-2949-475D-9E74-38D28DCA5ED0;
       AppName=$(AppName);
       AppVersion=$(AssemblyVersion);
-      AppRootDir=$(AppRootDir);
       CompanyName=$(CompanyName);
       RootDirectory=$(DeploymentPackage);
       RootDirectoryVersion=$(DeploymentPackageVersioned);
@@ -41,8 +40,6 @@
       AssembliesDirectoryNET8=$(DeploymentPackageVersioned)Win64\NET8\;
       AssembliesDirectoryNET10=$(DeploymentPackageVersioned)Win64\NET10\;
       RegistryKey=Software\Autodesk\AutoCAD\R24.3\ACAD-7101:409\Applications\Rhino.Inside.AutoCAD;
-      InstallLocation=$(AppRootDir);
-      InstallLocationAssemblies=$(AppRootDirAssemblies);
       Bitness=always64;
       RuntimeName=$(RuntimeName)
     </DefineConstants>
