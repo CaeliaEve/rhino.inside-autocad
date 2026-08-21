@@ -36,4 +36,22 @@ Copy-Item -Path "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\Toolbar\*"
 # Copy Icons
 Copy-Item -Path "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\Icons\*" -Destination $bundleIconsDir -Recurse -Force -ErrorAction SilentlyContinue
 
+# Deploy AutoCadPasteBridge.rhp to Rhino 7 Plug-ins directory and register in Rhino 7 Registry
+$rhino7PluginDir = "$env:APPDATA\McNeel\Rhinoceros\7.0\Plug-ins\AutoCadPasteBridge"
+$rhpSource = "e:\codex\rhino\src\Rhino.Inside.AutoCAD.PasteBridge\bin\Release\net48\AutoCadPasteBridge.rhp"
+if (Test-Path $rhpSource) {
+    New-Item -ItemType Directory -Force -Path $rhino7PluginDir | Out-Null
+    Copy-Item -Path $rhpSource -Destination "$rhino7PluginDir\AutoCadPasteBridge.rhp" -Force -ErrorAction SilentlyContinue
+    
+    # Register in Rhino 7 Registry
+    $regKey = "HKCU:\Software\McNeel\Rhinoceros\7.0\Plug-Ins\e5a2a388-99b4-4b2d-9bc8-4664f98e18f3"
+    if (!(Test-Path $regKey)) {
+        New-Item -Path $regKey -Force | Out-Null
+    }
+    Set-ItemProperty -Path $regKey -Name "FileName" -Value "$rhino7PluginDir\AutoCadPasteBridge.rhp"
+    Set-ItemProperty -Path $regKey -Name "Name" -Value "AutoCadPasteBridge"
+    Set-ItemProperty -Path $regKey -Name "LoadMode" -Value 1 -Type DWord
+    Write-Host "AutoCadPasteBridge.rhp deployed and registered for Rhino 7 at: $rhino7PluginDir\AutoCadPasteBridge.rhp"
+}
+
 Write-Host "Full bundle deployment synchronized successfully to: $bundleRoot"

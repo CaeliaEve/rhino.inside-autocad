@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<AssemblyName>AutoCadPasteBridge</AssemblyName>
+		<TargetExt>.rhp</TargetExt>
+		<Configurations>Release;Debug;ReleaseNET8;DebugNET8;ReleaseNET10;DebugNET10</Configurations>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<OutputType>Library</OutputType>
+		<Nullable>enable</Nullable>
+		<LangVersion>preview</LangVersion>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="RhinoCommon">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+</Project>
