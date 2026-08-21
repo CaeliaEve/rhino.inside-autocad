@@ -1,5 +1,9 @@
-# Synchronizes latest build outputs to the AutoCAD ApplicationPlugins bundle directory
-$bundleDir = "$env:APPDATA\Autodesk\ApplicationPlugins\Rhino.Inside.AutoCAD.bundle\1.3.1\Win64\NET48"
+# Synchronizes latest build outputs, toolbars, and icons to the AutoCAD ApplicationPlugins bundle directory
+$bundleRoot = "$env:APPDATA\Autodesk\ApplicationPlugins\Rhino.Inside.AutoCAD.bundle"
+$bundleNet48Dir = "$bundleRoot\1.3.1\Win64\NET48"
+$bundleToolbarDir = "$bundleRoot\Toolbar"
+$bundleIconsDir = "$bundleRoot\Icons"
+
 $sourceDirs = @(
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Interop\bin\Release\net48",
@@ -11,13 +15,25 @@ $sourceDirs = @(
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary\bin\Release\net48"
 )
 
-if (!(Test-Path $bundleDir)) {
-    New-Item -ItemType Directory -Force -Path $bundleDir | Out-Null
-}
+# Ensure directories exist
+New-Item -ItemType Directory -Force -Path $bundleNet48Dir | Out-Null
+New-Item -ItemType Directory -Force -Path $bundleToolbarDir | Out-Null
+New-Item -ItemType Directory -Force -Path $bundleIconsDir | Out-Null
 
+# Copy assemblies
 foreach ($dir in $sourceDirs) {
     if (Test-Path $dir) {
-        Copy-Item -Path "$dir\*" -Destination $bundleDir -Force -ErrorAction SilentlyContinue
+        Copy-Item -Path "$dir\*" -Destination $bundleNet48Dir -Force -ErrorAction SilentlyContinue
     }
 }
-Write-Host "Bundle deployment synchronized successfully to: $bundleDir"
+
+# Copy PackageContents.xml
+Copy-Item -Path "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\PackageContents.xml" -Destination $bundleRoot -Force -ErrorAction SilentlyContinue
+
+# Copy Toolbars (CUIX)
+Copy-Item -Path "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\Toolbar\*" -Destination $bundleToolbarDir -Recurse -Force -ErrorAction SilentlyContinue
+
+# Copy Icons
+Copy-Item -Path "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\Icons\*" -Destination $bundleIconsDir -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Host "Full bundle deployment synchronized successfully to: $bundleRoot"
