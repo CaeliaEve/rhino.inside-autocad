@@ -104,6 +104,7 @@ internal static class Program
         }
 
         // Bind assembly resolution to selected Rhino installation
+        RhinoCoreExtension.HostWindowHandle = _hostHwnd;
         RhinoCoreExtension.BindTo(selected);
 
         // Initialize IPC channels

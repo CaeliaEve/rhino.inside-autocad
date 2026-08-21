@@ -212,6 +212,30 @@ public class WorkerProcessManager : IDisposable
         return await session.Transport!.SendRequestAsync(request, timeoutMs).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Launches Rhino window for the specified major version (7 or 8), activating the worker first.
+    /// </summary>
+    public async Task<bool> LaunchRhinoVersionAsync(int majorVersion, IntPtr hostWindowHandle = default)
+    {
+        var activated = await this.ActivateVersionAsync(majorVersion, hostWindowHandle).ConfigureAwait(false);
+        if (!activated) return false;
+
+        var response = await this.SendCommandAsync(IpcCommandType.LaunchRhino).ConfigureAwait(false);
+        return response?.Success ?? false;
+    }
+
+    /// <summary>
+    /// Launches Grasshopper canvas for the specified major version (7 or 8), activating the worker first.
+    /// </summary>
+    public async Task<bool> LaunchGrasshopperVersionAsync(int majorVersion, IntPtr hostWindowHandle = default)
+    {
+        var activated = await this.ActivateVersionAsync(majorVersion, hostWindowHandle).ConfigureAwait(false);
+        if (!activated) return false;
+
+        var response = await this.SendCommandAsync(IpcCommandType.LaunchGrasshopper).ConfigureAwait(false);
+        return response?.Success ?? false;
+    }
+
     public void Dispose()
     {
         if (_isDisposed) return;

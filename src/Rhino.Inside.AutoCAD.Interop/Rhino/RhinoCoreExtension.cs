@@ -200,6 +200,11 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     }
 
     /// <summary>
+    /// Optional host window handle for out-of-process embedding.
+    /// </summary>
+    public static IntPtr HostWindowHandle { get; set; } = IntPtr.Zero;
+
+    /// <summary>
     /// Creates the Rhino core instance.
     /// </summary>
     private void CreateCore()
@@ -208,8 +213,18 @@ public class RhinoCoreExtension : IRhinoCoreExtension
         {
             var style = WindowStyle.Hidden;
 
-            var autocadHandle = Autodesk.AutoCAD.ApplicationServices.Core.Application
-                .MainWindow.Handle;
+            var autocadHandle = HostWindowHandle;
+            if (autocadHandle == IntPtr.Zero)
+            {
+                try
+                {
+                    autocadHandle = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+                }
+                catch
+                {
+                    autocadHandle = IntPtr.Zero;
+                }
+            }
 
             var args = new List<string>()
             {
