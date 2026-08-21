@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>$(TargetFrameworkName)</TargetFramework>
@@ -40,6 +40,9 @@
 
   <ItemGroup>
     <PackageReference Include="AutoCAD.NET.Core">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="AutoCAD.NET">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="Grasshopper">

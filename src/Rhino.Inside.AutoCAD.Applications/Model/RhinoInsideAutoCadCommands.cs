@@ -407,4 +407,12 @@ public class RhinoInsideAutoCadCommands
         var brepConverterRunner = application!.BrepConverterRunner;
         brepConverterRunner.Run();
     }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "SHOW_RHINO_RIBBON", CommandFlags.Modal)]
+    public static void SHOW_RHINO_RIBBON()
+    {
+        Rhino.Inside.AutoCAD.Applications.UI.RibbonBuilder.Initialize();
+        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+        editor?.WriteMessage("\n[Rhino.Inside] Ribbon tab refreshed.\n");
+    }
 }
