@@ -27,7 +27,7 @@ public static class RibbonBuilder
     private static bool _isHooked = false;
 
     /// <summary>
-    /// Initializes and attaches the Ribbon tab to AutoCAD's ComponentManager with persistent document lifecycle hooks.
+    /// Initializes and attaches the Ribbon tab to AutoCAD's ComponentManager with continuous lifecycle supervision.
     /// </summary>
     public static void Initialize()
     {
@@ -46,14 +46,9 @@ public static class RibbonBuilder
         catch { }
     }
 
-    private static int _idleCheckCount = 0;
     private static void OnApplicationIdle(object? sender, EventArgs e)
     {
         EnsureRibbon();
-        if (++_idleCheckCount > 10)
-        {
-            Autodesk.AutoCAD.ApplicationServices.Core.Application.Idle -= OnApplicationIdle;
-        }
     }
 
     /// <summary>
@@ -70,7 +65,7 @@ public static class RibbonBuilder
                 {
                     BuildRibbon(ribbon);
                 }
-                else
+                else if (!tab.IsVisible)
                 {
                     tab.IsVisible = true;
                 }

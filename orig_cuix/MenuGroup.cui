@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Warning! Do not edit the contents of this file.
+If you attempt to edit this file using an XML editor, you could lose
+customization and migration functionality. If you need to change
+information in the customization file, use the Customize User Interface
+dialog in the product.
+To access the Customize User Interface dialog, click the Tools menu,
+Customization panel, User Interface button, or enter CUI on the command line.
+-->
+<MenuGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="RHINOINSIDEAUTOCAD_TOOLBAR_NET48" DisplayName="RHINOINSIDEAUTOCAD_TOOLBAR">
+  <MacroGroup Name="NEWGROUP">
+    <MenuMacro UID="MMU_243_5406A">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_A1433">Rhino</Name>
+        <Command>RHINO</Command>
+        <HelpString xlate="true" UID="XLS_243_AD880">Opens Rhino</HelpString>
+        <SmallImage Name="Rhino.png" />
+        <LargeImage Name="Rhino.png" />
+        <CLICommand xlate="true" UID="XLS_243_6DA65">Rhino</CLICommand>
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_A74FB">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_A85EE">Grasshopper</Name>
+        <Command>GRASSHOPPER</Command>
+        <HelpString xlate="true" UID="XLS_243_C732A">Opens Grasshopper</HelpString>
+        <SmallImage Name="Grasshopper.png" />
+        <LargeImage Name="Grasshopper.png" />
+        <CLICommand xlate="true" UID="XLS_243_1B839">Grasshopper</CLICommand>
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="RhinoPreviewButtonId">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_E4F1C">Toggle Preview</Name>
+        <Command>TOGGLE_RHINO_PREVIEW</Command>
+        <HelpString xlate="true" UID="XLS_243_A5BAF">Toggles the Preview of Rhino objects in Autocad</HelpString>
+        <SmallImage Name="Rhinoceros_Preview_Shaded.png" />
+        <LargeImage Name="Rhinoceros_Preview_Shaded.png" />
+        <CLICommand xlate="true" UID="XLS_243_383DC">Toggle Preview</CLICommand>
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_2430B">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_7C4A9">Grasshopper Player</Name>
+        <Command>GRASSHOPPER_PLAYER</Command>
+        <HelpString xlate="true" UID="XLS_243_591C5">Opens the Grasshopper Player</HelpString>
+        <SmallImage Name="GrasshopperPlayer.png" />
+        <LargeImage Name="GrasshopperPlayer.png" />
+        <CLICommand xlate="true" UID="XLS_243_D1DE1">Grasshopper Player</CLICommand>
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_96137">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_A23C0">Open Viewport</Name>
+        <Command>OPEN_RHINO_VIEWPORT</Command>
+        <HelpString xlate="true" UID="XLS_243_AE722">Opens a Floating Rhino Viewport</HelpString>
+        <SmallImage Name="OpenViewport.png" />
+        <LargeImage Name="OpenViewport.png" />
+        <CLICommand xlate="true" UID="XLS_243_12402">Open Viewport</CLICommand>
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_AB8FB">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_45673">Package Manager</Name>
+        <Command>RHINO_PACKAGE_MANGER</Command>
+        <HelpString xlate="true" UID="XLS_243_07F16">Opens the Rhino Package Manager</HelpString>
+        <SmallImage Name="PackageManager.png" />
+        <LargeImage Name="PackageManager.png" />
+        <CLICommand xlate="true" UID="XLS_243_5D4C8">Package Manager</CLICommand>
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_DC62B">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_0D209">Support</Name>
+        <Command>RHINO_INSIDE_SUPPORT</Command>
+        <HelpString xlate="true" UID="XLS_243_2072E">Opens Rhino Inisde Support Dialog</HelpString>
+        <SmallImage Name="cog-outline.png" />
+        <LargeImage Name="cog-outline.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_FE0D0">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_D214B">Suggest A Feature</Name>
+        <Command>REQUEST_MISSING_FEATURE</Command>
+        <HelpString xlate="true" UID="XLS_243_8B41A">Request a missing a feature</HelpString>
+        <SmallImage Name="lightbulb-outline.png" />
+        <LargeImage Name="lightbulb-outline.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_51573">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_1685B">Need an Plugin</Name>
+        <Command>REQUEST_PLUGIN</Command>
+        <HelpString xlate="true" UID="XLS_243_E1010">Do you need a custom Plugin</HelpString>
+        <SmallImage Name="power-plug-outline.png" />
+        <LargeImage Name="power-plug-outline.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_883C1">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_4A6B1">Report A Bug</Name>
+        <Command>REQUEST_MISSING_FEATURE</Command>
+        <HelpString xlate="true" UID="XLS_243_6B73B">Report a Bug with the software</HelpString>
+        <SmallImage Name="bug-outline.png" />
+        <LargeImage Name="bug-outline.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="GrasshopperPreviewOffButtonId">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_DEA52">Preview Off</Name>
+        <Command>GRASSHOPPER_PREVIEW_OFF</Command>
+        <HelpString xlate="true" UID="XLS_243_C8575">Turns off the preview for grasshopper.</HelpString>
+        <SmallImage Name="Grasshopper_Preview_Off.png" />
+        <LargeImage Name="Grasshopper_Preview_Off.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="GrasshopperPreviewWireframeButtonId">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_24D5D">Wireframe Preview</Name>
+        <Command>GRASSHOPPER_PREVIEW_WIREFRAME</Command>
+        <HelpString xlate="true" UID="XLS_243_4D081">Turns the preview for grasshopper to wire frame</HelpString>
+        <SmallImage Name="Grasshopper_Preview_Wireframe.png" />
+        <LargeImage Name="Grasshopper_Preview_Wireframe.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="GrasshopperPreviewShadedButtonId">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_743BB">Shaded Preview</Name>
+        <Command>GRASSHOPPER_PREVIEW_SHADED</Command>
+        <HelpString xlate="true" UID="XLS_243_1D770">Turns the preview for grasshopper to shaded</HelpString>
+        <SmallImage Name="Grasshopper_Preview_Shaded.png" />
+        <LargeImage Name="Grasshopper_Preview_Shaded_Selected.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="GrasshopperSolverButtonId">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_17132">Disable Solver</Name>
+        <Command>GRASSHOPPER_TOGGLE_SOLVER</Command>
+        <HelpString xlate="true" UID="XLS_243_38BF7">Disables the Grasshopper solver</HelpString>
+        <SmallImage Name="Grasshopper_SolverOn.png" />
+        <LargeImage Name="Grasshopper_SolverOn.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_A1BCF">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_08BED">Recompute</Name>
+        <Command>GRASSHOPPER_RECOMPUTE</Command>
+        <HelpString xlate="true" UID="XLS_243_5735D">Recomputes the active Grasshopper Definition if there is one.</HelpString>
+        <SmallImage Name="Grasshopper_Recompute.png" />
+        <LargeImage Name="Grasshopper_Recompute.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_2DD38">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_99324">About</Name>
+        <Command>RHINO_INSIDE_ABOUT</Command>
+        <HelpString xlate="true" UID="XLS_243_E7F68">Opens Rhino Inisde About Dialog</HelpString>
+        <SmallImage Name="cog-outline.png" />
+        <LargeImage Name="cog-outline.png" />
+      </Macro>
+    </MenuMacro>
+    <MenuMacro UID="MMU_243_98346">
+      <Macro type="Any">
+        <Revision MajorVersion="16" MinorVersion="2" UserVersion="1" />
+        <ModifiedRev MajorVersion="24" MinorVersion="3" UserVersion="1" />
+        <Name xlate="true" UID="XLS_243_EE64C">Updates</Name>
+        <Command>RHINO_INSIDE_UPDATE</Command>
+        <HelpString xlate="true" UID="XLS_243_8175A">Opens Rhino Inisde Update Dialog</HelpString>
+        <SmallImage Name="cog-outline.png" />
+        <LargeImage Name="cog-outline.png" />
+      </Macro>
+    </MenuMacro>
+  </MacroGroup>
+</MenuGroup>
