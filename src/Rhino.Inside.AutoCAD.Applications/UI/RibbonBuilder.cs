@@ -83,22 +83,26 @@ public static class RibbonBuilder
         }
     }
 
-    private static BitmapImage? LoadIcon(string iconName, int size)
+    private static BitmapImage? LoadIcon(string iconName, int decodeSize)
     {
         try
         {
             var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var folderName = size > 32 ? "Large512" : "Small32";
+            var folderName = decodeSize > 16 ? "Small32" : "Small32";
 
             var possiblePaths = new[]
             {
-                Path.Combine(assemblyLocation ?? "", "Icons", folderName, iconName),
+                Path.Combine(assemblyLocation ?? "", "Icons", "Small32", iconName),
+                Path.Combine(assemblyLocation ?? "", "Icons", "Large512", iconName),
                 Path.Combine(assemblyLocation ?? "", "Icons", iconName),
-                Path.Combine(assemblyLocation ?? "", "..", "..", "..", "Icons", folderName, iconName),
+                Path.Combine(assemblyLocation ?? "", "..", "..", "..", "Icons", "Small32", iconName),
+                Path.Combine(assemblyLocation ?? "", "..", "..", "..", "Icons", "Large512", iconName),
                 Path.Combine(assemblyLocation ?? "", "..", "..", "..", "Icons", iconName),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "ApplicationPlugins", "Rhino.Inside.AutoCAD.bundle", "Icons", folderName, iconName),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "ApplicationPlugins", "Rhino.Inside.AutoCAD.bundle", "Icons", "Small32", iconName),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "ApplicationPlugins", "Rhino.Inside.AutoCAD.bundle", "Icons", "Large512", iconName),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "ApplicationPlugins", "Rhino.Inside.AutoCAD.bundle", "Icons", iconName),
-                Path.Combine(@"e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\Icons", folderName, iconName)
+                Path.Combine(@"e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\Icons", "Small32", iconName),
+                Path.Combine(@"e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\Icons", "Large512", iconName)
             };
 
             foreach (var path in possiblePaths)
@@ -108,6 +112,8 @@ public static class RibbonBuilder
                     var bmp = new BitmapImage();
                     bmp.BeginInit();
                     bmp.UriSource = new Uri(path, UriKind.Absolute);
+                    bmp.DecodePixelWidth = decodeSize;
+                    bmp.DecodePixelHeight = decodeSize;
                     bmp.CacheOption = BitmapCacheOption.OnLoad;
                     bmp.EndInit();
                     bmp.Freeze();
@@ -152,8 +158,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("Rhino.png", 32),
-                LargeImage = LoadIcon("Rhino.png", 512),
+                Image = LoadIcon("Rhino.png", 16),
+                LargeImage = LoadIcon("Rhino.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO),
                 IsSplit = true
             };
@@ -164,8 +170,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("Rhino7.png", 32),
-                LargeImage = LoadIcon("Rhino7.png", 512),
+                Image = LoadIcon("Rhino7.png", 16),
+                LargeImage = LoadIcon("Rhino7.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO7)
             };
 
@@ -175,8 +181,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("Rhino8.png", 32),
-                LargeImage = LoadIcon("Rhino8.png", 512),
+                Image = LoadIcon("Rhino8.png", 16),
+                LargeImage = LoadIcon("Rhino8.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO8)
             };
 
@@ -186,8 +192,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("cog-outline.png", 32),
-                LargeImage = LoadIcon("cog-outline.png", 512),
+                Image = LoadIcon("cog-outline.png", 16),
+                LargeImage = LoadIcon("cog-outline.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.SWITCH_RHINO_VERSION)
             };
 
@@ -203,8 +209,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("OpenViewport.png", 32),
-                LargeImage = LoadIcon("OpenViewport.png", 512),
+                Image = LoadIcon("OpenViewport.png", 16),
+                LargeImage = LoadIcon("OpenViewport.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.OPEN_RHINO_VIEWPORT)
             };
             rhinoSource.Items.Add(viewportBtn);
@@ -217,8 +223,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("Rhinoceros_Preview_Shaded.png", 32),
-                LargeImage = LoadIcon("Rhinoceros_Preview_Shaded.png", 512),
+                Image = LoadIcon("Rhinoceros_Preview_Shaded.png", 16),
+                LargeImage = LoadIcon("Rhinoceros_Preview_Shaded.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.TOGGLE_RHINO_PREVIEW)
             };
             rhinoSource.Items.Add(previewBtn);
@@ -230,8 +236,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("PackageManager.png", 32),
-                LargeImage = LoadIcon("PackageManager.png", 512),
+                Image = LoadIcon("PackageManager.png", 16),
+                LargeImage = LoadIcon("PackageManager.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_PACKAGE_MANGER)
             };
             rhinoSource.Items.Add(pkgBtn);
@@ -249,8 +255,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("Grasshopper.png", 32),
-                LargeImage = LoadIcon("Grasshopper.png", 512),
+                Image = LoadIcon("Grasshopper.png", 16),
+                LargeImage = LoadIcon("Grasshopper.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER),
                 IsSplit = true
             };
@@ -261,8 +267,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("Grasshopper7.png", 32),
-                LargeImage = LoadIcon("Grasshopper7.png", 512),
+                Image = LoadIcon("Grasshopper7.png", 16),
+                LargeImage = LoadIcon("Grasshopper7.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GH7)
             };
 
@@ -272,8 +278,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("Grasshopper8.png", 32),
-                LargeImage = LoadIcon("Grasshopper8.png", 512),
+                Image = LoadIcon("Grasshopper8.png", 16),
+                LargeImage = LoadIcon("Grasshopper8.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GH8)
             };
 
@@ -283,8 +289,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("GrasshopperPlayer.png", 32),
-                LargeImage = LoadIcon("GrasshopperPlayer.png", 512),
+                Image = LoadIcon("GrasshopperPlayer.png", 16),
+                LargeImage = LoadIcon("GrasshopperPlayer.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PLAYER)
             };
 
@@ -300,8 +306,8 @@ public static class RibbonBuilder
                 ShowText = false,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("Grasshopper_Preview_Off.png", 32),
-                LargeImage = LoadIcon("Grasshopper_Preview_Off.png", 512),
+                Image = LoadIcon("Grasshopper_Preview_Off.png", 16),
+                LargeImage = LoadIcon("Grasshopper_Preview_Off.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_OFF)
             };
             var prevWireBtn = new RibbonButton
@@ -310,8 +316,8 @@ public static class RibbonBuilder
                 ShowText = false,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("Grasshopper_Preview_Wireframe.png", 32),
-                LargeImage = LoadIcon("Grasshopper_Preview_Wireframe.png", 512),
+                Image = LoadIcon("Grasshopper_Preview_Wireframe.png", 16),
+                LargeImage = LoadIcon("Grasshopper_Preview_Wireframe.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_WIREFRAME)
             };
             var prevShadedBtn = new RibbonButton
@@ -320,8 +326,8 @@ public static class RibbonBuilder
                 ShowText = false,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("Grasshopper_Preview_Shaded.png", 32),
-                LargeImage = LoadIcon("Grasshopper_Preview_Shaded.png", 512),
+                Image = LoadIcon("Grasshopper_Preview_Shaded.png", 16),
+                LargeImage = LoadIcon("Grasshopper_Preview_Shaded.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_SHADED)
             };
             previewRowPanel.Items.Add(prevOffBtn);
@@ -337,8 +343,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("Grasshopper_SolverOn.png", 32),
-                LargeImage = LoadIcon("Grasshopper_SolverOn.png", 512),
+                Image = LoadIcon("Grasshopper_SolverOn.png", 16),
+                LargeImage = LoadIcon("Grasshopper_SolverOn.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_TOGGLE_SOLVER)
             };
             ghSource.Items.Add(solverBtn);
@@ -350,8 +356,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("Grasshopper_Recompute.png", 32),
-                LargeImage = LoadIcon("Grasshopper_Recompute.png", 512),
+                Image = LoadIcon("Grasshopper_Recompute.png", 16),
+                LargeImage = LoadIcon("Grasshopper_Recompute.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_RECOMPUTE)
             };
             ghSource.Items.Add(recomputeBtn);
@@ -369,8 +375,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("ConvertBrep.png", 32),
-                LargeImage = LoadIcon("ConvertBrep.png", 512),
+                Image = LoadIcon("ConvertBrep.png", 16),
+                LargeImage = LoadIcon("ConvertBrep.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_CONVERT_BREP)
             };
             geomSource.Items.Add(brepBtn);
@@ -388,8 +394,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("cog-outline.png", 32),
-                LargeImage = LoadIcon("cog-outline.png", 512),
+                Image = LoadIcon("cog-outline.png", 16),
+                LargeImage = LoadIcon("cog-outline.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_SETTINGS)
             };
             supportSource.Items.Add(settingsBtn);
@@ -401,8 +407,8 @@ public static class RibbonBuilder
                 ShowImage = true,
                 Size = RibbonItemSize.Large,
                 Orientation = Orientation.Vertical,
-                Image = LoadIcon("Bimorph.png", 32),
-                LargeImage = LoadIcon("Bimorph.png", 512),
+                Image = LoadIcon("Bimorph.png", 16),
+                LargeImage = LoadIcon("Bimorph.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_SUPPORT)
             };
 
@@ -412,8 +418,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("cog-outline.png", 32),
-                LargeImage = LoadIcon("cog-outline.png", 512),
+                Image = LoadIcon("cog-outline.png", 16),
+                LargeImage = LoadIcon("cog-outline.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_ABOUT)
             };
             var updateBtn = new RibbonButton
@@ -422,8 +428,8 @@ public static class RibbonBuilder
                 ShowText = true,
                 ShowImage = true,
                 Size = RibbonItemSize.Standard,
-                Image = LoadIcon("cog-outline.png", 32),
-                LargeImage = LoadIcon("cog-outline.png", 512),
+                Image = LoadIcon("cog-outline.png", 16),
+                LargeImage = LoadIcon("cog-outline.png", 32),
                 CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_UPDATE)
             };
 
@@ -432,8 +438,6 @@ public static class RibbonBuilder
             supportSource.Items.Add(supportSplit);
 
             tab.Panels.Add(supportPanel);
-
-            // NOTE: Do not set tab.IsActive = true so the user's default Home tab is preserved!
         }
         catch (Exception ex)
         {
