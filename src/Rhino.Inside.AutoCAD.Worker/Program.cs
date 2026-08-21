@@ -23,20 +23,28 @@ internal static class Program
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool BringWindowToTop(IntPtr hWnd);
+
     private const int GWLP_HWNDPARENT = -8;
     private const int SW_SHOW = 5;
+    private const int SW_RESTORE = 9;
 
     private static NamedPipeServerTransport? _serverTransport;
     private static SharedMemoryBuffer? _sharedMemory;
     private static IntPtr _hostHwnd = IntPtr.Zero;
     private static int _targetMajorVersion = 8;
     private static bool _isSuspended = false;
+    private static SynchronizationContext? _syncContext;
 
     [STAThread]
     private static void Main(string[] args)
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+
+        _syncContext = SynchronizationContext.Current ?? new WindowsFormsSynchronizationContext();
+        SynchronizationContext.SetSynchronizationContext(_syncContext);
 
         string pipeName = string.Empty;
         string mapName = string.Empty;
@@ -138,16 +146,28 @@ internal static class Program
 
     private static void OnIpcMessageReceived(IpcMessage msg)
     {
+        if (_syncContext != null)
+        {
+            _syncContext.Post(_ => ProcessCommand(msg), null);
+        }
+        else
+        {
+            ProcessCommand(msg);
+        }
+    }
+
+    private static void ProcessCommand(IpcMessage msg)
+    {
         try
         {
             switch (msg.Command)
             {
                 case IpcCommandType.Ping:
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Pong"));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Pong"));
                     break;
 
                 case IpcCommandType.GetStatus:
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, $"Rhino {_targetMajorVersion} Active={!_isSuspended}"));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, $"Rhino {_targetMajorVersion} Active={!_isSuspended}"));
                     break;
 
                 case IpcCommandType.LaunchRhino:
@@ -155,60 +175,74 @@ internal static class Program
                     var hwnd = RhinoApp.MainWindowHandle();
                     if (hwnd != IntPtr.Zero)
                     {
+                        ShowWindow(hwnd, SW_RESTORE);
                         ShowWindow(hwnd, SW_SHOW);
+                        BringWindowToTop(hwnd);
                         SetForegroundWindow(hwnd);
                     }
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
                     break;
 
                 case IpcCommandType.LaunchGrasshopper:
                     RhinoCoreExtension.Instance.ValidateRhinoCore();
                     RhinoApp.RunScript("!_-Grasshopper _Window _Show _Enter", false);
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
+                    var ghHwnd = RhinoApp.MainWindowHandle();
+                    if (ghHwnd != IntPtr.Zero)
+                    {
+                        ShowWindow(ghHwnd, SW_RESTORE);
+                        ShowWindow(ghHwnd, SW_SHOW);
+                        BringWindowToTop(ghHwnd);
+                        SetForegroundWindow(ghHwnd);
+                    }
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
                     break;
 
                 case IpcCommandType.OpenViewport:
                     RhinoCoreExtension.Instance.ValidateRhinoCore();
                     RhinoApp.RunScript("!_NewFloatingViewport", false);
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
                     break;
 
                 case IpcCommandType.RecomputeSolution:
                     RhinoApp.RunScript("!_-Grasshopper _Solver _Recompute _Enter", false);
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
                     break;
 
                 case IpcCommandType.ToggleSolver:
                     RhinoApp.RunScript("!_-Grasshopper _Solver _Toggle _Enter", false);
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
                     break;
 
                 case IpcCommandType.Suspend:
                     _isSuspended = true;
-                    // Suspend GH computation and release working set
                     RhinoApp.RunScript("!_-Grasshopper _Solver _Disable _Enter", false);
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Suspended"));
+                    var suspHwnd = RhinoApp.MainWindowHandle();
+                    if (suspHwnd != IntPtr.Zero)
+                    {
+                        ShowWindow(suspHwnd, 0); // SW_HIDE
+                    }
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Suspended"));
                     break;
 
                 case IpcCommandType.Resume:
                     _isSuspended = false;
                     RhinoApp.RunScript("!_-Grasshopper _Solver _Enable _Enter", false);
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Resumed"));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Resumed"));
                     break;
 
                 case IpcCommandType.Shutdown:
-                    _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Shutting down"));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Shutting down"));
                     Environment.Exit(0);
                     break;
 
                 default:
-                    _serverTransport?.SendMessageAsync(IpcMessage.Fail(msg.Id, $"Unknown command: {msg.Command}"));
+                    _ = _serverTransport?.SendMessageAsync(IpcMessage.Fail(msg.Id, $"Unknown command: {msg.Command}"));
                     break;
             }
         }
         catch (Exception ex)
         {
-            _serverTransport?.SendMessageAsync(IpcMessage.Fail(msg.Id, ex.Message));
+            _ = _serverTransport?.SendMessageAsync(IpcMessage.Fail(msg.Id, ex.Message));
         }
     }
 }

@@ -193,10 +193,12 @@ public class WorkerProcessManager : IDisposable
         var directPath = Path.Combine(asmDir, "Rhino.Inside.AutoCAD.Worker.exe");
         if (File.Exists(directPath)) return directPath;
 
-        // Fallback to parent or runtime dirs
-        var bundleDir = Path.GetFullPath(Path.Combine(asmDir, "..", "..", ".."));
-        var candidate = Path.Combine(bundleDir, "Worker", "Rhino.Inside.AutoCAD.Worker.exe");
-        if (File.Exists(candidate)) return candidate;
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var bundlePath = Path.Combine(appData, "Autodesk", "ApplicationPlugins", "Rhino.Inside.AutoCAD.bundle", "1.3.1", "Win64", "NET48", "Rhino.Inside.AutoCAD.Worker.exe");
+        if (File.Exists(bundlePath)) return bundlePath;
+
+        var devPath = @"e:\codex\rhino\src\Rhino.Inside.AutoCAD.Worker\bin\Release\net48\Rhino.Inside.AutoCAD.Worker.exe";
+        if (File.Exists(devPath)) return devPath;
 
         return directPath;
     }
