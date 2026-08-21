@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<MenuPackageParts>
+  <PartData PartData_Name="/Header.cui" PartData_Modified="2026-01-20T20:20:19.0254444+00:00" />
+  <PartData PartData_Name="/WorkspaceRoot.cui" PartData_Modified="2025-11-25T21:17:04.5838338+00:00" />
+  <PartData PartData_Name="/MenuGroup.cui" PartData_Modified="2026-01-20T20:20:19.0256672+00:00" />
+  <PartData PartData_Name="/AcceleratorRoot.cui" PartData_Modified="2025-11-25T21:17:04.5843581+00:00" />
+  <PartData PartData_Name="/OverrideRoot.cui" PartData_Modified="2025-11-25T21:17:04.5843581+00:00" />
+  <PartData PartData_Name="/MouseButtonRoot.cui" PartData_Modified="2025-11-25T21:17:04.5843581+00:00" />
+  <PartData PartData_Name="/PopMenuRoot.cui" PartData_Modified="2025-11-25T21:17:04.5853644+00:00" />
+  <PartData PartData_Name="/ToolbarRoot.cui" PartData_Modified="2025-11-25T21:17:04.5853644+00:00" />
+  <PartData PartData_Name="/DoubleClickRoot.cui" PartData_Modified="2025-11-25T21:17:04.5853644+00:00" />
+  <PartData PartData_Name="/QuickPropertiesRoot.cui" PartData_Modified="2025-11-25T21:17:04.5853644+00:00" />
+  <PartData PartData_Name="/RolloverTooltipRoot.cui" PartData_Modified="2025-11-25T21:17:04.5853644+00:00" />
+  <PartData PartData_Name="/RibbonRoot.cui" PartData_Modified="2025-12-15T14:04:51.4853004+00:00" />
+  <PartData PartData_Name="/QuickAccessToolbarRoot.cui" PartData_Modified="2025-11-25T21:17:04.5863645+00:00" />
+  <PartData PartData_Name="/ToolPanelRoot.cui" PartData_Modified="2025-11-25T21:17:04.5863645+00:00" />
+  <PartData PartData_Name="/PanelSetRoot.cui" PartData_Modified="2025-11-25T21:17:04.5863645+00:00" />
+  <PartData PartData_Name="/ScreenMenuRoot.cui" PartData_Modified="2025-11-25T21:17:04.5863645+00:00" />
+  <PartData PartData_Name="/ImageMenuRoot.cui" PartData_Modified="2025-11-25T21:17:04.5863645+00:00" />
+  <PartData PartData_Name="/TabletMenuRoot.cui" PartData_Modified="2025-11-25T21:17:04.5863645+00:00" />
+  <PartData PartData_Name="/DigitizerButtonRoot.cui" PartData_Modified="2025-11-25T21:17:04.5873641+00:00" />
+  <PartData PartData_Name="/LSPFiles.cui" PartData_Modified="2025-11-25T21:17:04.5873641+00:00" />
+  <PartData PartData_Name="/VirtualMNRRoot" PartData_Modified="2025-12-15T14:04:51.4853004+00:00" />
+  <PartData PartData_Name="/Menu_Package_Info.xml" PartData_Modified="2025-11-25T21:17:04.5873641+00:00" />
+  <PartData PartData_Name="/Rhino.png" PartData_Modified="2025-11-25T21:20:49.1908530+00:00" />
+  <PartData PartData_Name="/Grasshopper.png" PartData_Modified="2025-11-25T21:20:49.2128924+00:00" />
+  <PartData PartData_Name="/OpenViewport.png" PartData_Modified="2025-11-28T12:48:15.7186849+00:00" />
+  <PartData PartData_Name="/PackageManager.png" PartData_Modified="2025-11-28T12:48:15.7196894+00:00" />
+  <PartData PartData_Name="/Rhinoceros_Preview_Shaded.png" PartData_Modified="2025-11-28T12:48:15.7206878+00:00" />
+  <PartData PartData_Name="/GrasshopperPlayer.png" PartData_Modified="2025-11-28T12:48:15.7206878+00:00" />
+  <PartData PartData_Name="/Bimorph.png" PartData_Modified="2025-11-28T15:13:20.1860357+00:00" />
+  <PartData PartData_Name="/bug-outline.png" PartData_Modified="2025-12-01T14:17:29.4101378+00:00" />
+  <PartData PartData_Name="/power-plug-outline.png" PartData_Modified="2025-12-01T14:17:29.4101378+00:00" />
+  <PartData PartData_Name="/lightbulb-outline.png" PartData_Modified="2025-12-01T14:17:29.4111344+00:00" />
+  <PartData PartData_Name="/cog-outline.png" PartData_Modified="2025-12-01T14:17:29.4116388+00:00" />
+  <PartData PartData_Name="/Grasshopper_SolverOn.png" PartData_Modified="2025-12-03T18:08:02.0550494+00:00" />
+  <PartData PartData_Name="/Grasshopper_Recompute.png" PartData_Modified="2025-12-03T18:08:02.0550494+00:00" />
+  <PartData PartData_Name="/Grasshopper_Preview_Off.png" PartData_Modified="2025-12-03T18:08:02.0550494+00:00" />
+  <PartData PartData_Name="/Grasshopper_Preview_Wireframe.png" PartData_Modified="2025-12-03T18:08:02.0565585+00:00" />
+  <PartData PartData_Name="/Grasshopper_Preview_Shaded.png" PartData_Modified="2025-12-03T18:08:02.0575620+00:00" />
+  <PartData PartData_Name="/Grasshopper_Preview_Shaded_Selected.png" PartData_Modified="2025-12-03T19:33:12.3678825+00:00" />
+</MenuPackageParts>
