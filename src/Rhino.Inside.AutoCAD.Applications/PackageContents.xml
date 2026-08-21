@@ -23,7 +23,12 @@
 						LoadOnCommandInvocation="True">
 			<Commands GroupName="RHINOINSIDE_COMMANDS">
 				<Command Local="RHINO" Global="RHINO" />
+				<Command Local="RHINO7" Global="RHINO7" />
+				<Command Local="RHINO8" Global="RHINO8" />
 				<Command Local="GRASSHOPPER" Global="GRASSHOPPER" />
+				<Command Local="GH7" Global="GH7" />
+				<Command Local="GH8" Global="GH8" />
+				<Command Local="SWITCH_RHINO_VERSION" Global="SWITCH_RHINO_VERSION" />
 				<Command Local="TOGGLE_RHINO_PREVIEW" Global="TOGGLE_RHINO_PREVIEW" />
 				<Command Local="OPEN_RHINO_VIEWPORT" Global="OPEN_RHINO_VIEWPORT" />
 				<Command Local="GRASSHOPPER_PLAYER" Global="GRASSHOPPER_PLAYER" />
@@ -36,6 +41,7 @@
 				<Command Local="RHINO_INSIDE_ABOUT" Global="RHINO_INSIDE_ABOUT" />
 				<Command Local="RHINO_INSIDE_SUPPORT" Global="RHINO_INSIDE_SUPPORT" />
 				<Command Local="RHINO_INSIDE_UPDATE" Global="RHINO_INSIDE_UPDATE" />
+				<Command Local="RHINO_INSIDE_SETTINGS" Global="RHINO_INSIDE_SETTINGS" />
 				<Command Local="RHINO_INSIDE_CONVERT_BREP" Global="RHINO_INSIDE_CONVERT_BREP" />
 			</Commands>
 		</ComponentEntry>
