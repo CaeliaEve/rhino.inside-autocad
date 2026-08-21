@@ -1,4 +1,3 @@
-using System;
 using Autodesk.AutoCAD.Runtime;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
@@ -11,8 +10,8 @@ using Rhino.Inside.AutoCAD.UI.Resources.Models;
 namespace Rhino.Inside.AutoCAD.Applications;
 
 /// <summary>
-/// The commands class for Rhino.Inside.AutoCAD application commands. This class contains
-/// all the command methods that can be invoked from AutoCAD to interact with Rhino and Grasshopper.
+/// The commands class for Rhino.Inside.AutoCAD application commands.
+/// Provides native in-process execution with single-session mutual exclusion between Rhino 7 and Rhino 8.
 /// </summary>
 public class RhinoInsideAutoCadCommands
 {

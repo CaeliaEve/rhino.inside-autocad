@@ -2,7 +2,6 @@
 $bundleDir = "$env:APPDATA\Autodesk\ApplicationPlugins\Rhino.Inside.AutoCAD.bundle\1.3.1\Win64\NET48"
 $sourceDirs = @(
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\bin\Release\net48",
-    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Worker\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Interop\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Core\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Services\bin\Release\net48",

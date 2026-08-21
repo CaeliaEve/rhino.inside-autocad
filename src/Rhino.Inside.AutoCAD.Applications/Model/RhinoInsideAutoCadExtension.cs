@@ -1,12 +1,12 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using Autodesk.AutoCAD.Runtime;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
-using Rhino.Inside.AutoCAD.Interop.Process;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
 
@@ -63,7 +63,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
                 IsExpired = true;
             }
 
-            // Bootstrap logger and config so they are ready
+            // Bootstrap logger and application configuration (0ms startup overhead)
             _applicationConfig = new RhinoInsideAutoCadApplicationConfig();
             _bootstrapper = new Bootstrapper(new AutocadBootstrapperConfig(_applicationConfig));
 
@@ -71,7 +71,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
             Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit += this.OnApplicationBeginQuit;
 
-            editor?.WriteMessage("\n[Rhino.Inside] Plugin loaded successfully (On-demand mode ready). Type RHINO, RHINO7, or RHINO8 to start.\n");
+            editor?.WriteMessage("\n[Rhino.Inside] Plugin loaded (On-demand mode ready). Run RHINO, RHINO7, or RHINO8 to start.\n");
         }
         catch (System.Exception e)
         {
@@ -87,17 +87,21 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     }
 
     /// <summary>
-    /// Ensures that Rhino is bound and initialized, optionally for a specific major version.
+    /// Ensures that Rhino is bound and initialized natively, with strict single-session mutual exclusion.
     /// </summary>
     public static bool EnsureInitialized(int? targetVersion = null)
     {
         if (Application != null)
         {
-            if (targetVersion.HasValue && RhinoCoreExtension.SelectedInstallation?.MajorVersion != targetVersion.Value)
+            var currentVersion = RhinoCoreExtension.SelectedInstallation?.MajorVersion;
+            if (targetVersion.HasValue && currentVersion.HasValue && currentVersion.Value != targetVersion.Value)
             {
                 var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-                var currentVer = RhinoCoreExtension.SelectedInstallation?.MajorVersion;
-                var msg = string.Format("[Rhino.Inside] 当前 AutoCAD 进程已绑定并加载 Rhino {0}。由于 .NET 进程单例限制，如需切换至 Rhino {1}，请重启 AutoCAD 并在启动时输入 RHINO{1}。", currentVer, targetVersion.Value);
+                var msg = string.Format(
+                    "【Rhino.Inside 互斥保护提示】\n当前 AutoCAD 会话已加载并运行 Rhino {0} 原生环境。\n\n由于底层 C++ 运行时单例保护机制，同一个 AutoCAD 会话中无法同时运行 Rhino {1}。\n如需使用 Rhino {1}，请保存当前图纸并重启 AutoCAD 后输入 RHINO{1}。",
+                    currentVersion.Value,
+                    targetVersion.Value);
+
                 editor?.WriteMessage(string.Format("\n{0}\n", msg));
                 Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(msg);
                 return false;
@@ -119,7 +123,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             if (targetVersion.HasValue)
             {
                 var allInstalls = installationLocator.Locate();
-                installation = System.Linq.Enumerable.FirstOrDefault(allInstalls, x => x.MajorVersion == targetVersion.Value);
+                installation = allInstalls.FirstOrDefault(x => x.MajorVersion == targetVersion.Value);
             }
 
             if (installation == null)
@@ -157,14 +161,19 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     }
 
     /// <summary>
-    /// Displays version dialog to switch Rhino version dynamically.
+    /// Displays version dialog or version lock explanation.
     /// </summary>
     public static void PromptSwitchVersion()
     {
         if (Application != null)
         {
-            var currentVer = RhinoCoreExtension.SelectedInstallation?.MajorVersion;
-            var msg = string.Format("[Rhino.Inside] 当前 AutoCAD 会话已加载 Rhino {0} 原生环境。如需使用其他版本，请重启 AutoCAD 并选择对应版本。", currentVer);
+            var currentVer = RhinoCoreExtension.SelectedInstallation?.MajorVersion ?? 0;
+            var otherVer = currentVer == 7 ? 8 : 7;
+            var msg = string.Format(
+                "【Rhino.Inside 提示】\n当前 AutoCAD 会话已加载 Rhino {0}。\n若需切换至 Rhino {1}，请保存图纸并重启 AutoCAD 后输入 RHINO{1}。",
+                currentVer,
+                otherVer);
+
             var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
             editor?.WriteMessage(string.Format("\n{0}\n", msg));
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(msg);
@@ -211,7 +220,6 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     {
         try
         {
-            WorkerProcessManager.Instance.Dispose();
             Application?.Terminate();
             Application = null;
         }
