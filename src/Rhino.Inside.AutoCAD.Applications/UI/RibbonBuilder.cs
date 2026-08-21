@@ -24,16 +24,56 @@ public static class RibbonBuilder
         public event EventHandler? CanExecuteChanged;
     }
 
+    private static bool _isHooked = false;
+
     /// <summary>
-    /// Initializes and attaches the Ribbon tab to AutoCAD's ComponentManager.
+    /// Initializes and attaches the Ribbon tab to AutoCAD's ComponentManager with persistent document lifecycle hooks.
     /// </summary>
     public static void Initialize()
     {
         try
         {
+            EnsureRibbon();
+
+            if (!_isHooked)
+            {
+                _isHooked = true;
+                Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.DocumentActivated += (s, e) => EnsureRibbon();
+                Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.DocumentCreated += (s, e) => EnsureRibbon();
+                Autodesk.AutoCAD.ApplicationServices.Core.Application.Idle += OnApplicationIdle;
+            }
+        }
+        catch { }
+    }
+
+    private static int _idleCheckCount = 0;
+    private static void OnApplicationIdle(object? sender, EventArgs e)
+    {
+        EnsureRibbon();
+        if (++_idleCheckCount > 10)
+        {
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.Idle -= OnApplicationIdle;
+        }
+    }
+
+    /// <summary>
+    /// Ensures the Ribbon tab is attached to the current active Ribbon.
+    /// </summary>
+    public static void EnsureRibbon()
+    {
+        try
+        {
             if (ComponentManager.Ribbon is { } ribbon)
             {
-                BuildRibbon(ribbon);
+                var tab = ribbon.Tabs.FirstOrDefault(t => t.Id == "RHINOINSIDE_TAB" || t.Title == "Rhino.Inside");
+                if (tab == null)
+                {
+                    BuildRibbon(ribbon);
+                }
+                else
+                {
+                    tab.IsVisible = true;
+                }
             }
             else
             {
