@@ -1,4 +1,4 @@
-﻿using Rhino.Inside.AutoCAD.Core;
+using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Services;
@@ -29,23 +29,27 @@ public class GrasshopperPreviewButtonManager : IGrasshopperPreviewButtonManager
     /// <inheritdoc/>
     public void SetPreviewMode(GrasshopperPreviewMode mode)
     {
-        switch (mode)
+        try
         {
-            case GrasshopperPreviewMode.Off:
-                this.UpdateButton(_offButtonId, _offButtonSelected);
-                this.UpdateButton(_shadedButtonId, _shadedButtonUnselected);
-                this.UpdateButton(_wireframeButtonId, _wireframeButtonUnselected);
-                break;
-            case GrasshopperPreviewMode.Shaded:
-                this.UpdateButton(_offButtonId, _offButtonUnselected);
-                this.UpdateButton(_shadedButtonId, _shadedButtonSelected);
-                this.UpdateButton(_wireframeButtonId, _wireframeButtonUnselected);
-                break;
-            case GrasshopperPreviewMode.Wireframe:
-                this.UpdateButton(_offButtonId, _offButtonUnselected);
-                this.UpdateButton(_shadedButtonId, _shadedButtonUnselected);
-                this.UpdateButton(_wireframeButtonId, _wireframeButtonSelected);
-                break;
+            switch (mode)
+            {
+                case GrasshopperPreviewMode.Off:
+                    this.UpdateButton(_offButtonId, _offButtonSelected);
+                    this.UpdateButton(_shadedButtonId, _shadedButtonUnselected);
+                    this.UpdateButton(_wireframeButtonId, _wireframeButtonUnselected);
+                    break;
+                case GrasshopperPreviewMode.Shaded:
+                    this.UpdateButton(_offButtonId, _offButtonUnselected);
+                    this.UpdateButton(_shadedButtonId, _shadedButtonSelected);
+                    this.UpdateButton(_wireframeButtonId, _wireframeButtonUnselected);
+                    break;
+                case GrasshopperPreviewMode.Wireframe:
+                    this.UpdateButton(_offButtonId, _offButtonUnselected);
+                    this.UpdateButton(_shadedButtonId, _shadedButtonUnselected);
+                    this.UpdateButton(_wireframeButtonId, _wireframeButtonSelected);
+                    break;
+            }
         }
+        catch { }
     }
 }

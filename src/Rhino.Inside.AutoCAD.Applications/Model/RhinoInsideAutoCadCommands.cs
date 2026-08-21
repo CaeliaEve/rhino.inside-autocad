@@ -212,11 +212,8 @@ public class RhinoInsideAutoCadCommands
             var rhinoObjectPreview = rhinoInsideManager.RhinoPreviewServer;
             rhinoObjectPreview.ToggleVisibility();
 
-            var buttonReplacer = new ButtonIconReplacer(_rhinoPreviewButtonId);
-            var imagePath = rhinoObjectPreview.Visible
-                ? _rhinocerosPreviewShadedIcon
-                : _rhinocerosPreviewOffIcon;
-            buttonReplacer.Replace(imagePath);
+            var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+            editor?.WriteMessage(rhinoObjectPreview.Visible ? "\n[Rhino.Inside] Rhino Preview: ON\n" : "\n[Rhino.Inside] Rhino Preview: OFF\n");
         }
         catch (System.Exception ex)
         {
@@ -334,11 +331,8 @@ public class RhinoInsideAutoCadCommands
                 grasshopperInstance.EnableSolver();
             }
 
-            var buttonReplacer = new ButtonIconReplacer(_grasshopperSolverButtonId);
-            var imagePath = isEnabled
-                ? _grasshopperSolverOffIcon
-                : _grasshopperSolverOnIcon;
-            buttonReplacer.Replace(imagePath);
+            var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+            editor?.WriteMessage(isEnabled ? "\n[Rhino.Inside] Grasshopper Solver: OFF (Locked)\n" : "\n[Rhino.Inside] Grasshopper Solver: ON (Running)\n");
         }
         catch (System.Exception ex)
         {
