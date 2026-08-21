@@ -27,6 +27,7 @@ internal static class Program
     private static extern bool BringWindowToTop(IntPtr hWnd);
 
     private const int GWLP_HWNDPARENT = -8;
+    private const int SW_HIDE = 0;
     private const int SW_SHOW = 5;
     private const int SW_RESTORE = 9;
 
@@ -36,6 +37,7 @@ internal static class Program
     private static int _targetMajorVersion = 8;
     private static bool _isSuspended = false;
     private static SynchronizationContext? _syncContext;
+    private static bool _isRhinoInitialized = false;
 
     [STAThread]
     private static void Main(string[] args)
@@ -132,7 +134,7 @@ internal static class Program
             }
         }
 
-        // Start message pump
+        // Run message pump
         Application.Run(new WorkerApplicationContext());
     }
 
@@ -140,7 +142,6 @@ internal static class Program
     {
         public WorkerApplicationContext()
         {
-            // Keep process running in background
         }
     }
 
@@ -153,6 +154,28 @@ internal static class Program
         else
         {
             ProcessCommand(msg);
+        }
+    }
+
+    private static void EnsureRhinoReady()
+    {
+        if (_isRhinoInitialized) return;
+        _isRhinoInitialized = true;
+
+        RhinoCoreExtension.Instance.ValidateRhinoCore();
+        if (RhinoDoc.ActiveDoc == null)
+        {
+            RhinoApp.RunScript("!_New _None", false);
+        }
+
+        var hwnd = RhinoApp.MainWindowHandle();
+        if (_hostHwnd != IntPtr.Zero && hwnd != IntPtr.Zero)
+        {
+            try
+            {
+                SetWindowLongPtr(hwnd, GWLP_HWNDPARENT, _hostHwnd);
+            }
+            catch { }
         }
     }
 
@@ -171,7 +194,7 @@ internal static class Program
                     break;
 
                 case IpcCommandType.LaunchRhino:
-                    RhinoCoreExtension.Instance.ValidateRhinoCore();
+                    EnsureRhinoReady();
                     var hwnd = RhinoApp.MainWindowHandle();
                     if (hwnd != IntPtr.Zero)
                     {
@@ -184,7 +207,7 @@ internal static class Program
                     break;
 
                 case IpcCommandType.LaunchGrasshopper:
-                    RhinoCoreExtension.Instance.ValidateRhinoCore();
+                    EnsureRhinoReady();
                     RhinoApp.RunScript("!_-Grasshopper _Window _Show _Enter", false);
                     var ghHwnd = RhinoApp.MainWindowHandle();
                     if (ghHwnd != IntPtr.Zero)
@@ -198,7 +221,7 @@ internal static class Program
                     break;
 
                 case IpcCommandType.OpenViewport:
-                    RhinoCoreExtension.Instance.ValidateRhinoCore();
+                    EnsureRhinoReady();
                     RhinoApp.RunScript("!_NewFloatingViewport", false);
                     _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id));
                     break;
@@ -219,14 +242,23 @@ internal static class Program
                     var suspHwnd = RhinoApp.MainWindowHandle();
                     if (suspHwnd != IntPtr.Zero)
                     {
-                        ShowWindow(suspHwnd, 0); // SW_HIDE
+                        ShowWindow(suspHwnd, SW_HIDE);
                     }
                     _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Suspended"));
                     break;
 
                 case IpcCommandType.Resume:
                     _isSuspended = false;
+                    EnsureRhinoReady();
                     RhinoApp.RunScript("!_-Grasshopper _Solver _Enable _Enter", false);
+                    var resHwnd = RhinoApp.MainWindowHandle();
+                    if (resHwnd != IntPtr.Zero)
+                    {
+                        ShowWindow(resHwnd, SW_RESTORE);
+                        ShowWindow(resHwnd, SW_SHOW);
+                        BringWindowToTop(resHwnd);
+                        SetForegroundWindow(resHwnd);
+                    }
                     _ = _serverTransport?.SendMessageAsync(IpcMessage.Ok(msg.Id, "Resumed"));
                     break;
 

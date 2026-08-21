@@ -6,6 +6,7 @@ using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
+using Rhino.Inside.AutoCAD.Interop.Process;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
 
@@ -210,6 +211,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     {
         try
         {
+            WorkerProcessManager.Instance.Dispose();
             Application?.Terminate();
             Application = null;
         }

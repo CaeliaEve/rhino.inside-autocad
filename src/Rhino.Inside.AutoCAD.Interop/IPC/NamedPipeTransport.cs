@@ -34,6 +34,7 @@ public class NamedPipeClientTransport : IDisposable
     {
         try
         {
+            _pipeClient?.Dispose();
             _pipeClient = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken);
             await _pipeClient.ConnectAsync(timeoutMs, linkedCts.Token).ConfigureAwait(false);
@@ -46,6 +47,8 @@ public class NamedPipeClientTransport : IDisposable
         }
         catch
         {
+            _pipeClient?.Dispose();
+            _pipeClient = null;
             return false;
         }
     }
