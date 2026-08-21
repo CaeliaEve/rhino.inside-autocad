@@ -328,7 +328,7 @@ public class ApplicationConstants
 #if NET8_0_OR_GREATER
         [8, 9];
 #else
-        [8];
+        [7, 8];
 #endif
 
     /// <summary>
@@ -402,7 +402,7 @@ public class ApplicationConstants
     /// <seealso cref="RhinoRegistryKeyPath"/>
     /// <seealso cref="SupportedRhinoMajorVersions"/>
     public const string RhinoNotInstalledErrorMessage =
-        "No supported version of Rhino was found. Rhino.Inside.AutoCAD requires Rhino 8 or later to run.";
+        "No supported version of Rhino was found. Rhino.Inside.AutoCAD requires Rhino 7 or later to run.";
 
     /// <summary>
     /// Error message recorded when the user cancels the Rhino version selection dialog.

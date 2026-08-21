@@ -1,4 +1,4 @@
-﻿using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.ViewModels;
 using Rhino.Inside.AutoCAD.UI.Resources.Views;
@@ -205,22 +205,29 @@ public class LoadingScreenManager : ILoadingScreenManager
     /// <inheritdoc/>
     public void Close()
     {
-        _loadingScreenViewModel?.Dispose();
-
-        // Wait for dispatcher to be ready if thread was started
-        if (_newWindowThread != null && _newWindowThread.IsAlive)
+        try
         {
-            this.WaitForDispatcherReady();
+            _loadingScreenViewModel?.Dispose();
+
+            // Wait for dispatcher to be ready if thread was started
+            if (_newWindowThread != null && _newWindowThread.IsAlive)
+            {
+                this.WaitForDispatcherReady();
+            }
+
+            _dispatcher?.Invoke(() =>
+            {
+                _loadingScreenWindow?.Close();
+            });
+
+            _dispatcher?.InvokeShutdown();
+
+            _newWindowThread?.Join(500);
         }
-
-        _dispatcher?.Invoke(() =>
+        catch (Exception ex)
         {
-            _loadingScreenWindow?.Close();
-        });
-
-        _dispatcher?.InvokeShutdown();
-
-        _newWindowThread?.Join();
+            _logger.LogError(ex);
+        }
     }
 
     /// Protected implementation of Dispose pattern.

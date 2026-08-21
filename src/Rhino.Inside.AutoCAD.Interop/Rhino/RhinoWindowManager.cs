@@ -146,11 +146,6 @@ public class RhinoWindowManager : IRhinoWindowManager
                 // InGet is true - show window and allow activation
                 this.ShowWindowNoActivate();
             }
-            else
-            {
-                // Window hidden, InGet false - block activation so Rhino retries later
-                return (IntPtr)1;
-            }
         }
 
         return CallNextHookEx(_hookHandle, nCode, wParam, lParam);

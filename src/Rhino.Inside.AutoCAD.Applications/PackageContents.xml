@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ApplicationPackage AppVersion="1.3.1"
 					SchemaVersion="1.0"
                     HelpFile=""
@@ -40,37 +40,6 @@
 			</Commands>
 		</ComponentEntry>
 
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET48/Rhino.Inside.AutoCAD.Interop.dll"
-						AppDescription="Interop Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET48/Rhino.Inside.AutoCAD.Services.dll"
-						AppDescription="Services Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET48/Rhino.Inside.AutoCAD.UI.Resources.dll"
-						AppDescription="UI Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET48/Rhino.Inside.AutoCAD.GrasshopperLibrary.dll"
-						AppDescription="Grasshopper Component Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET48/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
-						AppDescription="Civil 3D Grasshopper Components"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET48/Rhino.Inside.AutoCAD.Civil.Interop.dll"
-						AppDescription="Civil 3D Interop Dependency"
-						AppType="Managed"/>
-
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
 					  ModuleName="./Toolbar/RhinoInsideAutocad_Toolbar_NET48.cuix"
 					  AppDescription="Toolbar"/>
@@ -103,37 +72,6 @@
 			</Commands>
 		</ComponentEntry>
 
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET8/Rhino.Inside.AutoCAD.Interop.dll"
-						AppDescription="Interop Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET8/Rhino.Inside.AutoCAD.Services.dll"
-						AppDescription="Services Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET8/Rhino.Inside.AutoCAD.UI.Resources.dll"
-						AppDescription="UI Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET8/Rhino.Inside.AutoCAD.GrasshopperLibrary.dll"
-						AppDescription="Grasshopper Component Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET8/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
-						AppDescription="Civil 3D Grasshopper Components"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET8/Rhino.Inside.AutoCAD.Civil.Interop.dll"
-						AppDescription="Civil 3D Interop Dependency"
-						AppType="Managed"/>
-
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
 					  ModuleName="./Toolbar/RhinoInsideAutocad_Toolbar_NET8.cuix"
 					  AppDescription="Toolbar"/>
@@ -165,37 +103,6 @@
 				<Command Local="RHINO_INSIDE_CONVERT_BREP" Global="RHINO_INSIDE_CONVERT_BREP" />
 			</Commands>
 		</ComponentEntry>
-
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET10/Rhino.Inside.AutoCAD.Interop.dll"
-						AppDescription="Interop Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET10/Rhino.Inside.AutoCAD.Services.dll"
-						AppDescription="Services Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET10/Rhino.Inside.AutoCAD.UI.Resources.dll"
-						AppDescription="UI Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET10/Rhino.Inside.AutoCAD.GrasshopperLibrary.dll"
-						AppDescription="Grasshopper Component Dependency"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET10/Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
-						AppDescription="Civil 3D Grasshopper Components"
-						AppType="Managed"/>
-
-		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
-						ModuleName="./1.3.1/Win64/NET10/Rhino.Inside.AutoCAD.Civil.Interop.dll"
-						AppDescription="Civil 3D Interop Dependency"
-						AppType="Managed"/>
 
 		<ComponentEntry AppName="Rhino.Inside.AutoCAD"
 					  ModuleName="./Toolbar/RhinoInsideAutocad_Toolbar_NET10.cuix"

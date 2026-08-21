@@ -1,4 +1,4 @@
-﻿using Rhino.ApplicationSettings;
+using Rhino.ApplicationSettings;
 using Rhino.Commands;
 using Rhino.DocObjects;
 using Rhino.Inside.AutoCAD.Core;
@@ -91,12 +91,18 @@ public class RhinoInstance : IRhinoInstance
         RhinoInsideMode mode)
     {
         var template = string.Format(_defaultTemplate, _installationDirectories.Resources);
+        if (!System.IO.File.Exists(template))
+        {
+            var userTemplate = FileSettings.TemplateFile;
+            template = (!string.IsNullOrEmpty(userTemplate) && System.IO.File.Exists(userTemplate))
+                ? userTemplate
+                : null;
+        }
 
         try
         {
-
             var rhinoDoc = mode == RhinoInsideMode.Headless
-                ? RhinoDoc.CreateHeadless(template)
+                ? RhinoDoc.CreateHeadless(template ?? string.Empty)
                 : RhinoDoc.Create(template);
 
             FileSettings.AutoSaveEnabled = false;

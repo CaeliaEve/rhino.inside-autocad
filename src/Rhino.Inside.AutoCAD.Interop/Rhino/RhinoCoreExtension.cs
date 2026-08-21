@@ -1,4 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
@@ -206,11 +206,6 @@ public class RhinoCoreExtension : IRhinoCoreExtension
     {
         try
         {
-            var schemeName = string.Format(
-                _rhinoInsideSchemeNameFormat,
-                HostApplicationServices.Current.Product,
-                HostApplicationServices.Current.releaseMarketVersion);
-
             var style = WindowStyle.Hidden;
 
             var autocadHandle = Autodesk.AutoCAD.ApplicationServices.Core.Application
@@ -219,13 +214,15 @@ public class RhinoCoreExtension : IRhinoCoreExtension
             var args = new List<string>()
             {
                _rhinoNoSplashArgument,
-                string.Format(_rhinoSchemeArgumentFormat, schemeName)
             };
 
 #if NET8_0_OR_GREATER
             args.Add("/netcore");
 #else
-            args.Add("/netfx");
+            if (SelectedInstallation?.MajorVersion >= 8)
+            {
+                args.Add("/netfx");
+            }
 #endif
 
             _rhinoCore ??= new RhinoCore(args.ToArray(), style, autocadHandle);
