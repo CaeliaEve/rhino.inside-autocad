@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using Rhino;
@@ -102,7 +101,7 @@ public class AutoCadPasteMessageFilter : IMessageFilter
                 }
             }
 
-            // Strategy 2: Extract embedded DWG binary stream from Embed Source or Native
+            // Strategy 2: Extract embedded DWG binary stream from Embed Source, Native, or DataObject
             var embeddedFormats = new[] { "Embed Source", "Native", "AutoCAD.Drawing", "DataObject" };
             foreach (var format in embeddedFormats)
             {
@@ -134,17 +133,10 @@ public class AutoCadPasteMessageFilter : IMessageFilter
                             var cleanDwg = new byte[dwgBytes.Length - offset];
                             Array.Copy(dwgBytes, offset, cleanDwg, 0, cleanDwg.Length);
 
-                            var tempFile = Path.Combine(Path.GetTempPath(), $"AutoCadPaste_{Guid.NewGuid():N}.dwg");
+                            var tempFile = Path.Combine(Path.GetTempPath(), "Rhino_AutoCad_Paste_Buffer.dwg");
                             File.WriteAllBytes(tempFile, cleanDwg);
 
-                            try
-                            {
-                                return ImportDwgFile(tempFile);
-                            }
-                            finally
-                            {
-                                try { File.Delete(tempFile); } catch { }
-                            }
+                            return ImportDwgFile(tempFile);
                         }
                     }
                 }
@@ -162,10 +154,22 @@ public class AutoCadPasteMessageFilter : IMessageFilter
     {
         try
         {
-            var normalizedPath = filePath.Replace('\\', '/');
-            var script = $"-_Import \"{normalizedPath}\" _Enter";
+            var doc = RhinoDoc.ActiveDoc;
+            if (doc != null)
+            {
+                // Synchronous direct C++ DWG import into active Rhino document
+                bool imported = doc.Import(filePath);
+                if (imported)
+                {
+                    doc.Views.Redraw();
+                    RhinoApp.WriteLine("[AutoCadPasteBridge] Pasted AutoCAD 1:1 vector geometry (layers & colors restored).");
+                    return true;
+                }
+            }
 
-            // Run DWG import silently into active Rhino document
+            // Secondary fallback via command line
+            var normalizedPath = filePath.Replace('\\', '/');
+            var script = $"-_Import \"{normalizedPath}\" _EnterEnd";
             RhinoApp.RunScript(script, false);
             RhinoApp.WriteLine("[AutoCadPasteBridge] Pasted AutoCAD 1:1 vector geometry (layers & colors restored).");
             return true;
