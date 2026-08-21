@@ -15,12 +15,39 @@ namespace Rhino.Inside.AutoCAD.Applications.UI;
 /// </summary>
 public static class RibbonBuilder
 {
-    private class RelayCommand : ICommand
+    private class RibbonCommandHandler : ICommand
     {
-        private readonly Action _action;
-        public RelayCommand(Action action) => _action = action;
+        private readonly string _commandName;
+        private readonly Action _fallbackAction;
+
+        public RibbonCommandHandler(string commandName, Action fallbackAction)
+        {
+            _commandName = commandName;
+            _fallbackAction = fallbackAction;
+        }
+
         public bool CanExecute(object? parameter) => true;
-        public void Execute(object? parameter) => _action();
+
+        public void Execute(object? parameter)
+        {
+            try
+            {
+                var doc = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument;
+                if (doc != null)
+                {
+                    doc.SendStringToExecute($"_{_commandName}\n", true, false, false);
+                }
+                else
+                {
+                    _fallbackAction();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error dispatching {_commandName}: {ex.Message}");
+            }
+        }
+
         public event EventHandler? CanExecuteChanged;
     }
 
@@ -160,7 +187,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("Rhino.png", 16),
                 LargeImage = LoadIcon("Rhino.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO),
+                CommandHandler = new RibbonCommandHandler("RHINO", RhinoInsideAutoCadCommands.RHINO),
                 IsSplit = true
             };
 
@@ -172,7 +199,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("Rhino7.png", 16),
                 LargeImage = LoadIcon("Rhino7.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO7)
+                CommandHandler = new RibbonCommandHandler("RHINO7", RhinoInsideAutoCadCommands.RHINO7)
             };
 
             var r8Btn = new RibbonButton
@@ -183,7 +210,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("Rhino8.png", 16),
                 LargeImage = LoadIcon("Rhino8.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO8)
+                CommandHandler = new RibbonCommandHandler("RHINO8", RhinoInsideAutoCadCommands.RHINO8)
             };
 
             var rSwitchBtn = new RibbonButton
@@ -194,7 +221,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("cog-outline.png", 16),
                 LargeImage = LoadIcon("cog-outline.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.SWITCH_RHINO_VERSION)
+                CommandHandler = new RibbonCommandHandler("SWITCH_RHINO_VERSION", RhinoInsideAutoCadCommands.SWITCH_RHINO_VERSION)
             };
 
             rhinoSplit.Items.Add(r7Btn);
@@ -211,7 +238,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("OpenViewport.png", 16),
                 LargeImage = LoadIcon("OpenViewport.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.OPEN_RHINO_VIEWPORT)
+                CommandHandler = new RibbonCommandHandler("OPEN_RHINO_VIEWPORT", RhinoInsideAutoCadCommands.OPEN_RHINO_VIEWPORT)
             };
             rhinoSource.Items.Add(viewportBtn);
 
@@ -225,7 +252,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("Rhinoceros_Preview_Shaded.png", 16),
                 LargeImage = LoadIcon("Rhinoceros_Preview_Shaded.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.TOGGLE_RHINO_PREVIEW)
+                CommandHandler = new RibbonCommandHandler("TOGGLE_RHINO_PREVIEW", RhinoInsideAutoCadCommands.TOGGLE_RHINO_PREVIEW)
             };
             rhinoSource.Items.Add(previewBtn);
 
@@ -238,7 +265,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("PackageManager.png", 16),
                 LargeImage = LoadIcon("PackageManager.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_PACKAGE_MANGER)
+                CommandHandler = new RibbonCommandHandler("RHINO_PACKAGE_MANGER", RhinoInsideAutoCadCommands.RHINO_PACKAGE_MANGER)
             };
             rhinoSource.Items.Add(pkgBtn);
             tab.Panels.Add(rhinoPanel);
@@ -257,7 +284,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("Grasshopper.png", 16),
                 LargeImage = LoadIcon("Grasshopper.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER),
+                CommandHandler = new RibbonCommandHandler("GRASSHOPPER", RhinoInsideAutoCadCommands.GRASSHOPPER),
                 IsSplit = true
             };
 
@@ -269,7 +296,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("Grasshopper7.png", 16),
                 LargeImage = LoadIcon("Grasshopper7.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GH7)
+                CommandHandler = new RibbonCommandHandler("GH7", RhinoInsideAutoCadCommands.GH7)
             };
 
             var gh8Btn = new RibbonButton
@@ -280,7 +307,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("Grasshopper8.png", 16),
                 LargeImage = LoadIcon("Grasshopper8.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GH8)
+                CommandHandler = new RibbonCommandHandler("GH8", RhinoInsideAutoCadCommands.GH8)
             };
 
             var ghPlayerBtn = new RibbonButton
@@ -291,7 +318,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("GrasshopperPlayer.png", 16),
                 LargeImage = LoadIcon("GrasshopperPlayer.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PLAYER)
+                CommandHandler = new RibbonCommandHandler("GRASSHOPPER_PLAYER", RhinoInsideAutoCadCommands.GRASSHOPPER_PLAYER)
             };
 
             ghSplit.Items.Add(gh7Btn);
@@ -308,7 +335,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("Grasshopper_Preview_Off.png", 16),
                 LargeImage = LoadIcon("Grasshopper_Preview_Off.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_OFF)
+                CommandHandler = new RibbonCommandHandler("GRASSHOPPER_PREVIEW_OFF", RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_OFF)
             };
             var prevWireBtn = new RibbonButton
             {
@@ -318,7 +345,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("Grasshopper_Preview_Wireframe.png", 16),
                 LargeImage = LoadIcon("Grasshopper_Preview_Wireframe.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_WIREFRAME)
+                CommandHandler = new RibbonCommandHandler("GRASSHOPPER_PREVIEW_WIREFRAME", RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_WIREFRAME)
             };
             var prevShadedBtn = new RibbonButton
             {
@@ -328,7 +355,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("Grasshopper_Preview_Shaded.png", 16),
                 LargeImage = LoadIcon("Grasshopper_Preview_Shaded.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_SHADED)
+                CommandHandler = new RibbonCommandHandler("GRASSHOPPER_PREVIEW_SHADED", RhinoInsideAutoCadCommands.GRASSHOPPER_PREVIEW_SHADED)
             };
             previewRowPanel.Items.Add(prevOffBtn);
             previewRowPanel.Items.Add(prevWireBtn);
@@ -345,7 +372,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("Grasshopper_SolverOn.png", 16),
                 LargeImage = LoadIcon("Grasshopper_SolverOn.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_TOGGLE_SOLVER)
+                CommandHandler = new RibbonCommandHandler("GRASSHOPPER_TOGGLE_SOLVER", RhinoInsideAutoCadCommands.GRASSHOPPER_TOGGLE_SOLVER)
             };
             ghSource.Items.Add(solverBtn);
 
@@ -358,7 +385,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("Grasshopper_Recompute.png", 16),
                 LargeImage = LoadIcon("Grasshopper_Recompute.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.GRASSHOPPER_RECOMPUTE)
+                CommandHandler = new RibbonCommandHandler("GRASSHOPPER_RECOMPUTE", RhinoInsideAutoCadCommands.GRASSHOPPER_RECOMPUTE)
             };
             ghSource.Items.Add(recomputeBtn);
             tab.Panels.Add(ghPanel);
@@ -377,7 +404,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("ConvertBrep.png", 16),
                 LargeImage = LoadIcon("ConvertBrep.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_CONVERT_BREP)
+                CommandHandler = new RibbonCommandHandler("RHINO_INSIDE_CONVERT_BREP", RhinoInsideAutoCadCommands.RHINO_INSIDE_CONVERT_BREP)
             };
             geomSource.Items.Add(brepBtn);
             tab.Panels.Add(geomPanel);
@@ -396,7 +423,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("cog-outline.png", 16),
                 LargeImage = LoadIcon("cog-outline.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_SETTINGS)
+                CommandHandler = new RibbonCommandHandler("RHINO_INSIDE_SETTINGS", RhinoInsideAutoCadCommands.RHINO_INSIDE_SETTINGS)
             };
             supportSource.Items.Add(settingsBtn);
 
@@ -409,7 +436,7 @@ public static class RibbonBuilder
                 Orientation = Orientation.Vertical,
                 Image = LoadIcon("Bimorph.png", 16),
                 LargeImage = LoadIcon("Bimorph.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_SUPPORT)
+                CommandHandler = new RibbonCommandHandler("RHINO_INSIDE_SUPPORT", RhinoInsideAutoCadCommands.RHINO_INSIDE_SUPPORT)
             };
 
             var aboutBtn = new RibbonButton
@@ -420,7 +447,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("cog-outline.png", 16),
                 LargeImage = LoadIcon("cog-outline.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_ABOUT)
+                CommandHandler = new RibbonCommandHandler("RHINO_INSIDE_ABOUT", RhinoInsideAutoCadCommands.RHINO_INSIDE_ABOUT)
             };
             var updateBtn = new RibbonButton
             {
@@ -430,7 +457,7 @@ public static class RibbonBuilder
                 Size = RibbonItemSize.Standard,
                 Image = LoadIcon("cog-outline.png", 16),
                 LargeImage = LoadIcon("cog-outline.png", 32),
-                CommandHandler = new RelayCommand(RhinoInsideAutoCadCommands.RHINO_INSIDE_UPDATE)
+                CommandHandler = new RibbonCommandHandler("RHINO_INSIDE_UPDATE", RhinoInsideAutoCadCommands.RHINO_INSIDE_UPDATE)
             };
 
             supportSplit.Items.Add(aboutBtn);
