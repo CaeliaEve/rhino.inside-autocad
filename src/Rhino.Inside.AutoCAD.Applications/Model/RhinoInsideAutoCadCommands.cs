@@ -2,7 +2,6 @@ using Autodesk.AutoCAD.Runtime;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Interop;
-using Rhino.Inside.AutoCAD.Interop.Process;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
 
@@ -34,7 +33,7 @@ public class RhinoInsideAutoCadCommands
     /// <summary>
     /// Checks whether the application is unusable, reporting why if it is.
     /// </summary>
-    private static bool CheckApplicationIsUnusable(int? targetVersion = null)
+    private static bool CheckApplicationIsUnusable()
     {
         if (RhinoInsideAutoCadExtension.LoadFailureMessage is { } loadFailureMessage)
         {
@@ -46,7 +45,7 @@ public class RhinoInsideAutoCadCommands
 
         if (RhinoInsideAutoCadExtension.Application is null)
         {
-            if (!RhinoInsideAutoCadExtension.EnsureInitialized(targetVersion))
+            if (!RhinoInsideAutoCadExtension.EnsureInitialized())
             {
                 return true;
             }
@@ -75,163 +74,121 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO", CommandFlags.Modal)]
     public static void RHINO()
     {
-        if (_isLaunching) return;
-
-        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-        var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
-
-        int version = WorkerProcessManager.Instance.ActiveMajorVersion;
-        if (version == 0)
-        {
-            var locator = new RhinoInstallationLocator();
-            var settingsStore = UserSettingsStore.Instance;
-            var dialogManager = new RhinoVersionDialogManager();
-            var selection = new RhinoVersionSelection(locator, settingsStore, dialogManager);
-            var selected = selection.Resolve(out _);
-            if (selected == null) return;
-            version = selected.MajorVersion;
-        }
+        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized())
+            return;
 
         _isLaunching = true;
-        editor?.WriteMessage($"\n[Rhino.Inside] Launching Rhino {version}...\n");
-        _ = System.Threading.Tasks.Task.Run(async () =>
+        try
         {
-            try
-            {
-                await WorkerProcessManager.Instance.LaunchRhinoVersionAsync(version, acadHwnd);
-            }
-            finally
-            {
-                _isLaunching = false;
-            }
-        });
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Windowed);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO7", CommandFlags.Modal)]
     public static void RHINO7()
     {
-        if (_isLaunching) return;
-
-        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-        var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(7))
+            return;
 
         _isLaunching = true;
-        editor?.WriteMessage("\n[Rhino.Inside] Launching Rhino 7...\n");
-        _ = System.Threading.Tasks.Task.Run(async () =>
+        try
         {
-            try
-            {
-                await WorkerProcessManager.Instance.LaunchRhinoVersionAsync(7, acadHwnd);
-            }
-            finally
-            {
-                _isLaunching = false;
-            }
-        });
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Windowed);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO8", CommandFlags.Modal)]
     public static void RHINO8()
     {
-        if (_isLaunching) return;
-
-        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-        var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(8))
+            return;
 
         _isLaunching = true;
-        editor?.WriteMessage("\n[Rhino.Inside] Launching Rhino 8...\n");
-        _ = System.Threading.Tasks.Task.Run(async () =>
+        try
         {
-            try
-            {
-                await WorkerProcessManager.Instance.LaunchRhinoVersionAsync(8, acadHwnd);
-            }
-            finally
-            {
-                _isLaunching = false;
-            }
-        });
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Windowed);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER", CommandFlags.Modal)]
     public static void GRASSHOPPER()
     {
-        if (_isLaunching) return;
-
-        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-        var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
-
-        int version = WorkerProcessManager.Instance.ActiveMajorVersion;
-        if (version == 0)
-        {
-            var locator = new RhinoInstallationLocator();
-            var settingsStore = UserSettingsStore.Instance;
-            var dialogManager = new RhinoVersionDialogManager();
-            var selection = new RhinoVersionSelection(locator, settingsStore, dialogManager);
-            var selected = selection.Resolve(out _);
-            if (selected == null) return;
-            version = selected.MajorVersion;
-        }
+        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized())
+            return;
 
         _isLaunching = true;
-        editor?.WriteMessage($"\n[Rhino.Inside] Launching Grasshopper {version}...\n");
-        _ = System.Threading.Tasks.Task.Run(async () =>
+        try
         {
-            try
-            {
-                await WorkerProcessManager.Instance.LaunchGrasshopperVersionAsync(version, acadHwnd);
-            }
-            finally
-            {
-                _isLaunching = false;
-            }
-        });
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Headless);
+            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+            rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GH7", CommandFlags.Modal)]
     public static void GH7()
     {
-        if (_isLaunching) return;
-
-        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-        var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(7))
+            return;
 
         _isLaunching = true;
-        editor?.WriteMessage("\n[Rhino.Inside] Launching Grasshopper 7...\n");
-        _ = System.Threading.Tasks.Task.Run(async () =>
+        try
         {
-            try
-            {
-                await WorkerProcessManager.Instance.LaunchGrasshopperVersionAsync(7, acadHwnd);
-            }
-            finally
-            {
-                _isLaunching = false;
-            }
-        });
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Headless);
+            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+            rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GH8", CommandFlags.Modal)]
     public static void GH8()
     {
-        if (_isLaunching) return;
-
-        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-        var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(8))
+            return;
 
         _isLaunching = true;
-        editor?.WriteMessage("\n[Rhino.Inside] Launching Grasshopper 8...\n");
-        _ = System.Threading.Tasks.Task.Run(async () =>
+        try
         {
-            try
-            {
-                await WorkerProcessManager.Instance.LaunchGrasshopperVersionAsync(8, acadHwnd);
-            }
-            finally
-            {
-                _isLaunching = false;
-            }
-        });
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Headless);
+            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+            rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "SWITCH_RHINO_VERSION", CommandFlags.Modal)]
@@ -344,12 +301,18 @@ public class RhinoInsideAutoCadCommands
             return;
 
         _isLaunching = true;
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoLauncher = new RhinoLauncher(application!);
-        rhinoLauncher.Launch(RhinoInsideMode.Headless);
-        var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-        rhinoInstance.RunRhinoScript(_newFloatingViewportScript);
-        _isLaunching = false;
+        try
+        {
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Headless);
+            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+            rhinoInstance.RunRhinoScript(_newFloatingViewportScript);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_PACKAGE_MANGER", CommandFlags.Modal)]
@@ -359,12 +322,18 @@ public class RhinoInsideAutoCadCommands
             return;
 
         _isLaunching = true;
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoLauncher = new RhinoLauncher(application!);
-        rhinoLauncher.Launch(RhinoInsideMode.Headless);
-        var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-        rhinoInstance.RunRhinoCommand(_packageManagerCommandName);
-        _isLaunching = false;
+        try
+        {
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Headless);
+            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+            rhinoInstance.RunRhinoCommand(_packageManagerCommandName);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PLAYER", CommandFlags.Modal)]
@@ -374,12 +343,18 @@ public class RhinoInsideAutoCadCommands
             return;
 
         _isLaunching = true;
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoLauncher = new RhinoLauncher(application!);
-        rhinoLauncher.Launch(RhinoInsideMode.Headless);
-        var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-        rhinoInstance.RunRhinoCommand(_grasshopperPlayerCommandName);
-        _isLaunching = false;
+        try
+        {
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoLauncher = new RhinoLauncher(application!);
+            rhinoLauncher.Launch(RhinoInsideMode.Headless);
+            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+            rhinoInstance.RunRhinoCommand(_grasshopperPlayerCommandName);
+        }
+        finally
+        {
+            _isLaunching = false;
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE_ABOUT", CommandFlags.Modal)]

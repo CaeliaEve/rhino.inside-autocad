@@ -6,7 +6,6 @@ using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
-using Rhino.Inside.AutoCAD.Interop.Process;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
 
@@ -93,11 +92,14 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     {
         if (Application != null)
         {
-            // If already bound in-process and specific target version is requested
             if (targetVersion.HasValue && RhinoCoreExtension.SelectedInstallation?.MajorVersion != targetVersion.Value)
             {
-                var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
-                _ = WorkerProcessManager.Instance.ActivateVersionAsync(targetVersion.Value, acadHwnd);
+                var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+                var currentVer = RhinoCoreExtension.SelectedInstallation?.MajorVersion;
+                var msg = string.Format("[Rhino.Inside] 当前 AutoCAD 进程已绑定并加载 Rhino {0}。由于 .NET 进程单例限制，如需切换至 Rhino {1}，请重启 AutoCAD 并在启动时输入 RHINO{1}。", currentVer, targetVersion.Value);
+                editor?.WriteMessage(string.Format("\n{0}\n", msg));
+                Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(msg);
+                return false;
             }
             return true;
         }
@@ -141,15 +143,13 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
                     Application = new RhinoInsideAutoCadApplication(_bootstrapper, _applicationConfig);
                 }
 
-                var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
-                _ = WorkerProcessManager.Instance.ActivateVersionAsync(installation.MajorVersion, acadHwnd);
-
-                editor?.WriteMessage(string.Format("\n[Rhino.Inside] Bound to {0}.\n", installation.DisplayName));
+                editor?.WriteMessage(string.Format("\n[Rhino.Inside] Bound to {0} successfully.\n", installation.DisplayName));
                 return true;
             }
             catch (System.Exception ex)
             {
-                editor?.WriteMessage($"\n[Rhino.Inside] Initialization error: {ex.Message}\n");
+                editor?.WriteMessage(string.Format("\n[Rhino.Inside] Initialization error: {0}\n", ex.Message));
+                Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(string.Format("[Rhino.Inside] Initialization error: {0}\n{1}", ex.Message, ex.StackTrace));
                 return false;
             }
         }
@@ -160,20 +160,17 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// </summary>
     public static void PromptSwitchVersion()
     {
-        var installationLocator = new RhinoInstallationLocator();
-        var userSettingsStore = UserSettingsStore.Instance;
-        var versionDialogManager = new RhinoVersionDialogManager();
-        var versionSelection = new RhinoVersionSelection(installationLocator,
-            userSettingsStore, versionDialogManager);
-
-        var installation = versionSelection.Resolve(out _);
-        if (installation != null)
+        if (Application != null)
         {
-            var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
-            _ = WorkerProcessManager.Instance.ActivateVersionAsync(installation.MajorVersion, acadHwnd);
+            var currentVer = RhinoCoreExtension.SelectedInstallation?.MajorVersion;
+            var msg = string.Format("[Rhino.Inside] 当前 AutoCAD 会话已加载 Rhino {0} 原生环境。如需使用其他版本，请重启 AutoCAD 并选择对应版本。", currentVer);
             var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-            editor?.WriteMessage($"\n[Rhino.Inside] Switched active worker to {installation.DisplayName}.\n");
+            editor?.WriteMessage(string.Format("\n{0}\n", msg));
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(msg);
+            return;
         }
+
+        EnsureInitialized();
     }
 
     private static void AbortLoadStatic(Autodesk.AutoCAD.EditorInput.Editor? editor, bool anyVersionInstalled)
@@ -213,7 +210,6 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     {
         try
         {
-            WorkerProcessManager.Instance.Dispose();
             Application?.Terminate();
             Application = null;
         }
@@ -227,7 +223,7 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
     private void OnApplicationBeginQuit(object sender, Autodesk.AutoCAD.ApplicationServices.BeginQuitEventArgs e)
     {
-        if (Application is not null || WorkerProcessManager.Instance.HasActiveWorker)
+        if (Application is not null)
         {
             e.IsVetoed = true;
             ApplicationState.BeginShutdown();
