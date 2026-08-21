@@ -200,98 +200,150 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "TOGGLE_RHINO_PREVIEW", CommandFlags.Modal)]
     public static void TOGGLE_RHINO_PREVIEW()
     {
-        if (CheckApplicationIsUnusable())
-            return;
+        try
+        {
+            if (CheckApplicationIsUnusable())
+                return;
 
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoInsideManager = application!.RhinoInsideManager;
-        var rhinoObjectPreview = rhinoInsideManager.RhinoPreviewServer;
-        rhinoObjectPreview.ToggleVisibility();
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoInsideManager = application?.RhinoInsideManager;
+            if (rhinoInsideManager == null) return;
 
-        var buttonReplacer = new ButtonIconReplacer(_rhinoPreviewButtonId);
-        var imagePath = rhinoObjectPreview.Visible
-            ? _rhinocerosPreviewShadedIcon
-            : _rhinocerosPreviewOffIcon;
-        buttonReplacer.Replace(imagePath);
+            var rhinoObjectPreview = rhinoInsideManager.RhinoPreviewServer;
+            rhinoObjectPreview.ToggleVisibility();
+
+            var buttonReplacer = new ButtonIconReplacer(_rhinoPreviewButtonId);
+            var imagePath = rhinoObjectPreview.Visible
+                ? _rhinocerosPreviewShadedIcon
+                : _rhinocerosPreviewOffIcon;
+            buttonReplacer.Replace(imagePath);
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("Error toggling preview: " + ex.Message);
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_OFF", CommandFlags.Modal)]
     public static void GRASSHOPPER_PREVIEW_OFF()
     {
-        if (CheckApplicationIsUnusable())
-            return;
+        try
+        {
+            if (CheckApplicationIsUnusable())
+                return;
 
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoInsideManager = application!.RhinoInsideManager;
-        var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
-        grasshopperPreview.SetMode(GrasshopperPreviewMode.Off);
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoInsideManager = application?.RhinoInsideManager;
+            if (rhinoInsideManager == null) return;
+
+            var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
+            grasshopperPreview.SetMode(GrasshopperPreviewMode.Off);
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("Error setting preview off: " + ex.Message);
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_SHADED", CommandFlags.Modal)]
     public static void GRASSHOPPER_PREVIEW_SHADED()
     {
-        if (CheckApplicationIsUnusable())
-            return;
+        try
+        {
+            if (CheckApplicationIsUnusable())
+                return;
 
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoInsideManager = application!.RhinoInsideManager;
-        var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
-        grasshopperPreview.SetMode(GrasshopperPreviewMode.Shaded);
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoInsideManager = application?.RhinoInsideManager;
+            if (rhinoInsideManager == null) return;
+
+            var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
+            grasshopperPreview.SetMode(GrasshopperPreviewMode.Shaded);
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("Error setting preview shaded: " + ex.Message);
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_WIREFRAME", CommandFlags.Modal)]
     public static void GRASSHOPPER_PREVIEW_WIREFRAME()
     {
-        if (CheckApplicationIsUnusable())
-            return;
+        try
+        {
+            if (CheckApplicationIsUnusable())
+                return;
 
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoInsideManager = application!.RhinoInsideManager;
-        var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
-        grasshopperPreview.SetMode(GrasshopperPreviewMode.Wireframe);
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoInsideManager = application?.RhinoInsideManager;
+            if (rhinoInsideManager == null) return;
+
+            var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
+            grasshopperPreview.SetMode(GrasshopperPreviewMode.Wireframe);
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("Error setting preview wireframe: " + ex.Message);
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_RECOMPUTE", CommandFlags.Modal)]
     public static void GRASSHOPPER_RECOMPUTE()
     {
-        if (CheckApplicationIsUnusable())
-            return;
+        try
+        {
+            if (CheckApplicationIsUnusable())
+                return;
 
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoInsideManager = application!.RhinoInsideManager;
-        if (rhinoInsideManager.RhinoInstance.ActiveDoc == null) return;
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoInsideManager = application?.RhinoInsideManager;
+            if (rhinoInsideManager?.RhinoInstance.ActiveDoc == null) return;
 
-        var grasshopperInstance = rhinoInsideManager.GrasshopperInstance;
-        grasshopperInstance.RecomputeSolution();
+            var grasshopperInstance = rhinoInsideManager.GrasshopperInstance;
+            grasshopperInstance?.RecomputeSolution();
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("Error recomputing: " + ex.Message);
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_TOGGLE_SOLVER", CommandFlags.Modal)]
     public static void GRASSHOPPER_TOGGLE_SOLVER()
     {
-        if (CheckApplicationIsUnusable())
-            return;
-
-        var application = RhinoInsideAutoCadExtension.Application;
-        var rhinoInsideManager = application!.RhinoInsideManager;
-        if (rhinoInsideManager.RhinoInstance.ActiveDoc == null) return;
-
-        var grasshopperInstance = rhinoInsideManager.GrasshopperInstance;
-        var isEnabled = grasshopperInstance.IsEnabled;
-
-        if (isEnabled)
+        try
         {
-            grasshopperInstance.DisableSolver();
-        }
-        else
-        {
-            grasshopperInstance.EnableSolver();
-        }
+            if (CheckApplicationIsUnusable())
+                return;
 
-        var buttonReplacer = new ButtonIconReplacer(_grasshopperSolverButtonId);
-        var imagePath = isEnabled
-            ? _grasshopperSolverOffIcon
-            : _grasshopperSolverOnIcon;
-        buttonReplacer.Replace(imagePath);
+            var application = RhinoInsideAutoCadExtension.Application;
+            var rhinoInsideManager = application?.RhinoInsideManager;
+            if (rhinoInsideManager?.RhinoInstance.ActiveDoc == null) return;
+
+            var grasshopperInstance = rhinoInsideManager.GrasshopperInstance;
+            if (grasshopperInstance == null) return;
+
+            var isEnabled = grasshopperInstance.IsEnabled;
+
+            if (isEnabled)
+            {
+                grasshopperInstance.DisableSolver();
+            }
+            else
+            {
+                grasshopperInstance.EnableSolver();
+            }
+
+            var buttonReplacer = new ButtonIconReplacer(_grasshopperSolverButtonId);
+            var imagePath = isEnabled
+                ? _grasshopperSolverOffIcon
+                : _grasshopperSolverOnIcon;
+            buttonReplacer.Replace(imagePath);
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("Error toggling solver: " + ex.Message);
+        }
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "OPEN_RHINO_VIEWPORT", CommandFlags.Modal)]
