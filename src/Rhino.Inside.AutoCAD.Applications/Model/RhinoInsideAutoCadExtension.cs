@@ -1,12 +1,14 @@
-﻿using Autodesk.AutoCAD.Runtime;
+using System;
+using System.Globalization;
+using System.Reflection;
+using Autodesk.AutoCAD.Runtime;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Core.State;
 using Rhino.Inside.AutoCAD.Interop;
+using Rhino.Inside.AutoCAD.Interop.Process;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.Models;
-using System.Globalization;
-using System.Reflection;
 
 [assembly: ExtensionApplication(typeof(RhinoInsideAutoCadExtension))]
 
@@ -15,7 +17,6 @@ namespace Rhino.Inside.AutoCAD.Applications;
 /// <inheritdoc cref="IRhinoInsideAutoCadApplication"/>
 public class RhinoInsideAutoCadExtension : IExtensionApplication
 {
-
     private const string _applicationLoadedSuccessMessage = ApplicationConstants.ApplicationLoadedSuccessMessage;
     private const string _applicationLoadErrorMessageFormat = ApplicationConstants.ApplicationLoadErrorMessageFormat;
     private const string _stackTraceMessageFormat = ApplicationConstants.StackTraceMessageFormat;
@@ -24,6 +25,10 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     private const string _rhinoNotInstalledErrorMessage = ApplicationConstants.RhinoNotInstalledErrorMessage;
     private const string _rhinoVersionNotSelectedErrorMessage = ApplicationConstants.RhinoVersionNotSelectedErrorMessage;
     private const string _applicationLoadAbortedMessageFormat = ApplicationConstants.ApplicationLoadAbortedMessageFormat;
+
+    private static Bootstrapper? _bootstrapper;
+    private static RhinoInsideAutoCadApplicationConfig? _applicationConfig;
+    private static readonly object _initLock = new();
 
     /// <summary>
     /// The singleton instance of the <see cref="IRhinoInsideAutoCadApplication"/>
@@ -38,29 +43,19 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     /// <summary>
     /// The reason the plugin did not finish loading, or null if it did.
     /// </summary>
-    /// <remarks>
-    /// The command methods stay registered with AutoCAD whether or not
-    /// <see cref="Initialize"/> completed, so they report this rather than failing
-    /// obscurely. Set when no Rhino version could be bound, which is the one case the
-    /// plugin declines to load rather than running without Rhino.
-    /// </remarks>
     public static string? LoadFailureMessage { get; private set; }
 
     /// <summary>
-    /// Initialize the <see cref="IRhinoInsideAutoCadApplication"/>
+    /// Initialize the <see cref="IRhinoInsideAutoCadApplication"/> in on-demand lazy mode.
     /// </summary>
     public void Initialize()
     {
-
         var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-
-        var currentDate = System.DateTime.Now;
+        var currentDate = DateTime.Now;
 
         try
         {
-
             var compliedDate = this.GetCompliedDate();
-
             var limitDate = compliedDate.AddDays(180);
 
             if (currentDate > limitDate)
@@ -68,59 +63,15 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
                 IsExpired = true;
             }
 
-#if DEBUG
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var asm in loadedAssemblies)
-            {
+            // Bootstrap logger and config so they are ready
+            _applicationConfig = new RhinoInsideAutoCadApplicationConfig();
+            _bootstrapper = new Bootstrapper(new AutocadBootstrapperConfig(_applicationConfig));
 
-                editor?.WriteMessage($"Already loaded: {asm.FullName}\n");
-                editor?.WriteMessage($"From: {asm.Location}\n");
-
-            }
-#endif
-
-            // Bootstrap before anything Rhino related. Nothing here references a RhinoCommon
-            // type, and it gives the Rhino version selection dialog below the logger, the
-            // WPF dispatcher and the Material Design assemblies it needs.
-            var applicationConfig = new RhinoInsideAutoCadApplicationConfig();
-
-            var bootstrapper = new Bootstrapper(new AutocadBootstrapperConfig(applicationConfig));
-
-            // Bootstrapping initialises LoggerService, so anything RhinoCoreExtension
-            // recorded before this point is still only in memory. Drain it now, otherwise
-            // the earliest start-up failures never reach the log file.
             RhinoCoreExtension.Instance.StartUpLogger.Flush();
-
-            // Decide which Rhino to run, then register the AssemblyResolve handlers which
-            // load it. Both must happen before any code references a RhinoCommon type,
-            // which the application constructor below does. The settings store must be the
-            // shared instance, so the version chosen here is the one the settings page
-            // later reads and writes.
-            var installationLocator = new RhinoInstallationLocator();
-
-            var userSettingsStore = UserSettingsStore.Instance;
-
-            var versionDialogManager = new RhinoVersionDialogManager();
-
-            var versionSelection = new RhinoVersionSelection(installationLocator,
-                userSettingsStore, versionDialogManager);
-
-            var installation = versionSelection.Resolve(out var anyVersionInstalled);
-
-            if (installation is null)
-            {
-                this.AbortLoad(editor, anyVersionInstalled);
-
-                return;
-            }
-
-            RhinoCoreExtension.BindTo(installation);
-
-            Application = new RhinoInsideAutoCadApplication(bootstrapper, applicationConfig);
 
             Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit += this.OnApplicationBeginQuit;
 
-            editor?.WriteMessage(_applicationLoadedSuccessMessage);
+            editor?.WriteMessage("\n[Rhino.Inside] Plugin loaded successfully (On-demand mode ready). Type RHINO, RHINO7, or RHINO8 to start.\n");
         }
         catch (System.Exception e)
         {
@@ -128,37 +79,110 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
             editor?.WriteMessage(message);
             editor?.WriteMessage(string.Format(_stackTraceMessageFormat, e.StackTrace));
-            editor?.WriteMessage(Assembly.GetExecutingAssembly().Location.ToString());
+            editor?.WriteMessage(Assembly.GetExecutingAssembly().Location);
 
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(message);
-
             throw;
         }
     }
 
     /// <summary>
-    /// Stops the plugin loading because no Rhino version could be bound to this session.
+    /// Ensures that Rhino is bound and initialized, optionally for a specific major version.
     /// </summary>
-    /// <remarks>
-    /// Reported on the command line rather than in a dialog: the usual way to get here is
-    /// the user cancelling the version selection, and answering a dialog with another
-    /// dialog helps nobody. The command methods surface
-    /// <see cref="LoadFailureMessage"/> if one is then used.
-    /// </remarks>
-    /// <param name="editor">The editor to write the reason to, if there is one.</param>
-    /// <param name="anyVersionInstalled">
-    /// True if a supported Rhino version is installed, meaning the user cancelled rather
-    /// than there being nothing to choose from.
-    /// </param>
-    private void AbortLoad(Autodesk.AutoCAD.EditorInput.Editor? editor,
-        bool anyVersionInstalled)
+    public static bool EnsureInitialized(int? targetVersion = null)
+    {
+        if (Application != null)
+        {
+            // If already bound in-process and specific target version is requested
+            if (targetVersion.HasValue && RhinoCoreExtension.SelectedInstallation?.MajorVersion != targetVersion.Value)
+            {
+                var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+                _ = WorkerProcessManager.Instance.ActivateVersionAsync(targetVersion.Value, acadHwnd);
+            }
+            return true;
+        }
+
+        lock (_initLock)
+        {
+            if (Application != null) return true;
+
+            var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+            var installationLocator = new RhinoInstallationLocator();
+            var userSettingsStore = UserSettingsStore.Instance;
+            var versionDialogManager = new RhinoVersionDialogManager();
+
+            IRhinoInstallation? installation = null;
+
+            if (targetVersion.HasValue)
+            {
+                var allInstalls = installationLocator.Locate();
+                installation = System.Linq.Enumerable.FirstOrDefault(allInstalls, x => x.MajorVersion == targetVersion.Value);
+            }
+
+            if (installation == null)
+            {
+                var versionSelection = new RhinoVersionSelection(installationLocator,
+                    userSettingsStore, versionDialogManager);
+                installation = versionSelection.Resolve(out var anyVersionInstalled);
+
+                if (installation is null)
+                {
+                    AbortLoadStatic(editor, anyVersionInstalled);
+                    return false;
+                }
+            }
+
+            try
+            {
+                RhinoCoreExtension.BindTo(installation);
+
+                if (_bootstrapper != null && _applicationConfig != null)
+                {
+                    Application = new RhinoInsideAutoCadApplication(_bootstrapper, _applicationConfig);
+                }
+
+                var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+                _ = WorkerProcessManager.Instance.ActivateVersionAsync(installation.MajorVersion, acadHwnd);
+
+                editor?.WriteMessage(string.Format("\n[Rhino.Inside] Bound to {0}.\n", installation.DisplayName));
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                editor?.WriteMessage($"\n[Rhino.Inside] Initialization error: {ex.Message}\n");
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Displays version dialog to switch Rhino version dynamically.
+    /// </summary>
+    public static void PromptSwitchVersion()
+    {
+        var installationLocator = new RhinoInstallationLocator();
+        var userSettingsStore = UserSettingsStore.Instance;
+        var versionDialogManager = new RhinoVersionDialogManager();
+        var versionSelection = new RhinoVersionSelection(installationLocator,
+            userSettingsStore, versionDialogManager);
+
+        var installation = versionSelection.Resolve(out _);
+        if (installation != null)
+        {
+            var acadHwnd = Autodesk.AutoCAD.ApplicationServices.Core.Application.MainWindow.Handle;
+            _ = WorkerProcessManager.Instance.ActivateVersionAsync(installation.MajorVersion, acadHwnd);
+            var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+            editor?.WriteMessage($"\n[Rhino.Inside] Switched active worker to {installation.DisplayName}.\n");
+        }
+    }
+
+    private static void AbortLoadStatic(Autodesk.AutoCAD.EditorInput.Editor? editor, bool anyVersionInstalled)
     {
         LoadFailureMessage = anyVersionInstalled
             ? _rhinoVersionNotSelectedErrorMessage
             : _rhinoNotInstalledErrorMessage;
 
-        editor?.WriteMessage(string.Format(_applicationLoadAbortedMessageFormat,
-            LoadFailureMessage));
+        editor?.WriteMessage(string.Format(_applicationLoadAbortedMessageFormat, LoadFailureMessage));
     }
 
     /// <summary>
@@ -167,7 +191,6 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
     private DateTime GetCompliedDate()
     {
         var assembly = Assembly.GetExecutingAssembly();
-
         var attribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
         if (attribute?.InformationalVersion != null)
         {
@@ -186,21 +209,13 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
         return default;
     }
 
-    /// <summary>
-    /// Safely terminates the <see cref="IRhinoInsideAutoCadApplication"/> by saving
-    /// any edited rhino or grasshopper files and catching any exceptions that may
-    /// occur during termination. This ensures  that the application can attempt to
-    /// terminate without crashing, even if  there are issues during the termination
-    /// process.
-    /// </summary>
     private void SafeTermination()
     {
         try
         {
+            WorkerProcessManager.Instance.Dispose();
             Application?.Terminate();
-
             Application = null;
-
         }
         catch (System.Exception ex)
         {
@@ -210,29 +225,18 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
         }
     }
 
-    /// <summary>
-    /// Subscribes to the AutoCAD application quit event to ensure that the
-    /// <see cref="IRhinoInsideAutoCadApplication"/> is properly terminated.
-    /// </summary>
     private void OnApplicationBeginQuit(object sender, Autodesk.AutoCAD.ApplicationServices.BeginQuitEventArgs e)
     {
-        if (Application is not null)
+        if (Application is not null || WorkerProcessManager.Instance.HasActiveWorker)
         {
             e.IsVetoed = true;
-
             ApplicationState.BeginShutdown();
-
             Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;
-
             this.SafeTermination();
-
             Autodesk.AutoCAD.ApplicationServices.Core.Application.Quit();
         }
     }
 
-    /// <summary>
-    /// Terminate the <see cref="IRhinoInsideAutoCadApplication"/>
-    /// </summary>
     public void Terminate()
     {
         Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit -= this.OnApplicationBeginQuit;

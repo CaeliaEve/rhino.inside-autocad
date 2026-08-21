@@ -33,13 +33,7 @@ public class RhinoInsideAutoCadCommands
     /// <summary>
     /// Checks whether the application is unusable, reporting why if it is.
     /// </summary>
-    /// <remarks>
-    /// The command methods stay registered with AutoCAD even when the plugin declined to
-    /// load, so a command can be reached with no application behind it. That is reported
-    /// as the load failure it is rather than through the expiration dialog.
-    /// </remarks>
-    /// <returns>True if the command must not run.</returns>
-    private static bool CheckApplicationIsUnusable()
+    private static bool CheckApplicationIsUnusable(int? targetVersion = null)
     {
         if (RhinoInsideAutoCadExtension.LoadFailureMessage is { } loadFailureMessage)
         {
@@ -49,7 +43,15 @@ public class RhinoInsideAutoCadCommands
             return true;
         }
 
-        if (RhinoInsideAutoCadExtension.Application is null || RhinoInsideAutoCadExtension.IsExpired)
+        if (RhinoInsideAutoCadExtension.Application is null)
+        {
+            if (!RhinoInsideAutoCadExtension.EnsureInitialized(targetVersion))
+            {
+                return true;
+            }
+        }
+
+        if (RhinoInsideAutoCadExtension.IsExpired)
         {
             ShowExpirationDialog();
 
@@ -77,11 +79,34 @@ public class RhinoInsideAutoCadCommands
 
         _isLaunching = true;
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoLauncher = new RhinoLauncher(application!);
-
         rhinoLauncher.Launch(RhinoInsideMode.Windowed);
+        _isLaunching = false;
+    }
 
+    [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO7", CommandFlags.Modal)]
+    public static void RHINO7()
+    {
+        if (_isLaunching || CheckApplicationIsUnusable(7))
+            return;
+
+        _isLaunching = true;
+        var application = RhinoInsideAutoCadExtension.Application;
+        var rhinoLauncher = new RhinoLauncher(application!);
+        rhinoLauncher.Launch(RhinoInsideMode.Windowed);
+        _isLaunching = false;
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO8", CommandFlags.Modal)]
+    public static void RHINO8()
+    {
+        if (_isLaunching || CheckApplicationIsUnusable(8))
+            return;
+
+        _isLaunching = true;
+        var application = RhinoInsideAutoCadExtension.Application;
+        var rhinoLauncher = new RhinoLauncher(application!);
+        rhinoLauncher.Launch(RhinoInsideMode.Windowed);
         _isLaunching = false;
     }
 
@@ -92,42 +117,66 @@ public class RhinoInsideAutoCadCommands
             return;
 
         _isLaunching = true;
-
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoLauncher = new RhinoLauncher(application!);
-
         rhinoLauncher.Launch(RhinoInsideMode.Headless);
-
         var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-
         rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
         _isLaunching = false;
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "GH7", CommandFlags.Modal)]
+    public static void GH7()
+    {
+        if (_isLaunching || CheckApplicationIsUnusable(7))
+            return;
+
+        _isLaunching = true;
+        var application = RhinoInsideAutoCadExtension.Application;
+        var rhinoLauncher = new RhinoLauncher(application!);
+        rhinoLauncher.Launch(RhinoInsideMode.Headless);
+        var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+        rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
+        _isLaunching = false;
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "GH8", CommandFlags.Modal)]
+    public static void GH8()
+    {
+        if (_isLaunching || CheckApplicationIsUnusable(8))
+            return;
+
+        _isLaunching = true;
+        var application = RhinoInsideAutoCadExtension.Application;
+        var rhinoLauncher = new RhinoLauncher(application!);
+        rhinoLauncher.Launch(RhinoInsideMode.Headless);
+        var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
+        rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
+        _isLaunching = false;
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "SWITCH_RHINO_VERSION", CommandFlags.Modal)]
+    public static void SWITCH_RHINO_VERSION()
+    {
+        RhinoInsideAutoCadExtension.PromptSwitchVersion();
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "TOGGLE_RHINO_PREVIEW", CommandFlags.Modal)]
     public static void TOGGLE_RHINO_PREVIEW()
     {
-
         if (CheckApplicationIsUnusable())
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoInsideManager = application!.RhinoInsideManager;
-
         var rhinoObjectPreview = rhinoInsideManager.RhinoPreviewServer;
-
         rhinoObjectPreview.ToggleVisibility();
 
         var buttonReplacer = new ButtonIconReplacer(_rhinoPreviewButtonId);
-
         var imagePath = rhinoObjectPreview.Visible
             ? _rhinocerosPreviewShadedIcon
             : _rhinocerosPreviewOffIcon;
-
         buttonReplacer.Replace(imagePath);
-
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_OFF", CommandFlags.Modal)]
@@ -137,12 +186,9 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoInsideManager = application!.RhinoInsideManager;
-
         var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
         grasshopperPreview.SetMode(GrasshopperPreviewMode.Off);
-
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_SHADED", CommandFlags.Modal)]
@@ -152,12 +198,9 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoInsideManager = application!.RhinoInsideManager;
-
         var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
         grasshopperPreview.SetMode(GrasshopperPreviewMode.Shaded);
-
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PREVIEW_WIREFRAME", CommandFlags.Modal)]
@@ -167,12 +210,9 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoInsideManager = application!.RhinoInsideManager;
-
         var grasshopperPreview = rhinoInsideManager.GrasshopperPreviewServer;
         grasshopperPreview.SetMode(GrasshopperPreviewMode.Wireframe);
-
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_RECOMPUTE", CommandFlags.Modal)]
@@ -182,13 +222,10 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoInsideManager = application!.RhinoInsideManager;
-
         if (rhinoInsideManager.RhinoInstance.ActiveDoc == null) return;
 
         var grasshopperInstance = rhinoInsideManager.GrasshopperInstance;
-
         grasshopperInstance.RecomputeSolution();
     }
 
@@ -199,13 +236,10 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoInsideManager = application!.RhinoInsideManager;
-
         if (rhinoInsideManager.RhinoInstance.ActiveDoc == null) return;
 
         var grasshopperInstance = rhinoInsideManager.GrasshopperInstance;
-
         var isEnabled = grasshopperInstance.IsEnabled;
 
         if (isEnabled)
@@ -218,11 +252,9 @@ public class RhinoInsideAutoCadCommands
         }
 
         var buttonReplacer = new ButtonIconReplacer(_grasshopperSolverButtonId);
-
         var imagePath = isEnabled
             ? _grasshopperSolverOffIcon
             : _grasshopperSolverOnIcon;
-
         buttonReplacer.Replace(imagePath);
     }
 
@@ -233,17 +265,11 @@ public class RhinoInsideAutoCadCommands
             return;
 
         _isLaunching = true;
-
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoLauncher = new RhinoLauncher(application!);
-
         rhinoLauncher.Launch(RhinoInsideMode.Headless);
-
         var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-
         rhinoInstance.RunRhinoScript(_newFloatingViewportScript);
-
         _isLaunching = false;
     }
 
@@ -254,17 +280,11 @@ public class RhinoInsideAutoCadCommands
             return;
 
         _isLaunching = true;
-
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoLauncher = new RhinoLauncher(application!);
-
         rhinoLauncher.Launch(RhinoInsideMode.Headless);
-
         var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-
         rhinoInstance.RunRhinoCommand(_packageManagerCommandName);
-
         _isLaunching = false;
     }
 
@@ -275,17 +295,11 @@ public class RhinoInsideAutoCadCommands
             return;
 
         _isLaunching = true;
-
         var application = RhinoInsideAutoCadExtension.Application;
-
         var rhinoLauncher = new RhinoLauncher(application!);
-
         rhinoLauncher.Launch(RhinoInsideMode.Headless);
-
         var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-
         rhinoInstance.RunRhinoCommand(_grasshopperPlayerCommandName);
-
         _isLaunching = false;
     }
 
@@ -296,7 +310,6 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         application!.SupportDialogManager.Show(SupportDialogTab.About);
     }
 
@@ -307,7 +320,6 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         application!.SupportDialogManager.Show(SupportDialogTab.Support);
     }
 
@@ -318,7 +330,6 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         application!.SupportDialogManager.Show(SupportDialogTab.Update);
     }
 
@@ -329,7 +340,6 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         application!.SupportDialogManager.Show(SupportDialogTab.Settings);
     }
 
@@ -340,10 +350,7 @@ public class RhinoInsideAutoCadCommands
             return;
 
         var application = RhinoInsideAutoCadExtension.Application;
-
         var brepConverterRunner = application!.BrepConverterRunner;
-
         brepConverterRunner.Run();
-
     }
 }
