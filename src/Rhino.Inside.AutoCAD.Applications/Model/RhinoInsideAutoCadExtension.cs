@@ -188,11 +188,15 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
     private static void AbortLoadStatic(Autodesk.AutoCAD.EditorInput.Editor? editor, bool anyVersionInstalled)
     {
-        LoadFailureMessage = anyVersionInstalled
-            ? _rhinoVersionNotSelectedErrorMessage
-            : _rhinoNotInstalledErrorMessage;
-
-        editor?.WriteMessage(string.Format(_applicationLoadAbortedMessageFormat, LoadFailureMessage));
+        if (!anyVersionInstalled)
+        {
+            LoadFailureMessage = _rhinoNotInstalledErrorMessage;
+            editor?.WriteMessage(string.Format(_applicationLoadAbortedMessageFormat, LoadFailureMessage));
+        }
+        else
+        {
+            editor?.WriteMessage("\n[Rhino.Inside] Rhino version selection was cancelled.\n");
+        }
     }
 
     /// <summary>
