@@ -98,11 +98,11 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             {
                 var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
                 var msg = string.Format(
-                    "【Rhino.Inside 互斥保护提示】\n当前 AutoCAD 会话已加载并运行 Rhino {0} 原生环境。\n\n由于底层 C++ 运行时单例保护机制，同一个 AutoCAD 会话中无法同时运行 Rhino {1}。\n如需使用 Rhino {1}，请保存当前图纸并重启 AutoCAD 后输入 RHINO{1}。",
+                    "Rhino {0} is currently active in this session.\n\nTo use Rhino {1}, please restart AutoCAD and run RHINO{1}.",
                     currentVersion.Value,
                     targetVersion.Value);
 
-                editor?.WriteMessage(string.Format("\n{0}\n", msg));
+                editor?.WriteMessage(string.Format("\n[Rhino.Inside] {0}\n", msg));
                 Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(msg);
                 return false;
             }
@@ -170,12 +170,12 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             var currentVer = RhinoCoreExtension.SelectedInstallation?.MajorVersion ?? 0;
             var otherVer = currentVer == 7 ? 8 : 7;
             var msg = string.Format(
-                "【Rhino.Inside 提示】\n当前 AutoCAD 会话已加载 Rhino {0}。\n若需切换至 Rhino {1}，请保存图纸并重启 AutoCAD 后输入 RHINO{1}。",
+                "Rhino {0} is currently active in this session.\n\nTo use Rhino {1}, please restart AutoCAD and run RHINO{1}.",
                 currentVer,
                 otherVer);
 
             var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
-            editor?.WriteMessage(string.Format("\n{0}\n", msg));
+            editor?.WriteMessage(string.Format("\n[Rhino.Inside] {0}\n", msg));
             Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowAlertDialog(msg);
             return;
         }
