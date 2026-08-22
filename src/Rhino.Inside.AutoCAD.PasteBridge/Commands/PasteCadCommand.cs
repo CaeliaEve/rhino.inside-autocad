@@ -151,9 +151,9 @@ public class PasteCadCommand : Command
 
             if (!readSuccess)
             {
-                // Fallback to command line script if ReadFile was not supported for DWG format directly
+                // Execute completely silent DWG import with closed-loop double enter (satisfies all prompt levels)
                 var normalizedPath = sourceDwgPath.Replace('\\', '/');
-                var script = $"-_Import \"{normalizedPath}\" _Enter";
+                var script = $"-_Import \"{normalizedPath}\" _Enter _Enter";
                 RhinoApp.RunScript(script, false);
                 RhinoApp.RunScript("_SelLast", false);
             }
