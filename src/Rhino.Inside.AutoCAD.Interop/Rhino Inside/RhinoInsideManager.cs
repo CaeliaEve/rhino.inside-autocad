@@ -88,6 +88,8 @@ public class RhinoInsideManager : IRhinoInsideManager
         this.UnitConverter = UnitConverterClass.Instance!;
         _grasshopperGeometryExtractor = new GrasshopperGeometryExtractor(_rhinoConvertibleFactory);
         _grasshopperChangeResponder = new GrasshopperChangeResponder();
+
+        AutoCadClipboardSynchronizer.Initialize();
     }
 
     /// <summary>
