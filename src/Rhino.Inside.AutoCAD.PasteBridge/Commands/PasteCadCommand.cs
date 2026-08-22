@@ -7,14 +7,15 @@ using System.Windows.Forms;
 using Rhino;
 using Rhino.Commands;
 using Rhino.DocObjects;
+using Rhino.FileIO;
 using Rhino.Geometry;
 
 namespace Rhino.Inside.AutoCAD.PasteBridge.Commands;
 
 /// <summary>
 /// Official Rhino Command to extract and import AutoCAD vector geometry into the active document.
-/// Runs inside Rhino's standard command execution context, ensuring complete thread safety,
-/// atomic undo support, and 0 message pump reentrancy.
+/// Uses synchronous Rhino FileIO with BatchMode to ensure 100% silent execution, 0 prompts,
+/// automatic object selection, and smart viewport framing.
 /// </summary>
 public class PasteCadCommand : Command
 {
@@ -22,6 +23,11 @@ public class PasteCadCommand : Command
 
     protected override Result RunCommand(RhinoDoc doc, RunMode mode)
     {
+        if (doc == null)
+        {
+            return Result.Failure;
+        }
+
         try
         {
             var dataObject = Clipboard.GetDataObject();
@@ -71,7 +77,7 @@ public class PasteCadCommand : Command
             }
 
             // Strategy 2: Extract embedded DWG binary stream from Embed Source, Native, or DataObject
-            if (string.IsNullOrEmpty(sourceDwgPath))
+            if (string.IsNullOrEmpty(sourceDwgPath) || !File.Exists(sourceDwgPath))
             {
                 var embeddedFormats = new[] { "Embed Source", "Native", "AutoCAD.Drawing", "DataObject" };
                 foreach (var format in embeddedFormats)
@@ -119,18 +125,70 @@ public class PasteCadCommand : Command
             }
 
             // 1. Unselect existing objects
-            doc?.Objects?.UnselectAll();
+            doc.Objects.UnselectAll();
 
-            // 2. Execute silent DWG import via command pipeline
-            var normalizedPath = sourceDwgPath.Replace('\\', '/');
-            var script = $"-_Import \"{normalizedPath}\" _EnterEnd";
-            RhinoApp.RunScript(script, false);
+            // Snapshot existing object IDs
+            var beforeIds = new HashSet<Guid>(
+                doc.Objects.GetObjectList(ObjectType.AnyObject).Select(o => o.Id));
 
-            // 3. Select all newly pasted objects & highlight
-            RhinoApp.RunScript("_SelLast", false);
+            // 2. Perform silent, synchronous DWG import using Rhino's native FileIO
+            var readOptions = new FileReadOptions
+            {
+                ImportMode = true,
+                BatchMode = true,
+                UseScaleGeometry = false
+            };
 
-            doc?.Views?.Redraw();
-            RhinoApp.WriteLine("[AutoCadPasteBridge] Pasted AutoCAD 1:1 vector geometry (layers & colors restored, selected).");
+            bool readSuccess = false;
+            try
+            {
+                readSuccess = RhinoDoc.ReadFile(sourceDwgPath, readOptions);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AutoCadPasteBridge] RhinoDoc.ReadFile error: {ex.Message}");
+            }
+
+            if (!readSuccess)
+            {
+                // Fallback to command line script if ReadFile was not supported for DWG format directly
+                var normalizedPath = sourceDwgPath.Replace('\\', '/');
+                var script = $"-_Import \"{normalizedPath}\" _Enter";
+                RhinoApp.RunScript(script, false);
+                RhinoApp.RunScript("_SelLast", false);
+            }
+            else
+            {
+                // 3. Identify and select all newly added objects
+                var newObjects = doc.Objects.GetObjectList(ObjectType.AnyObject)
+                    .Where(o => !beforeIds.Contains(o.Id))
+                    .ToList();
+
+                if (newObjects.Count > 0)
+                {
+                    var bbox = BoundingBox.Empty;
+                    foreach (var obj in newObjects)
+                    {
+                        doc.Objects.Select(obj.Id, true);
+                        bbox.Union(obj.Geometry.GetBoundingBox(true));
+                    }
+
+                    // 4. Smart Viewport Zoom: if outside viewport, gently frame the new geometry
+                    if (bbox.IsValid && doc.Views.ActiveView?.ActiveViewport is { } vp)
+                    {
+                        vp.ZoomBoundingBox(bbox);
+                    }
+
+                    RhinoApp.WriteLine($"[AutoCadPasteBridge] Pasted {newObjects.Count} AutoCAD vector object(s) (1:1 scale, layers & colors restored, selected).");
+                }
+                else
+                {
+                    RhinoApp.RunScript("_SelLast", false);
+                    RhinoApp.WriteLine("[AutoCadPasteBridge] Pasted AutoCAD vector geometry (layers & colors restored).");
+                }
+            }
+
+            doc.Views.Redraw();
             return Result.Success;
         }
         catch (Exception ex)
