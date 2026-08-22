@@ -190,9 +190,9 @@ public class PasteCadCommand : Command
 
             doc.Objects.UnselectAll();
 
-            // Execute completely silent DWG import with closed-loop macro sequence
+            // Execute completely silent DWG import with standard closed-loop macro sequence
             var normalizedPath = sourceDwgPath.Replace('\\', '/');
-            var script = $"-_Import \"{normalizedPath}\" _ModelUnits=Default _Enter _Enter";
+            var script = $"-_Import \"{normalizedPath}\" _Enter _Enter";
             RhinoApp.RunScript(script, false);
             RhinoApp.RunScript("_SelLast", false);
 

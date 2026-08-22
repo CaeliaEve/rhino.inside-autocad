@@ -21,6 +21,7 @@ namespace Rhino.Inside.AutoCAD.Interop;
 public static class AutoCadClipboardSynchronizer
 {
     private static bool _isHooked;
+    private static ObjectId[]? _cachedSelectionIds;
 
     /// <summary>
     /// Initializes the AutoCAD copy command listener.
@@ -53,36 +54,94 @@ public static class AutoCadClipboardSynchronizer
         if (doc == null) return;
         try
         {
+            doc.ImpliedSelectionChanged -= OnImpliedSelectionChanged;
+            doc.ImpliedSelectionChanged += OnImpliedSelectionChanged;
+            doc.CommandWillStart -= OnCommandWillStart;
+            doc.CommandWillStart += OnCommandWillStart;
             doc.CommandEnded -= OnCommandEnded;
             doc.CommandEnded += OnCommandEnded;
         }
         catch { }
     }
 
+    private static void OnImpliedSelectionChanged(object? sender, EventArgs e)
+    {
+        try
+        {
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc != null)
+            {
+                var sel = doc.Editor.SelectImplied();
+                if (sel.Status == PromptStatus.OK && sel.Value != null && sel.Value.Count > 0)
+                {
+                    _cachedSelectionIds = sel.Value.GetObjectIds();
+                }
+            }
+        }
+        catch { }
+    }
+
+    private static void OnCommandWillStart(object? sender, CommandEventArgs e)
+    {
+        if (IsCopyCommand(e.GlobalCommandName))
+        {
+            try
+            {
+                var doc = Application.DocumentManager.MdiActiveDocument;
+                if (doc != null)
+                {
+                    var sel = doc.Editor.SelectImplied();
+                    if (sel.Status == PromptStatus.OK && sel.Value != null && sel.Value.Count > 0)
+                    {
+                        _cachedSelectionIds = sel.Value.GetObjectIds();
+                    }
+                }
+            }
+            catch { }
+
+            ExportSelectedTo3dm(_cachedSelectionIds);
+        }
+    }
+
     private static void OnCommandEnded(object? sender, CommandEventArgs e)
     {
-        if (string.Equals(e.GlobalCommandName, "COPYCLIP", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(e.GlobalCommandName, "CUTCLIP", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(e.GlobalCommandName, "COPYBASE", StringComparison.OrdinalIgnoreCase))
+        if (IsCopyCommand(e.GlobalCommandName))
         {
-            ExportSelectedTo3dm();
+            ExportSelectedTo3dm(_cachedSelectionIds);
         }
+    }
+
+    private static bool IsCopyCommand(string? cmd)
+    {
+        if (string.IsNullOrEmpty(cmd)) return false;
+        return string.Equals(cmd, "COPYCLIP", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(cmd, "CUTCLIP", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(cmd, "COPYBASE", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(cmd, "WBLOCK", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
     /// Converts currently selected AutoCAD entities directly to Rhino geometries and writes
     /// an ultra-fast .3dm exchange buffer in %TEMP%.
     /// </summary>
-    public static void ExportSelectedTo3dm()
+    public static void ExportSelectedTo3dm(ObjectId[]? targetIds = null)
     {
         try
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
 
-            var ed = doc.Editor;
-            var sel = ed.SelectImplied();
-            if (sel.Status != PromptStatus.OK || sel.Value == null || sel.Value.Count == 0)
+            ObjectId[] objectIds = targetIds ?? Array.Empty<ObjectId>();
+            if (objectIds.Length == 0)
+            {
+                var sel = doc.Editor.SelectImplied();
+                if (sel.Status == PromptStatus.OK && sel.Value != null && sel.Value.Count > 0)
+                {
+                    objectIds = sel.Value.GetObjectIds();
+                }
+            }
+
+            if (objectIds.Length == 0)
             {
                 return;
             }
@@ -94,10 +153,10 @@ public static class AutoCadClipboardSynchronizer
             {
                 var lt = (LayerTable)tr.GetObject(doc.Database.LayerTableId, OpenMode.ForRead);
 
-                foreach (SelectedObject obj in sel.Value)
+                foreach (ObjectId id in objectIds)
                 {
-                    if (obj == null) continue;
-                    var ent = tr.GetObject(obj.ObjectId, OpenMode.ForRead) as Entity;
+                    if (id.IsNull || id.IsErased) continue;
+                    var ent = tr.GetObject(id, OpenMode.ForRead) as Entity;
                     if (ent == null) continue;
 
                     // 1. Layer & Color mapping
