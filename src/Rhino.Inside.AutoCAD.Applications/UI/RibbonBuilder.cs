@@ -67,15 +67,9 @@ public static class RibbonBuilder
                 _isHooked = true;
                 Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.DocumentActivated += (s, e) => EnsureRibbon();
                 Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.DocumentCreated += (s, e) => EnsureRibbon();
-                Autodesk.AutoCAD.ApplicationServices.Core.Application.Idle += OnApplicationIdle;
             }
         }
         catch { }
-    }
-
-    private static void OnApplicationIdle(object? sender, EventArgs e)
-    {
-        EnsureRibbon();
     }
 
     /// <summary>
