@@ -384,6 +384,38 @@ public static class RibbonBuilder
             ghSource.Items.Add(recomputeBtn);
             tab.Panels.Add(ghPanel);
 
+            // Panel: Live Link (AutoCAD - Rhino 8 Real-time Bridge)
+            var linkPanel = new RibbonPanel();
+            var linkSource = new RibbonPanelSource { Title = "Live Link" };
+            linkPanel.Source = linkSource;
+
+            var linkToggleBtn = new RibbonButton
+            {
+                Text = "Live Link",
+                ShowText = true,
+                ShowImage = true,
+                Size = RibbonItemSize.Large,
+                Orientation = Orientation.Vertical,
+                Image = LoadIcon("Rhino.png", 16),
+                LargeImage = LoadIcon("Rhino.png", 32),
+                CommandHandler = new RibbonCommandHandler("TOGGLE_RHINO_LINK", RhinoInsideAutoCadCommands.TOGGLE_RHINO_LINK)
+            };
+            linkSource.Items.Add(linkToggleBtn);
+
+            var bakeBtn = new RibbonButton
+            {
+                Text = "Bake to CAD",
+                ShowText = true,
+                ShowImage = true,
+                Size = RibbonItemSize.Large,
+                Orientation = Orientation.Vertical,
+                Image = LoadIcon("ConvertBrep.png", 16),
+                LargeImage = LoadIcon("ConvertBrep.png", 32),
+                CommandHandler = new RibbonCommandHandler("BAKE_ALL_TO_CAD", RhinoInsideAutoCadCommands.BAKE_ALL_TO_CAD)
+            };
+            linkSource.Items.Add(bakeBtn);
+            tab.Panels.Add(linkPanel);
+
             // Panel 3: Geometry
             var geomPanel = new RibbonPanel();
             var geomSource = new RibbonPanelSource { Title = "Geometry" };

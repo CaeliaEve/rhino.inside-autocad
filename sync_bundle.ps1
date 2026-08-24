@@ -61,10 +61,33 @@ if (Test-Path $rhpSource) {
     Remove-Item -Path "HKCU:\Software\McNeel\Rhinoceros\8.0\Plug-Ins\e5a2a388-99b4-4b2d-9bc8-4664f98e18f3" -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-# Remove any global Grasshopper libraries copy to ensure strict CAD-only isolation
+# Deploy Grasshopper GHA Libraries to Rhino 8 / Grasshopper Libraries folder
 $ghLibDir = "$env:APPDATA\Grasshopper\Libraries\Rhino.Inside.AutoCAD"
-if (Test-Path $ghLibDir) {
-    Remove-Item -Path $ghLibDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path $ghLibDir | Out-Null
+
+$ghSources = @(
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.GrasshopperLibrary\bin\Release\net48",
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary\bin\Release\net48",
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Core\bin\Release\net48",
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Interop\bin\Release\net48",
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Services\bin\Release\net48"
+)
+
+foreach ($dir in $ghSources) {
+    if (Test-Path $dir) {
+        Copy-Item -Path "$dir\*.dll" -Destination $ghLibDir -Force -ErrorAction SilentlyContinue
+    }
 }
+
+# Copy as .gha for Grasshopper native recognition
+$ghaSource = "$ghLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.dll"
+if (Test-Path $ghaSource) {
+    Copy-Item -Path $ghaSource -Destination "$ghLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+}
+$civilGhaSource = "$ghLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
+if (Test-Path $civilGhaSource) {
+    Copy-Item -Path $civilGhaSource -Destination "$ghLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+}
+Write-Host "AutoCAD & Civil Grasshopper GHA battery suite deployed to: $ghLibDir"
 
 Write-Host "Full bundle deployment synchronized successfully to: $bundleRoot"

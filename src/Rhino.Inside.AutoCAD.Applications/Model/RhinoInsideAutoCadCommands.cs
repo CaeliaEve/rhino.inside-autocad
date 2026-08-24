@@ -461,4 +461,39 @@ public class RhinoInsideAutoCadCommands
         var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
         editor?.WriteMessage("\n[Rhino.Inside] Ribbon tab refreshed.\n");
     }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "TOGGLE_RHINO_LINK", CommandFlags.Modal)]
+    public static void TOGGLE_RHINO_LINK()
+    {
+        var newState = Rhino.Inside.AutoCAD.Core.IPC.LiveLinkManager.Instance.ToggleLiveLink();
+        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+        editor?.WriteMessage(newState 
+            ? "\n[Rhino Live Link] 🟢 Live Link: ON (IPC Bridge Active)\n" 
+            : "\n[Rhino Live Link] ⚪ Live Link: OFF (IPC Bridge Suspended)\n");
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "BAKE_ALL_TO_CAD", CommandFlags.Modal)]
+    public static void BAKE_ALL_TO_CAD()
+    {
+        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+        if (!Rhino.Inside.AutoCAD.Core.IPC.LiveLinkManager.Instance.IsEnabled)
+        {
+            editor?.WriteMessage("\n[Rhino Live Link] Please turn Live Link ON to bake objects.\n");
+            return;
+        }
+
+        _ = Rhino.Inside.AutoCAD.Core.IPC.LiveLinkManager.Instance.SendMessageAsync(
+            Rhino.Inside.AutoCAD.Core.IPC.IpcMessage.Create(Rhino.Inside.AutoCAD.Core.IPC.IpcCommandType.BakeRequest, "BakeAll"));
+        editor?.WriteMessage("\n[Rhino Live Link] Dispatched Bake command to Grasshopper.\n");
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "SYNC_RHINO_LINK", CommandFlags.Modal)]
+    public static void SYNC_RHINO_LINK()
+    {
+        var isConnected = Rhino.Inside.AutoCAD.Core.IPC.LiveLinkManager.Instance.IsClientConnected;
+        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+        editor?.WriteMessage(isConnected 
+            ? "\n[Rhino Live Link] Connection status: Connected to Rhino 8.\n" 
+            : "\n[Rhino Live Link] Connection status: Listening for Rhino 8...\n");
+    }
 }
