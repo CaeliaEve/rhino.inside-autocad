@@ -14,10 +14,11 @@ public class CadCurveReconstructorTests
         AppDomain.CurrentDomain.AssemblyResolve += (s, e) =>
         {
             var shortName = new System.Reflection.AssemblyName(e.Name).Name;
-            if (shortName == "RhinoCommon")
+            var dir = @"D:\software\Rhino8\System";
+            var p = System.IO.Path.Combine(dir, shortName + ".dll");
+            if (System.IO.File.Exists(p))
             {
-                var p = @"D:\software\Rhino8\System\RhinoCommon.dll";
-                if (System.IO.File.Exists(p)) return System.Reflection.Assembly.LoadFrom(p);
+                try { return System.Reflection.Assembly.LoadFrom(p); } catch { }
             }
             return null;
         };

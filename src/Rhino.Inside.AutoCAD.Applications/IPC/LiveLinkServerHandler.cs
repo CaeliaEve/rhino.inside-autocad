@@ -472,25 +472,32 @@ public static class LiveLinkServerHandler
 
         if (cadCrv is Spline spline)
         {
-            var nurbData = spline.NurbsData;
-            var dto = new CadCurveDto
+            try
             {
-                CurveType = "Spline",
-                Degree = nurbData.Degree,
-                IsClosed = spline.Closed,
-                IsRational = nurbData.Rational,
-                IsPeriodic = nurbData.Periodic
-            };
-            for (int i = 0; i < nurbData.GetKnots().Count; i++)
-                dto.Knots.Add(nurbData.GetKnots()[i]);
-            for (int i = 0; i < nurbData.GetControlPoints().Count; i++)
-            {
-                var cp = nurbData.GetControlPoints()[i];
-                dto.Points.Add(new[] { cp.X, cp.Y, cp.Z });
+                var nurbData = spline.NurbsData;
+                var dto = new CadCurveDto
+                {
+                    CurveType = "Spline",
+                    Degree = nurbData.Degree,
+                    IsClosed = spline.Closed,
+                    IsRational = nurbData.Rational,
+                    IsPeriodic = nurbData.Periodic
+                };
+                for (int i = 0; i < nurbData.GetKnots().Count; i++)
+                    dto.Knots.Add(nurbData.GetKnots()[i]);
+                for (int i = 0; i < nurbData.GetControlPoints().Count; i++)
+                {
+                    var cp = nurbData.GetControlPoints()[i];
+                    dto.Points.Add(new[] { cp.X, cp.Y, cp.Z });
+                }
+                for (int i = 0; i < nurbData.GetWeights().Count; i++)
+                    dto.Weights.Add(nurbData.GetWeights()[i]);
+                return dto;
             }
-            for (int i = 0; i < nurbData.GetWeights().Count; i++)
-                dto.Weights.Add(nurbData.GetWeights()[i]);
-            return dto;
+            catch
+            {
+                // Fall back to sample points if NurbsData is uninitialized
+            }
         }
 
         if (cadCrv is Ellipse el)

@@ -1,4 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
@@ -60,12 +60,22 @@ where TRhinoType : class, IRhinoAdapter
     {
         get
         {
-            if (this.Value == null || !this.Value.Bounds.HasValue)
-                return BoundingBox.Empty;
+            try
+            {
+                if (this.RhinoGeometry != null)
+                {
+                    var bbox = this.RhinoGeometry.GetBoundingBox();
+                    if (bbox.IsValid) return bbox;
+                }
 
-            var bounds = this.Value.Bounds;
+                if (this.Value != null && this.Value.Bounds.HasValue)
+                {
+                    return this.Value.Bounds.Value.ToRhinoBoundingBox();
+                }
+            }
+            catch { }
 
-            return bounds!.Value.ToRhinoBoundingBox();
+            return BoundingBox.Empty;
         }
     }
 
@@ -262,6 +272,60 @@ where TRhinoType : class, IRhinoAdapter
             target = (Q)(object)this.CreateInstance(this.Value);
             return true;
         }
+
+        var rhinoGeom = this.RhinoGeometry;
+        if (rhinoGeom != null)
+        {
+            if (typeof(Q).IsAssignableFrom(rhinoGeom.GetType()))
+            {
+                target = (Q)(object)rhinoGeom;
+                return true;
+            }
+
+            if (rhinoGeom is RhinoGeometryAdapter<Rhino.Geometry.Curve> crvAdapter && crvAdapter.Geometry != null)
+            {
+                var crv = crvAdapter.Geometry;
+                if (typeof(Q) == typeof(GH_Curve))
+                {
+                    target = (Q)(object)new GH_Curve(crv);
+                    return true;
+                }
+                if (typeof(Q) == typeof(Rhino.Geometry.Curve))
+                {
+                    target = (Q)(object)crv;
+                    return true;
+                }
+            }
+            else if (rhinoGeom is RhinoGeometryAdapter<Rhino.Geometry.Mesh> meshAdapter && meshAdapter.Geometry != null)
+            {
+                var mesh = meshAdapter.Geometry;
+                if (typeof(Q) == typeof(GH_Mesh))
+                {
+                    target = (Q)(object)new GH_Mesh(mesh);
+                    return true;
+                }
+                if (typeof(Q) == typeof(Rhino.Geometry.Mesh))
+                {
+                    target = (Q)(object)mesh;
+                    return true;
+                }
+            }
+            else if (rhinoGeom is RhinoGeometryAdapter<Rhino.Geometry.Brep> brepAdapter && brepAdapter.Geometry != null)
+            {
+                var brep = brepAdapter.Geometry;
+                if (typeof(Q) == typeof(GH_Brep))
+                {
+                    target = (Q)(object)new GH_Brep(brep);
+                    return true;
+                }
+                if (typeof(Q) == typeof(Rhino.Geometry.Brep))
+                {
+                    target = (Q)(object)brep;
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
