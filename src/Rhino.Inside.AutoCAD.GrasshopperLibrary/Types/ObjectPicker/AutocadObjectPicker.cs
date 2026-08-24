@@ -1,4 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
@@ -11,24 +11,27 @@ namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
 /// <inheritdoc cref="IAutocadObjectPicker"/>
 public class AutocadObjectPicker : IAutocadObjectPicker
 {
-    private readonly IAutocadDocument _document;
+    private readonly IAutocadDocument? _document;
 
     /// <summary>
     /// Constructs a new <see cref="IAutocadObjectPicker"/> instance.
     /// </summary>
     public AutocadObjectPicker()
     {
-        var rhinoInsideApplication = RhinoInsideAutoCadExtension.Application!;
-
-        var activeDocument = rhinoInsideApplication.RhinoInsideManager.AutoCadInstance.ActiveDocument;
-
-        _document = activeDocument;
+        var rhinoInsideApplication = RhinoInsideAutoCadExtension.Application;
+        _document = rhinoInsideApplication?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
     }
 
     /// <inheritdoc/>
     public IEntity? PickObject(IAutocadSelectionFilterWrapper filterWrapper, string message)
     {
-        Application.MainWindow.Focus();
+        if (_document == null) return null;
+
+        try
+        {
+            Application.MainWindow?.Focus();
+        }
+        catch { }
 
         var transactionManagerWrapper = _document.CreateTransactionManager();
 
@@ -75,7 +78,13 @@ public class AutocadObjectPicker : IAutocadObjectPicker
     /// <inheritdoc/>
     public IList<IEntity> PickObjects(IAutocadSelectionFilterWrapper filterWrapper, string message)
     {
-        Application.MainWindow.Focus();
+        if (_document == null) return new List<IEntity>();
+
+        try
+        {
+            Application.MainWindow?.Focus();
+        }
+        catch { }
 
         var transactionManagerWrapper = _document.CreateTransactionManager();
 
@@ -123,6 +132,12 @@ public class AutocadObjectPicker : IAutocadObjectPicker
     /// <inheritdoc/>
     public bool TryGetUpdatedObject(IObjectId objectId, out IEntity? entity)
     {
+        if (_document == null)
+        {
+            entity = null;
+            return false;
+        }
+
         var transactionManagerWrapper = _document.CreateTransactionManager();
 
         entity = transactionManagerWrapper.PerformTask(() =>
@@ -137,9 +152,8 @@ public class AutocadObjectPicker : IAutocadObjectPicker
 
                 return new AutocadEntityWrapper(cadEntity);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-
                 return null;
             }
         });

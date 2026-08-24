@@ -70,6 +70,7 @@ New-Item -ItemType Directory -Force -Path $ghRootLibDir | Out-Null
 $ghSources = @(
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.GrasshopperLibrary\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary\bin\Release\net48",
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Applications\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Core\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Interop\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Services\bin\Release\net48",
