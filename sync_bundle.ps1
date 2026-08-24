@@ -54,4 +54,17 @@ if (Test-Path $rhpSource) {
     Write-Host "AutoCadPasteBridge.rhp deployed and registered for Rhino 7 at: $rhino7PluginDir\AutoCadPasteBridge.rhp"
 }
 
+# Deploy Grasshopper GHA libraries to %APPDATA%\Grasshopper\Libraries\Rhino.Inside.AutoCAD
+$ghLibDir = "$env:APPDATA\Grasshopper\Libraries\Rhino.Inside.AutoCAD"
+New-Item -ItemType Directory -Force -Path $ghLibDir | Out-Null
+$ghMain = "e:\codex\rhino\src\Rhino.Inside.AutoCAD.GrasshopperLibrary\bin\Release\net48\Rhino.Inside.AutoCAD.GrasshopperLibrary.dll"
+$ghCivil = "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary\bin\Release\net48\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
+if (Test-Path $ghMain) {
+    Copy-Item -Path $ghMain -Destination "$ghLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+}
+if (Test-Path $ghCivil) {
+    Copy-Item -Path $ghCivil -Destination "$ghLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+}
+Write-Host "Grasshopper GHA libraries deployed to: $ghLibDir"
+
 Write-Host "Full bundle deployment synchronized successfully to: $bundleRoot"

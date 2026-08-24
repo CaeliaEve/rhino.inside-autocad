@@ -1,4 +1,4 @@
-﻿using Grasshopper;
+using Grasshopper;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
@@ -113,6 +113,17 @@ public class GrasshopperInstance : IGrasshopperInstance
         {
             this.LoadLibrary(loadGhaMethod, grasshopperCivilLibraryPath, logger);
         }
+
+        // Ensure user's machine Grasshopper plugins and libraries in %APPDATA%\Grasshopper\Libraries are loaded
+        try
+        {
+            Instances.ComponentServer.LoadExternalFiles();
+            GH_ComponentServer.UpdateRibbonUI();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to load external files or update ribbon in Grasshopper.");
+        }
     }
 
     /// <summary>
@@ -198,8 +209,9 @@ public class GrasshopperInstance : IGrasshopperInstance
     {
         var mirrorDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            _applicationFolderName,
-            _grasshopperLibrariesFolderName);
+            "Grasshopper",
+            "Libraries",
+            "Rhino.Inside.AutoCAD");
 
         Directory.CreateDirectory(mirrorDirectory);
 
