@@ -133,7 +133,20 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             if (resp != null && resp.Success && resp.Objects.Count > 0)
             {
                 var objDto = resp.Objects[0];
-                if (objDto.Geometry3dmBytes != null && objDto.Geometry3dmBytes.Length > 0)
+                if (objDto.CurveData != null)
+                {
+                    var crv = Rhino.Inside.AutoCAD.GrasshopperLibrary.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
+                    if (crv != null)
+                    {
+                        var wrapped = CreateGooFromGeometry(crv);
+                        if (wrapped is TGoo resultGoo)
+                        {
+                            value = resultGoo;
+                            return GH_GetterResult.success;
+                        }
+                    }
+                }
+                else if (objDto.Geometry3dmBytes != null && objDto.Geometry3dmBytes.Length > 0)
                 {
                     using var file3dm = Rhino.FileIO.File3dm.FromByteArray(objDto.Geometry3dmBytes);
                     if (file3dm != null && file3dm.Objects.Count > 0)
@@ -206,7 +219,19 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             {
                 foreach (var objDto in resp.Objects)
                 {
-                    if (objDto.Geometry3dmBytes != null && objDto.Geometry3dmBytes.Length > 0)
+                    if (objDto.CurveData != null)
+                    {
+                        var crv = Rhino.Inside.AutoCAD.GrasshopperLibrary.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
+                        if (crv != null)
+                        {
+                            var wrapped = CreateGooFromGeometry(crv);
+                            if (wrapped is TGoo resultGoo)
+                            {
+                                newValues.Add(resultGoo);
+                            }
+                        }
+                    }
+                    else if (objDto.Geometry3dmBytes != null && objDto.Geometry3dmBytes.Length > 0)
                     {
                         using var file3dm = Rhino.FileIO.File3dm.FromByteArray(objDto.Geometry3dmBytes);
                         if (file3dm != null && file3dm.Objects.Count > 0)

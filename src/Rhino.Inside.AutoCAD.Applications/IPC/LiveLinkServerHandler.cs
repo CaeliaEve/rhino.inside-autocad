@@ -254,23 +254,11 @@ public static class LiveLinkServerHandler
                             ObjectType = ent.GetType().Name
                         };
 
-                        var file3dm = new File3dm();
                         if (ent is Curve cadCrv)
                         {
-                            var rCrv = cadCrv.ToRhinoCurve();
-                            if (rCrv != null) file3dm.Objects.AddCurve(rCrv);
-                        }
-                        else if (ent is Solid3d solid)
-                        {
-                            var rBrep = solid.ToRhinoBrep();
-                            if (rBrep != null) file3dm.Objects.AddBrep(rBrep);
-                        }
-                        else if (ent is DBPoint pt)
-                        {
-                            file3dm.Objects.AddPoint(pt.Position.ToRhinoPoint3d());
+                            dto.CurveData = ExtractCadCurveDto(cadCrv, tr);
                         }
 
-                        dto.Geometry3dmBytes = file3dm.ToByteArray(new File3dmWriteOptions { Version = 7 });
                         resp.Objects.Add(dto);
                     }
                     tr.Commit();
@@ -392,5 +380,154 @@ public static class LiveLinkServerHandler
     private static void ClearTransientPreview()
     {
         // Safe placeholder for transient graphics clear
+    }
+
+    private static CadCurveDto? ExtractCadCurveDto(Curve cadCrv, Transaction tr)
+    {
+        if (cadCrv is Line line)
+        {
+            return new CadCurveDto
+            {
+                CurveType = "Line",
+                Points = new List<double[]>
+                {
+                    new[] { line.StartPoint.X, line.StartPoint.Y, line.StartPoint.Z },
+                    new[] { line.EndPoint.X, line.EndPoint.Y, line.EndPoint.Z }
+                }
+            };
+        }
+
+        if (cadCrv is Arc arc)
+        {
+            return new CadCurveDto
+            {
+                CurveType = "Arc",
+                Center = new[] { arc.Center.X, arc.Center.Y, arc.Center.Z },
+                Radius = arc.Radius,
+                StartAngle = arc.StartAngle,
+                EndAngle = arc.EndAngle,
+                Normal = new[] { arc.Normal.X, arc.Normal.Y, arc.Normal.Z }
+            };
+        }
+
+        if (cadCrv is Circle circle)
+        {
+            return new CadCurveDto
+            {
+                CurveType = "Circle",
+                Center = new[] { circle.Center.X, circle.Center.Y, circle.Center.Z },
+                Radius = circle.Radius,
+                Normal = new[] { circle.Normal.X, circle.Normal.Y, circle.Normal.Z }
+            };
+        }
+
+        if (cadCrv is Polyline pl)
+        {
+            var dto = new CadCurveDto
+            {
+                CurveType = "Polyline",
+                IsClosed = pl.Closed,
+                Normal = new[] { pl.Normal.X, pl.Normal.Y, pl.Normal.Z }
+            };
+            for (int i = 0; i < pl.NumberOfVertices; i++)
+            {
+                var pt = pl.GetPoint3dAt(i);
+                dto.Points.Add(new[] { pt.X, pt.Y, pt.Z });
+                dto.Bulges.Add(pl.GetBulgeAt(i));
+            }
+            return dto;
+        }
+
+        if (cadCrv is Polyline2d pl2d)
+        {
+            var dto = new CadCurveDto
+            {
+                CurveType = "Polyline",
+                IsClosed = pl2d.Closed,
+                Normal = new[] { pl2d.Normal.X, pl2d.Normal.Y, pl2d.Normal.Z }
+            };
+            foreach (ObjectId vId in pl2d)
+            {
+                var v = (Vertex2d)tr.GetObject(vId, OpenMode.ForRead);
+                dto.Points.Add(new[] { v.Position.X, v.Position.Y, v.Position.Z });
+                dto.Bulges.Add(v.Bulge);
+            }
+            return dto;
+        }
+
+        if (cadCrv is Polyline3d pl3d)
+        {
+            var dto = new CadCurveDto
+            {
+                CurveType = "Polyline3d",
+                IsClosed = pl3d.Closed
+            };
+            foreach (ObjectId vId in pl3d)
+            {
+                var v = (PolylineVertex3d)tr.GetObject(vId, OpenMode.ForRead);
+                dto.Points.Add(new[] { v.Position.X, v.Position.Y, v.Position.Z });
+            }
+            return dto;
+        }
+
+        if (cadCrv is Spline spline)
+        {
+            var nurbData = spline.NurbsData;
+            var dto = new CadCurveDto
+            {
+                CurveType = "Spline",
+                Degree = nurbData.Degree,
+                IsClosed = spline.Closed,
+                IsRational = nurbData.Rational,
+                IsPeriodic = nurbData.Periodic
+            };
+            for (int i = 0; i < nurbData.GetKnots().Count; i++)
+                dto.Knots.Add(nurbData.GetKnots()[i]);
+            for (int i = 0; i < nurbData.GetControlPoints().Count; i++)
+            {
+                var cp = nurbData.GetControlPoints()[i];
+                dto.Points.Add(new[] { cp.X, cp.Y, cp.Z });
+            }
+            for (int i = 0; i < nurbData.GetWeights().Count; i++)
+                dto.Weights.Add(nurbData.GetWeights()[i]);
+            return dto;
+        }
+
+        if (cadCrv is Ellipse el)
+        {
+            return new CadCurveDto
+            {
+                CurveType = "Ellipse",
+                Center = new[] { el.Center.X, el.Center.Y, el.Center.Z },
+                Normal = new[] { el.Normal.X, el.Normal.Y, el.Normal.Z },
+                MajorAxis = new[] { el.MajorAxis.X, el.MajorAxis.Y, el.MajorAxis.Z },
+                RadiusRatio = el.RadiusRatio,
+                StartAngle = el.StartAngle,
+                EndAngle = el.EndAngle
+            };
+        }
+
+        // Generic fallback: sample points along curve
+        try
+        {
+            double start = cadCrv.StartParam;
+            double end = cadCrv.EndParam;
+            int samples = 32;
+            var dto = new CadCurveDto
+            {
+                CurveType = "Polyline3d",
+                IsClosed = cadCrv.Closed
+            };
+            for (int i = 0; i <= samples; i++)
+            {
+                double p = start + (end - start) * (i / (double)samples);
+                var pt = cadCrv.GetPointAtParameter(p);
+                dto.Points.Add(new[] { pt.X, pt.Y, pt.Z });
+            }
+            return dto;
+        }
+        catch { }
+
+        return null;
     }
 }
