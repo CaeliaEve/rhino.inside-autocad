@@ -192,17 +192,18 @@ public static class LiveLinkServerHandler
 
             var resp = new SelectResponsePayload { Success = true };
 
-            using (doc.LockDocument())
-            using (var tr = doc.TransactionManager.StartTransaction())
+            // Interactive Selection must be performed outside of transaction/lock
+            var opt = new Autodesk.AutoCAD.EditorInput.PromptSelectionOptions
             {
-                var opt = new Autodesk.AutoCAD.EditorInput.PromptSelectionOptions
-                {
-                    SingleOnly = req.SingleOnly,
-                    MessageForAdding = "\n" + (string.IsNullOrWhiteSpace(req.PromptMessage) ? "Select AutoCAD Object: " : req.PromptMessage + ": ")
-                };
+                SingleOnly = req.SingleOnly,
+                MessageForAdding = "\n" + (string.IsNullOrWhiteSpace(req.PromptMessage) ? "Select AutoCAD Object: " : req.PromptMessage + ": ")
+            };
 
-                var res = doc.Editor.GetSelection(opt);
-                if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK && res.Value != null)
+            var res = doc.Editor.GetSelection(opt);
+            if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK && res.Value != null)
+            {
+                using (doc.LockDocument())
+                using (var tr = doc.TransactionManager.StartTransaction())
                 {
                     foreach (Autodesk.AutoCAD.EditorInput.SelectedObject selObj in res.Value)
                     {
@@ -237,13 +238,12 @@ public static class LiveLinkServerHandler
                         dto.Geometry3dmBytes = file3dm.ToByteArray(new File3dmWriteOptions { Version = 7 });
                         resp.Objects.Add(dto);
                     }
+                    tr.Commit();
                 }
-                else
-                {
-                    resp.Success = false;
-                }
-
-                tr.Commit();
+            }
+            else
+            {
+                resp.Success = false;
             }
 
             var respMsg = IpcMessage.Create(IpcCommandType.CadObjectsResult, resp);
