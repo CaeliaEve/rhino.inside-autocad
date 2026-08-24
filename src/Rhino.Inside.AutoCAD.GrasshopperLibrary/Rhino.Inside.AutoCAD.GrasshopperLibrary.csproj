@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>$(TargetFrameworkName)</TargetFramework>
@@ -47,10 +47,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Applications\Rhino.Inside.AutoCAD.Applications.csproj">
-			<Private>False</Private>
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</ProjectReference>
 		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Civil.Interop\Rhino.Inside.AutoCAD.Civil.Interop.csproj" />
 		<ProjectReference Include="..\Rhino.Inside.AutoCAD.Core\Rhino.Inside.AutoCAD.Core.csproj">
 			<Private>False</Private>

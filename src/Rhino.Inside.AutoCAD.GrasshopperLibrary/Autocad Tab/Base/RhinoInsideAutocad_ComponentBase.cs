@@ -1,6 +1,6 @@
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Core;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
@@ -137,7 +137,7 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
         if (objectId is null || !objectId.IsValid)
             return this.GetActiveDocumentFallback();
 
-        var autoCadInstance = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance;
+        var autoCadInstance = (AutoCadHostContext.HostApplication as Rhino.Inside.AutoCAD.Core.Interfaces.IRhinoInsideAutoCadApplication)?.RhinoInsideManager?.AutoCadInstance;
         if (autoCadInstance is null)
             return this.GetActiveDocumentFallback();
 
@@ -158,7 +158,7 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     /// <returns>The active AutoCAD document, or null if unavailable.</returns>
     protected IAutocadDocument? GetActiveDocumentFallback()
     {
-        return RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+        return AutoCadHostContext.ActiveDocument as AutocadDocument;
     }
 
     /// <summary>

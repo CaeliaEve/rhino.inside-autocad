@@ -1,9 +1,9 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
@@ -174,13 +174,30 @@ public class GH_AutocadBrepProxy : GH_GeometricGoo<RhinoBrep>, IGH_AutocadRefere
             return true;
         }, settings);
 
-        var application = RhinoInsideAutoCadExtension.Application;
-
-        var brepConverterRunner = application.BrepConverterRunner;
-
-        brepConverterRunner.EnqueueRequest(request);
-
-        activeDocument.SendStringToExecute("RHINO_INSIDE_CONVERT_BREP\n", false, false, false);
+        var application = AutoCadHostContext.HostApplication as IRhinoInsideAutoCadApplication;
+        if (application?.BrepConverterRunner != null && activeDocument != null)
+        {
+            application.BrepConverterRunner.EnqueueRequest(request);
+            activeDocument.SendStringToExecute("RHINO_INSIDE_CONVERT_BREP\n", false, false, false);
+        }
+        else
+        {
+            try
+            {
+                if (this.Value != null)
+                {
+                    var file3dm = new Rhino.FileIO.File3dm();
+                    file3dm.Objects.AddBrep(this.Value);
+                    var payload = new Rhino.Inside.AutoCAD.Core.IPC.BakePayload
+                    {
+                        Geometry3dmBytes = file3dm.ToByteArray(new Rhino.FileIO.File3dmWriteOptions { Version = 7 }),
+                        TargetLayer = settings?.Layer?.Name ?? "0"
+                    };
+                    System.Threading.Tasks.Task.Run(() => Rhino.Inside.AutoCAD.Core.IPC.LiveLinkClient.Instance.SendBakeAsync(payload));
+                }
+            }
+            catch { }
+        }
 
         return ids;
     }

@@ -60,9 +60,9 @@ public class NamedPipeServer : IDisposable
             {
                 break;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Wait briefly before reconnect loop
+                System.Diagnostics.Debug.WriteLine($"[NamedPipeServer] Server loop exception: {ex.Message}");
                 await Task.Delay(500, cancellationToken).ConfigureAwait(false);
             }
             finally
@@ -72,7 +72,10 @@ public class NamedPipeServer : IDisposable
                 {
                     _pipeServer?.Dispose();
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NamedPipeServer] Dispose error: {ex.Message}");
+                }
                 _pipeServer = null;
             }
         }
@@ -86,9 +89,9 @@ public class NamedPipeServer : IDisposable
             {
                 await IpcMessage.WriteMessageAsync(_pipeServer, message, cancellationToken).ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex)
             {
-                // Pipe broke
+                System.Diagnostics.Debug.WriteLine($"[NamedPipeServer] SendMessage error: {ex.Message}");
             }
         }
     }
@@ -100,7 +103,10 @@ public class NamedPipeServer : IDisposable
             _cts?.Cancel();
             _pipeServer?.Dispose();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NamedPipeServer] Stop error: {ex.Message}");
+        }
         _pipeServer = null;
     }
 

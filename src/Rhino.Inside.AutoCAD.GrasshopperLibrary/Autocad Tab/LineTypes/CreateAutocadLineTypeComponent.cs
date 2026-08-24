@@ -1,5 +1,5 @@
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -82,7 +82,7 @@ public class CreateAutocadLineTypeComponent : LineType_BaseComponent
 
         if (autocadDocument is null)
         {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager
+            var activeDoc = (AutoCadHostContext.HostApplication as Rhino.Inside.AutoCAD.Core.Interfaces.IRhinoInsideAutoCadApplication)?.RhinoInsideManager
                 ?.AutoCadInstance?.ActiveDocument;
             if (activeDoc is null)
             {

@@ -1,5 +1,5 @@
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -45,7 +45,7 @@ public class GetAutocadDocumentsComponent : RhinoInsideAutocad_ComponentBase
     /// <inheritdoc />
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        var application = RhinoInsideAutoCadExtension.Application;
+        var application = (AutoCadHostContext.HostApplication as Rhino.Inside.AutoCAD.Core.Interfaces.IRhinoInsideAutoCadApplication);
 
         var rhinoInsideManger = application.RhinoInsideManager;
 

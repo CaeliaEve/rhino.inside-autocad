@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -71,5 +71,9 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" Condition="'$(Configuration)' == 'DebugNET8' Or '$(Configuration)' == 'ReleaseNET8'" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" Condition="'$(Configuration)' == 'DebugNET10' Or '$(Configuration)' == 'ReleaseNET10'" />
+    <!-- Testing -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="xunit" Version="2.5.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 </Project>

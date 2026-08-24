@@ -1,7 +1,7 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -168,7 +168,7 @@ public class AutocadBlockReferenceComponent : RhinoInsideAutocad_ComponentBase
                      || !newColor.IsEqualTo(blockReferenceWrapper.Color)
                      || !newLinetypeId.Equals(blockReferenceWrapper.LinetypeId);
 
-        var document = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
+        var document = (AutoCadHostContext.HostApplication as Rhino.Inside.AutoCAD.Core.Interfaces.IRhinoInsideAutoCadApplication).RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
         var transactionManagerWrapper = document.CreateTransactionManager();

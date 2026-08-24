@@ -1,5 +1,5 @@
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Interop;
 using RhinoHatch = Rhino.Geometry.Hatch;
 
@@ -51,7 +51,7 @@ public class ConvertToAutoCadHatchComponent : RhinoInsideAutocad_ComponentBase
         if (!DA.GetData(0, ref rhinoHatch)
             || rhinoHatch is null) return;
 
-        var activeDocument = RhinoInsideAutoCadExtension.Application.RhinoInsideManager
+        var activeDocument = (AutoCadHostContext.HostApplication as Rhino.Inside.AutoCAD.Core.Interfaces.IRhinoInsideAutoCadApplication).RhinoInsideManager
             .AutoCadInstance.ActiveDocument;
 
         var transactionManagerWrapper = activeDocument.CreateTransactionManager();

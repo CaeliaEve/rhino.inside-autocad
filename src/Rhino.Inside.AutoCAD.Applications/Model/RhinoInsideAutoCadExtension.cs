@@ -55,19 +55,19 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
         try
         {
-            var compliedDate = this.GetCompliedDate();
-            var limitDate = compliedDate.AddDays(180);
-
-            if (currentDate > limitDate)
-            {
-                IsExpired = true;
-            }
+            IsExpired = false;
 
             // Bootstrap logger and application configuration (0ms startup overhead)
             _applicationConfig = new RhinoInsideAutoCadApplicationConfig();
             _bootstrapper = new Bootstrapper(new AutocadBootstrapperConfig(_applicationConfig));
 
             RhinoCoreExtension.Instance.StartUpLogger.Flush();
+
+            // Register host context abstraction in Core
+            Rhino.Inside.AutoCAD.Core.Host.AutoCadHostContext.RegisterHost(
+                () => Application,
+                () => Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument,
+                () => EnsureInitialized());
 
             // Programmatically inject and guarantee Ribbon Tab on any workspace
             Rhino.Inside.AutoCAD.Applications.UI.RibbonBuilder.Initialize();

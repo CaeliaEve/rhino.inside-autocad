@@ -56,13 +56,6 @@ public class RhinoInsideAutoCadCommands
             }
         }
 
-        if (RhinoInsideAutoCadExtension.IsExpired)
-        {
-            ShowExpirationDialog();
-
-            return true;
-        }
-
         return false;
     }
 

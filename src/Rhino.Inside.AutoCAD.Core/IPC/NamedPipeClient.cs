@@ -59,11 +59,14 @@ public class NamedPipeClient : IDisposable
             }
         }
         catch (OperationCanceledException) { }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NamedPipeClient] ReadLoop exception: {ex.Message}");
+        }
         finally
         {
             Disconnected?.Invoke();
-            try { _pipeClient?.Dispose(); } catch { }
+            try { _pipeClient?.Dispose(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[NamedPipeClient] Dispose error: {ex.Message}"); }
             _pipeClient = null;
         }
     }
@@ -79,8 +82,9 @@ public class NamedPipeClient : IDisposable
             await IpcMessage.WriteMessageAsync(_pipeClient, message, cancellationToken).ConfigureAwait(false);
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"[NamedPipeClient] SendMessage error: {ex.Message}");
             return false;
         }
         finally
@@ -96,7 +100,10 @@ public class NamedPipeClient : IDisposable
             _cts?.Cancel();
             _pipeClient?.Dispose();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NamedPipeClient] Disconnect error: {ex.Message}");
+        }
         _pipeClient = null;
     }
 

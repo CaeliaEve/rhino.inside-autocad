@@ -1,8 +1,8 @@
 using Autodesk.AutoCAD.ApplicationServices.Core;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.Civil.DatabaseServices;
-using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Civil.Interop;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using System.Diagnostics;
 using CadCurve = Autodesk.AutoCAD.DatabaseServices.Curve;
@@ -30,9 +30,8 @@ public static class CivilProfileViewExtensions
         {
             var fingerprint = profileView.Database.FingerprintGuid;
 
-            var document =
-                RhinoInsideAutoCadExtension.Application.RhinoInsideManager.AutoCadInstance
-                    .FindDocumentByFingerprintGuid(fingerprint);
+            var app = AutoCadHostContext.HostApplication as IRhinoInsideAutoCadApplication;
+            var document = app?.RhinoInsideManager?.AutoCadInstance?.FindDocumentByFingerprintGuid(fingerprint);
 
             if (document == null)
             {

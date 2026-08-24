@@ -1,6 +1,6 @@
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
@@ -18,7 +18,7 @@ public class AutocadObjectPicker : IAutocadObjectPicker
     /// </summary>
     public AutocadObjectPicker()
     {
-        var rhinoInsideApplication = RhinoInsideAutoCadExtension.Application;
+        var rhinoInsideApplication = (AutoCadHostContext.HostApplication as Rhino.Inside.AutoCAD.Core.Interfaces.IRhinoInsideAutoCadApplication);
         _document = rhinoInsideApplication?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
     }
 

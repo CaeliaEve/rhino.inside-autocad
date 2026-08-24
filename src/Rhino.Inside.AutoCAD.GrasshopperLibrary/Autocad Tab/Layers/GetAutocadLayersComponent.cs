@@ -1,5 +1,5 @@
 using Grasshopper.Kernel;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Interop;
 
 namespace Rhino.Inside.AutoCAD.GrasshopperLibrary;
@@ -50,7 +50,7 @@ public class GetAutocadLayersComponent : Layer_BaseComponent
 
         if (autocadDocument is null)
         {
-            var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
+            var activeDoc = AutoCadHostContext.ActiveDocument as AutocadDocument;
             if (activeDoc is null)
             {
                 // Live Link IPC query fallback

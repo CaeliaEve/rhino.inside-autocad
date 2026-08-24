@@ -1,6 +1,6 @@
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using Rhino.Inside.AutoCAD.Applications;
+using Rhino.Inside.AutoCAD.Core.Host;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 using Color = System.Drawing.Color;
@@ -129,7 +129,7 @@ public class AutocadColorComponent : RhinoInsideAutocad_ComponentBase
             ?? this.FromRgb(inputColor)
             ?? AutocadColorWrapper.CreateByLayer();
 
-        var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager
+        var activeDoc = (AutoCadHostContext.HostApplication as Rhino.Inside.AutoCAD.Core.Interfaces.IRhinoInsideAutoCadApplication)?.RhinoInsideManager
             ?.AutoCadInstance?.ActiveDocument;
 
         if (activeDoc is null)
