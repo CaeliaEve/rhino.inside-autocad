@@ -83,6 +83,39 @@ public class AssemblyResolver : IAssemblyResolver
             }
         }
 
+        // Automatic Probing for Rhino System assemblies (RhinoCommon, RhinoWindows, Grasshopper, etc.)
+        if (shortName.StartsWith("Rhino", StringComparison.OrdinalIgnoreCase) ||
+            shortName.StartsWith("Grasshopper", StringComparison.OrdinalIgnoreCase) ||
+            shortName.StartsWith("GH_IO", StringComparison.OrdinalIgnoreCase) ||
+            shortName.StartsWith("Eto", StringComparison.OrdinalIgnoreCase))
+        {
+            var probeDirs = new[]
+            {
+                @"C:\Program Files\Rhino 8\System",
+                @"C:\Program Files\Rhino 7\System",
+                @"C:\Program Files\Rhino 8\Plug-ins\Grasshopper",
+                @"C:\Program Files\Rhino 7\Plug-ins\Grasshopper"
+            };
+
+            foreach (var dir in probeDirs)
+            {
+                var candidate = Path.Combine(dir, $"{shortName}.dll");
+                if (File.Exists(candidate))
+                {
+                    try
+                    {
+                        var loaded = Assembly.LoadFrom(candidate);
+                        _resolvedAssemblies[shortName] = loaded;
+                        return loaded;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[AssemblyResolver] Failed to load {candidate}: {ex.Message}");
+                    }
+                }
+            }
+        }
+
         return null;
     }
 
