@@ -1,4 +1,4 @@
-﻿using GH_IO.Serialization;
+using GH_IO.Serialization;
 using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
@@ -46,8 +46,10 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     {
         this.Version = this.GetCurrentVersion();
 
-        ComponentVersionAttribute.TryGetVersionHistory(this.GetType(), out var versionHistory);
-        if (this.Obsolete || versionHistory!.IsDeprecated) _versioningStatus |= VersioningIssues.Obsolete;
+        if (ComponentVersionAttribute.TryGetVersionHistory(this.GetType(), out var versionHistory) && versionHistory != null)
+        {
+            if (this.Obsolete || versionHistory.IsDeprecated) _versioningStatus |= VersioningIssues.Obsolete;
+        }
     }
 
     /// <summary>
@@ -55,11 +57,14 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
     /// </summary>
     private string GetFullVersionDescription()
     {
-        ComponentVersionAttribute.TryGetVersionHistory(this.GetType(), out var versionHistory);
+        if (!ComponentVersionAttribute.TryGetVersionHistory(this.GetType(), out var versionHistory) || versionHistory == null)
+        {
+            return string.Empty;
+        }
 
         var versionDescription = string.Empty;
 
-        versionDescription += $"Introduced in v{versionHistory!.Introduced}\n";
+        versionDescription += $"Introduced in v{versionHistory.Introduced}\n";
 
         if (this.Obsolete)
         {
@@ -74,7 +79,6 @@ public abstract class RhinoInsideAutocad_ComponentBase : GH_Component
         }
 
         return versionDescription;
-
     }
 
     /// <summary>

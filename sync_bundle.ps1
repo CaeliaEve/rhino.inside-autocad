@@ -83,16 +83,34 @@ foreach ($dir in $ghSources) {
     }
 }
 
+# Deploy AutoCAD and Civil 3D managed runtime dependencies
+$cadNugets = @(
+    "E:\nuget_packages\autocad.net\24.3.0\lib\net47",
+    "E:\nuget_packages\autocad.net.core\24.3.0\lib\net47",
+    "E:\nuget_packages\autocad.net.model\24.3.0\lib\net47",
+    "E:\nuget_packages\civil3d.net\13.6.1781\lib\net47"
+)
+foreach ($dir in $cadNugets) {
+    if (Test-Path $dir) {
+        Copy-Item -Path "$dir\*.dll" -Destination $ghRootLibDir -Force -ErrorAction SilentlyContinue
+        Copy-Item -Path "$dir\*.dll" -Destination $ghLibDir -Force -ErrorAction SilentlyContinue
+    }
+}
+
 # Copy as .gha for Grasshopper native recognition to both subfolder and root Libraries folder
 $ghaSource = "$ghLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.dll"
 if (Test-Path $ghaSource) {
     Copy-Item -Path $ghaSource -Destination "$ghLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
     Copy-Item -Path $ghaSource -Destination "$ghRootLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+    # Remove duplicate dll in root so only .gha is recognized by Grasshopper
+    Remove-Item -Path "$ghRootLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.dll" -Force -ErrorAction SilentlyContinue
 }
 $civilGhaSource = "$ghLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
 if (Test-Path $civilGhaSource) {
     Copy-Item -Path $civilGhaSource -Destination "$ghLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
     Copy-Item -Path $civilGhaSource -Destination "$ghRootLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+    # Remove duplicate dll in root so only .gha is recognized by Grasshopper
+    Remove-Item -Path "$ghRootLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll" -Force -ErrorAction SilentlyContinue
 }
 
 # Create .ghlink pointer
