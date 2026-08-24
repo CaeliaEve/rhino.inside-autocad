@@ -52,6 +52,19 @@ if (Test-Path $rhpSource) {
     Set-ItemProperty -Path $regKey -Name "Name" -Value "AutoCadPasteBridge"
     Set-ItemProperty -Path $regKey -Name "LoadMode" -Value 1 -Type DWord
     Write-Host "AutoCadPasteBridge.rhp deployed and registered for Rhino 7 at: $rhino7PluginDir\AutoCadPasteBridge.rhp"
+
+    # Deploy and register for Rhino 8 as well to prevent in-process OLE paste crash in CAD's Rhino 8
+    $rhino8PluginDir = "$env:APPDATA\McNeel\Rhinoceros\8.0\Plug-ins\AutoCadPasteBridge"
+    New-Item -ItemType Directory -Force -Path $rhino8PluginDir | Out-Null
+    Copy-Item -Path $rhpSource -Destination "$rhino8PluginDir\AutoCadPasteBridge.rhp" -Force -ErrorAction SilentlyContinue
+    $regKey8 = "HKCU:\Software\McNeel\Rhinoceros\8.0\Plug-Ins\e5a2a388-99b4-4b2d-9bc8-4664f98e18f3"
+    if (!(Test-Path $regKey8)) {
+        New-Item -Path $regKey8 -Force | Out-Null
+    }
+    Set-ItemProperty -Path $regKey8 -Name "FileName" -Value "$rhino8PluginDir\AutoCadPasteBridge.rhp"
+    Set-ItemProperty -Path $regKey8 -Name "Name" -Value "AutoCadPasteBridge"
+    Set-ItemProperty -Path $regKey8 -Name "LoadMode" -Value 1 -Type DWord
+    Write-Host "AutoCadPasteBridge.rhp deployed and registered for Rhino 8 at: $rhino8PluginDir\AutoCadPasteBridge.rhp"
 }
 
 # Remove any global Grasshopper libraries copy to ensure strict CAD-only isolation
