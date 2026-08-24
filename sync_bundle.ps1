@@ -62,32 +62,45 @@ if (Test-Path $rhpSource) {
 }
 
 # Deploy Grasshopper GHA Libraries to Rhino 8 / Grasshopper Libraries folder
-$ghLibDir = "$env:APPDATA\Grasshopper\Libraries\Rhino.Inside.AutoCAD"
+$ghRootLibDir = "$env:APPDATA\Grasshopper\Libraries"
+$ghLibDir = "$ghRootLibDir\Rhino.Inside.AutoCAD"
 New-Item -ItemType Directory -Force -Path $ghLibDir | Out-Null
+New-Item -ItemType Directory -Force -Path $ghRootLibDir | Out-Null
 
 $ghSources = @(
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.GrasshopperLibrary\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Core\bin\Release\net48",
     "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Interop\bin\Release\net48",
-    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Services\bin\Release\net48"
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.Services\bin\Release\net48",
+    "e:\codex\rhino\src\Rhino.Inside.AutoCAD.UI.Resources\bin\Release\net48"
 )
 
 foreach ($dir in $ghSources) {
     if (Test-Path $dir) {
         Copy-Item -Path "$dir\*.dll" -Destination $ghLibDir -Force -ErrorAction SilentlyContinue
+        Copy-Item -Path "$dir\*.dll" -Destination $ghRootLibDir -Force -ErrorAction SilentlyContinue
     }
 }
 
-# Copy as .gha for Grasshopper native recognition
+# Copy as .gha for Grasshopper native recognition to both subfolder and root Libraries folder
 $ghaSource = "$ghLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.dll"
 if (Test-Path $ghaSource) {
     Copy-Item -Path $ghaSource -Destination "$ghLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+    Copy-Item -Path $ghaSource -Destination "$ghRootLibDir\Rhino.Inside.AutoCAD.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
 }
 $civilGhaSource = "$ghLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.dll"
 if (Test-Path $civilGhaSource) {
     Copy-Item -Path $civilGhaSource -Destination "$ghLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
+    Copy-Item -Path $civilGhaSource -Destination "$ghRootLibDir\Rhino.Inside.AutoCAD.Civil.GrasshopperLibrary.gha" -Force -ErrorAction SilentlyContinue
 }
-Write-Host "AutoCAD & Civil Grasshopper GHA battery suite deployed to: $ghLibDir"
+
+# Create .ghlink pointer
+Set-Content -Path "$ghRootLibDir\Rhino.Inside.AutoCAD.ghlink" -Value $ghLibDir -Force -ErrorAction SilentlyContinue
+
+# Unblock files to ensure Grasshopper security check passes
+Get-ChildItem -Path "$ghRootLibDir\*" -Recurse | Unblock-File -ErrorAction SilentlyContinue
+
+Write-Host "AutoCAD & Civil Grasshopper GHA battery suite deployed to: $ghRootLibDir"
 
 Write-Host "Full bundle deployment synchronized successfully to: $bundleRoot"
