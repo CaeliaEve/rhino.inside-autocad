@@ -14,6 +14,12 @@ public class Param_AutocadBlockReference : GH_PersistentParam<GH_AutocadBlockRef
     private const string _pluralPromptMessage = "Select Block References";
 
     /// <inheritdoc />
+    public override string TypeName => "AutoCAD Block Reference";
+
+    /// <inheritdoc />
+    protected override GH_AutocadBlockReference InstantiateT() => new GH_AutocadBlockReference();
+
+    /// <inheritdoc />
     public override GH_Exposure Exposure => GH_Exposure.secondary;
 
     /// <inheritdoc />

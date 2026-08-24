@@ -18,6 +18,22 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
     where TEntity : CadEntity
 {
     /// <inheritdoc />
+    public override string TypeName => typeof(TGoo).Name;
+
+    /// <inheritdoc />
+    protected override TGoo InstantiateT()
+    {
+        try
+        {
+            return Activator.CreateInstance<TGoo>();
+        }
+        catch
+        {
+            return default!;
+        }
+    }
+
+    /// <inheritdoc />
     public BoundingBox ClippingBox => this.Preview_ComputeClippingBox();
 
     /// <inheritdoc />
