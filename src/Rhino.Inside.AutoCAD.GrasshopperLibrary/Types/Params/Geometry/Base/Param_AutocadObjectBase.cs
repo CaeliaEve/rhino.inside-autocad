@@ -369,12 +369,17 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
     }
 
     /// <inheritdoc />
-    public void DrawViewportWires(IGH_PreviewArgs args) =>
+    public void DrawViewportWires(IGH_PreviewArgs args)
+    {
+        if (this.Hidden) return;
         this.Preview_DrawWires(args);
+    }
 
     /// <inheritdoc />
-    public void DrawViewportMeshes(IGH_PreviewArgs args) =>
+    public void DrawViewportMeshes(IGH_PreviewArgs args)
+    {
+        if (this.Hidden) return;
         this.Preview_DrawMeshes(args);
-
+    }
 }
 

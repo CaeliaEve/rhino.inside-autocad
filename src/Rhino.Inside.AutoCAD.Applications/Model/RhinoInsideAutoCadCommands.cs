@@ -137,8 +137,24 @@ public class RhinoInsideAutoCadCommands
                 WorkingDirectory = targetInstall.SystemDirectory
             };
 
+            // Show the official Rhino.Inside.AutoCAD splash screen animation
+            var splash = new Rhino.Inside.AutoCAD.UI.Resources.Models.LoadingScreenManager("1.0.0", $"{majorVersion}.0");
+            splash.Show();
+
             var newProc = Process.Start(startInfo);
             editor?.WriteMessage($"\n[Rhino Launcher] Launched standalone Rhino {majorVersion} (PID: {newProc?.Id}).\n");
+
+            // Automatically close splash when IPC client connects or after timeout
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                for (int i = 0; i < 40; i++)
+                {
+                    await System.Threading.Tasks.Task.Delay(250);
+                    if (Rhino.Inside.AutoCAD.Core.IPC.LiveLinkManager.Instance.IsClientConnected) break;
+                }
+                await System.Threading.Tasks.Task.Delay(1000);
+                splash.Close();
+            });
         }
         catch (System.Exception ex)
         {

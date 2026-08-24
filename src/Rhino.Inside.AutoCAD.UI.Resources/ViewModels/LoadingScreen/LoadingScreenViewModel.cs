@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using System.Windows;
 using System.Windows.Threading;
@@ -70,6 +70,25 @@ public partial class LoadingScreenViewModel : ObservableObject, IDisposable
 #else
     public bool ShowHideButton => false;
 #endif
+
+    /// <summary>
+    /// Constructs a new <see cref="LoadingScreenViewModel"/> for standalone launcher.
+    /// </summary>
+    public LoadingScreenViewModel(string appVersion = "1.0.0", string rhinoVersion = "8.0")
+    {
+        _copyrightNotice = $"Rhino.Inside.AutoCAD {DateTime.Now.Year} ©.";
+        _appVersion = $"v{appVersion}";
+        _rhinoVersion = $"Rhino {rhinoVersion}";
+
+        _dispatcherTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = new TimeSpan(0, 0, 0, 0, _tickIncrement)
+        };
+
+        _dispatcherTimer.Tick += this.dispatcherTimer_Tick;
+
+        _dispatcherTimer.Start();
+    }
 
     /// <summary>
     /// Constructs a new <see cref="LoadingScreenViewModel"/>.

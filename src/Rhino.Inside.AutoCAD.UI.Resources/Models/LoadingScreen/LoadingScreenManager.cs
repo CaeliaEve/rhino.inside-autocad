@@ -15,9 +15,11 @@ namespace Rhino.Inside.AutoCAD.UI.Resources.Models;
 public class LoadingScreenManager : ILoadingScreenManager
 {
     private readonly ILoggerService _logger = LoggerService.Instance;
-    private readonly ILoadingScreenConstants _loadingScreenConstants;
-    private readonly IApplicationVersionHistory _applicationVersionHistory;
-    private readonly Version _rhinoVersion;
+    private readonly ILoadingScreenConstants? _loadingScreenConstants;
+    private readonly IApplicationVersionHistory? _applicationVersionHistory;
+    private readonly Version? _rhinoVersion;
+    private readonly string? _standaloneAppVersion;
+    private readonly string? _standaloneRhinoVersion;
 
     private LoadingScreenWindow? _loadingScreenWindow;
     private LoadingScreenViewModel? _loadingScreenViewModel;
@@ -26,6 +28,15 @@ public class LoadingScreenManager : ILoadingScreenManager
     private Thread? _newWindowThread;
     private volatile bool _isClosed;
     private readonly object _initLock = new();
+
+    /// <summary>
+    /// Constructs a new <see cref="LoadingScreenManager"/> for standalone launcher.
+    /// </summary>
+    public LoadingScreenManager(string appVersion = "1.0.0", string rhinoVersion = "8.0")
+    {
+        _standaloneAppVersion = appVersion;
+        _standaloneRhinoVersion = rhinoVersion;
+    }
 
     /// <summary>
     /// Constructs a new <see cref="LoadingScreenManager"/>.
@@ -82,7 +93,15 @@ public class LoadingScreenManager : ILoadingScreenManager
                     return;
                 }
 
-                _loadingScreenViewModel = new LoadingScreenViewModel(_loadingScreenConstants, _applicationVersionHistory, _rhinoVersion);
+                if (_standaloneAppVersion != null)
+                {
+                    _loadingScreenViewModel = new LoadingScreenViewModel(_standaloneAppVersion, _standaloneRhinoVersion ?? "8.0");
+                }
+                else
+                {
+                    _loadingScreenViewModel = new LoadingScreenViewModel(_loadingScreenConstants!, _applicationVersionHistory!, _rhinoVersion!);
+                }
+
                 _loadingScreenWindow = new LoadingScreenWindow(_loadingScreenViewModel!)
                 {
                     Topmost = true
