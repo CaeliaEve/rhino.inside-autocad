@@ -60,6 +60,47 @@ public class LiveLinkClient : IDisposable
     }
 
     /// <summary>
+    /// Requests AutoCAD to prompt the user to select objects, returning the selected entities and geometries.
+    /// </summary>
+    public async Task<SelectResponsePayload?> RequestSelectionAsync(SelectRequestPayload request, int timeoutMs = 60000)
+    {
+        if (!await EnsureConnectedAsync().ConfigureAwait(false)) return null;
+
+        var tcs = new TaskCompletionSource<SelectResponsePayload>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void Handler(IpcMessage msg)
+        {
+            if (msg.CommandType == IpcCommandType.CadObjectsResult)
+            {
+                var resp = msg.DeserializePayload<SelectResponsePayload>();
+                if (resp != null) tcs.TrySetResult(resp);
+            }
+        }
+
+        MessageReceived += Handler;
+        try
+        {
+            var msg = IpcMessage.Create(IpcCommandType.SelectInCad, request);
+            if (!await _client.SendMessageAsync(msg).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var delayTask = Task.Delay(timeoutMs);
+            var completedTask = await Task.WhenAny(tcs.Task, delayTask).ConfigureAwait(false);
+            if (completedTask == tcs.Task)
+            {
+                return await tcs.Task.ConfigureAwait(false);
+            }
+            return null;
+        }
+        finally
+        {
+            MessageReceived -= Handler;
+        }
+    }
+
+    /// <summary>
     /// Clears any active Transient Preview in AutoCAD.
     /// </summary>
     public async Task<bool> ClearPreviewAsync()

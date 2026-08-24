@@ -116,6 +116,46 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             return GH_GetterResult.success;
         }
 
+        // Out-of-process Live Link fallback for Standalone Rhino 8
+        try
+        {
+            var req = new Rhino.Inside.AutoCAD.Core.IPC.SelectRequestPayload
+            {
+                PromptMessage = this.SingularPromptMessage,
+                SingleOnly = true,
+                TargetType = typeof(TEntity).Name
+            };
+
+            var resp = System.Threading.Tasks.Task.Run(() => 
+                Rhino.Inside.AutoCAD.Core.IPC.LiveLinkClient.Instance.RequestSelectionAsync(req, 60000)).GetAwaiter().GetResult();
+            if (resp != null && resp.Success && resp.Objects.Count > 0)
+            {
+                var objDto = resp.Objects[0];
+                if (objDto.Geometry3dmBytes != null && objDto.Geometry3dmBytes.Length > 0)
+                {
+                    using var file3dm = Rhino.FileIO.File3dm.FromByteArray(objDto.Geometry3dmBytes);
+                    if (file3dm != null && file3dm.Objects.Count > 0)
+                    {
+                        var firstObj = System.Linq.Enumerable.FirstOrDefault(file3dm.Objects);
+                        var geom = firstObj?.Geometry;
+                        if (geom != null)
+                        {
+                            var wrapped = CreateGooFromGeometry(geom);
+                            if (wrapped is TGoo resultGoo)
+                            {
+                                value = resultGoo;
+                                return GH_GetterResult.success;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Rhino.RhinoApp.WriteLine($"[Rhino Live Link] Selection error: {ex.Message}");
+        }
+
         value = default;
         return GH_GetterResult.cancel;
     }
@@ -140,9 +180,106 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             }
         }
 
-        values = newValues;
+        if (newValues.Count > 0)
+        {
+            values = newValues;
+            return GH_GetterResult.success;
+        }
 
-        return GH_GetterResult.success;
+        // Out-of-process Live Link fallback for Standalone Rhino 8
+        try
+        {
+            var req = new Rhino.Inside.AutoCAD.Core.IPC.SelectRequestPayload
+            {
+                PromptMessage = this.PluralPromptMessage,
+                SingleOnly = false,
+                TargetType = typeof(TEntity).Name
+            };
+
+            var resp = System.Threading.Tasks.Task.Run(() => 
+                Rhino.Inside.AutoCAD.Core.IPC.LiveLinkClient.Instance.RequestSelectionAsync(req, 60000)).GetAwaiter().GetResult();
+            if (resp != null && resp.Success && resp.Objects.Count > 0)
+            {
+                foreach (var objDto in resp.Objects)
+                {
+                    if (objDto.Geometry3dmBytes != null && objDto.Geometry3dmBytes.Length > 0)
+                    {
+                        using var file3dm = Rhino.FileIO.File3dm.FromByteArray(objDto.Geometry3dmBytes);
+                        if (file3dm != null && file3dm.Objects.Count > 0)
+                        {
+                            var firstObj = System.Linq.Enumerable.FirstOrDefault(file3dm.Objects);
+                            var geom = firstObj?.Geometry;
+                            if (geom != null)
+                            {
+                                var wrapped = CreateGooFromGeometry(geom);
+                                if (wrapped is TGoo resultGoo)
+                                {
+                                    newValues.Add(resultGoo);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (newValues.Count > 0)
+                {
+                    values = newValues;
+                    return GH_GetterResult.success;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Rhino.RhinoApp.WriteLine($"[Rhino Live Link] Selection error: {ex.Message}");
+        }
+
+        values = newValues;
+        return GH_GetterResult.cancel;
+    }
+
+    private object? CreateGooFromGeometry(GeometryBase geom)
+    {
+        if (geom is Rhino.Geometry.Curve crv)
+        {
+            try
+            {
+                var cadCrv = crv.ToAutocadSingleCurve();
+                if (cadCrv is TEntity typedEntity)
+                {
+                    return this.WrapEntity(typedEntity);
+                }
+            }
+            catch { }
+        }
+        else if (geom is Rhino.Geometry.Brep brep)
+        {
+            return new GH_AutocadBrepProxy(brep);
+        }
+        else if (geom is Rhino.Geometry.Mesh mesh)
+        {
+            try
+            {
+                var cadMesh = mesh.ToAutocadSubDMesh();
+                if (cadMesh is TEntity typedEntity)
+                {
+                    return this.WrapEntity(typedEntity);
+                }
+            }
+            catch { }
+        }
+        else if (geom is Rhino.Geometry.Point pt)
+        {
+            try
+            {
+                var cadPt = pt.ToAutocadDBPoint();
+                if (cadPt is TEntity typedEntity)
+                {
+                    return this.WrapEntity(typedEntity);
+                }
+            }
+            catch { }
+        }
+        return null;
     }
 
     /// <inheritdoc />

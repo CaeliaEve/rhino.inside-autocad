@@ -43,6 +43,14 @@ public static class LiveLinkServerHandler
                     }
                     break;
 
+                case IpcCommandType.SelectInCad:
+                    var selReq = msg.DeserializePayload<SelectRequestPayload>();
+                    if (selReq != null)
+                    {
+                        ExecuteSelectInCad(selReq);
+                    }
+                    break;
+
                 case IpcCommandType.ClearPreview:
                     ClearTransientPreview();
                     break;
@@ -154,6 +162,98 @@ public static class LiveLinkServerHandler
 
         var nurbs = crv.ToNurbsCurve();
         return nurbs != null ? nurbs.ToAutocadSpline() : null;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+    private static void ExecuteSelectInCad(SelectRequestPayload req)
+    {
+        var doc = Application.DocumentManager.MdiActiveDocument;
+        if (doc == null)
+        {
+            var emptyResp = IpcMessage.Create(IpcCommandType.CadObjectsResult, new SelectResponsePayload { Success = false });
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(emptyResp));
+            return;
+        }
+
+        try
+        {
+            var cadHandle = Application.MainWindow?.Handle ?? IntPtr.Zero;
+            if (cadHandle != IntPtr.Zero)
+            {
+                ShowWindowAsync(cadHandle, 9); // SW_RESTORE
+                SetForegroundWindow(cadHandle);
+            }
+
+            var resp = new SelectResponsePayload { Success = true };
+
+            using (doc.LockDocument())
+            using (var tr = doc.TransactionManager.StartTransaction())
+            {
+                var opt = new Autodesk.AutoCAD.EditorInput.PromptSelectionOptions
+                {
+                    SingleOnly = req.SingleOnly,
+                    MessageForAdding = "\n" + (string.IsNullOrWhiteSpace(req.PromptMessage) ? "Select AutoCAD Object: " : req.PromptMessage + ": ")
+                };
+
+                var res = doc.Editor.GetSelection(opt);
+                if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK && res.Value != null)
+                {
+                    foreach (Autodesk.AutoCAD.EditorInput.SelectedObject selObj in res.Value)
+                    {
+                        if (selObj == null) continue;
+                        var ent = tr.GetObject(selObj.ObjectId, OpenMode.ForRead) as Entity;
+                        if (ent == null) continue;
+
+                        var dto = new SelectedObjectDto
+                        {
+                            Handle = ent.Handle.ToString(),
+                            Layer = ent.Layer,
+                            ColorRgb = ent.Color.IsByLayer ? -1 : (ent.Color.ColorValue.R << 16 | ent.Color.ColorValue.G << 8 | ent.Color.ColorValue.B),
+                            ObjectType = ent.GetType().Name
+                        };
+
+                        var file3dm = new File3dm();
+                        if (ent is Curve cadCrv)
+                        {
+                            var rCrv = cadCrv.ToRhinoCurve();
+                            if (rCrv != null) file3dm.Objects.AddCurve(rCrv);
+                        }
+                        else if (ent is Solid3d solid)
+                        {
+                            var rBrep = solid.ToRhinoBrep();
+                            if (rBrep != null) file3dm.Objects.AddBrep(rBrep);
+                        }
+                        else if (ent is DBPoint pt)
+                        {
+                            file3dm.Objects.AddPoint(pt.Position.ToRhinoPoint3d());
+                        }
+
+                        dto.Geometry3dmBytes = file3dm.ToByteArray(new File3dmWriteOptions { Version = 7 });
+                        resp.Objects.Add(dto);
+                    }
+                }
+                else
+                {
+                    resp.Success = false;
+                }
+
+                tr.Commit();
+            }
+
+            var respMsg = IpcMessage.Create(IpcCommandType.CadObjectsResult, resp);
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(respMsg));
+        }
+        catch (Exception ex)
+        {
+            doc.Editor.WriteMessage($"\n[Rhino Live Link] Selection error: {ex.Message}\n");
+            var failResp = IpcMessage.Create(IpcCommandType.CadObjectsResult, new SelectResponsePayload { Success = false });
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(failResp));
+        }
     }
 
     private static void ClearTransientPreview()
