@@ -130,11 +130,16 @@ public class RhinoInsideAutoCadCommands
                 catch { }
             }
 
-            // Launch standalone process
+            // Launch standalone process: Rhino 8 requires /netfx for license manager and .NET 4.8 compatibility
+            var netfxFlag = majorVersion >= 8 ? "/netfx " : "";
+            var launchArgs = launchGrasshopper 
+                ? $"{netfxFlag}/nosplash /runscript=\"-Grasshopper\"" 
+                : $"{netfxFlag}/nosplash";
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = rhinoExePath,
-                Arguments = launchGrasshopper ? "/nosplash /runscript=\"-Grasshopper\"" : "/nosplash",
+                Arguments = launchArgs,
                 UseShellExecute = true,
                 WorkingDirectory = targetInstall.SystemDirectory
             };
