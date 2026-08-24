@@ -114,15 +114,14 @@ public class GrasshopperInstance : IGrasshopperInstance
             this.LoadLibrary(loadGhaMethod, grasshopperCivilLibraryPath, logger);
         }
 
-        // Ensure user's machine Grasshopper plugins and libraries in %APPDATA%\Grasshopper\Libraries are loaded
+        // Update Grasshopper Ribbon UI so newly loaded tabs appear
         try
         {
-            Instances.ComponentServer.LoadExternalFiles();
             GH_ComponentServer.UpdateRibbonUI();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to load external files or update ribbon in Grasshopper.");
+            logger.LogError(ex, "Failed to update ribbon in Grasshopper.");
         }
     }
 
