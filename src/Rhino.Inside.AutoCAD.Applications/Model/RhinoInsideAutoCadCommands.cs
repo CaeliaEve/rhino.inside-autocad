@@ -1,3 +1,8 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Autodesk.AutoCAD.Runtime;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Core;
@@ -71,65 +76,116 @@ public class RhinoInsideAutoCadCommands
         manager.Show();
     }
 
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+    private const int SW_RESTORE = 9;
+
+    private static void LaunchOrActivateStandaloneRhino(int majorVersion, bool launchGrasshopper = false)
+    {
+        var editor = Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument?.Editor;
+
+        try
+        {
+            var locator = new RhinoInstallationLocator();
+            var installations = locator.Locate();
+            var targetInstall = installations.FirstOrDefault(i => i.MajorVersion == majorVersion)
+                             ?? (majorVersion == 8 ? installations.FirstOrDefault(i => i.MajorVersion >= 8) : installations.FirstOrDefault());
+
+            if (targetInstall == null || string.IsNullOrEmpty(targetInstall.SystemDirectory))
+            {
+                editor?.WriteMessage($"\n[Rhino Launcher] Could not find Rhino {majorVersion} installation in registry.\n");
+                return;
+            }
+
+            var rhinoExePath = Path.Combine(targetInstall.SystemDirectory, "Rhino.exe");
+            if (!File.Exists(rhinoExePath))
+            {
+                editor?.WriteMessage($"\n[Rhino Launcher] Rhino.exe not found at: {rhinoExePath}\n");
+                return;
+            }
+
+            // Check if standalone Rhino is already running and bring it to foreground
+            var runningProcs = Process.GetProcessesByName("Rhino");
+            foreach (var proc in runningProcs)
+            {
+                try
+                {
+                    if (proc.MainModule?.FileName != null &&
+                        proc.MainModule.FileName.StartsWith(targetInstall.SystemDirectory, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var handle = proc.MainWindowHandle;
+                        if (handle != IntPtr.Zero)
+                        {
+                            ShowWindowAsync(handle, SW_RESTORE);
+                            SetForegroundWindow(handle);
+                            editor?.WriteMessage($"\n[Rhino Launcher] Activated standalone Rhino {majorVersion} (PID: {proc.Id}).\n");
+                            return;
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            // Launch standalone process
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = rhinoExePath,
+                Arguments = launchGrasshopper ? "/nosplash /runscript=\"-Grasshopper\"" : "/nosplash",
+                UseShellExecute = true,
+                WorkingDirectory = targetInstall.SystemDirectory
+            };
+
+            var newProc = Process.Start(startInfo);
+            editor?.WriteMessage($"\n[Rhino Launcher] Launched standalone Rhino {majorVersion} (PID: {newProc?.Id}).\n");
+        }
+        catch (System.Exception ex)
+        {
+            editor?.WriteMessage($"\n[Rhino Launcher] Launch failed: {ex.Message}\n");
+        }
+    }
+
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO", CommandFlags.Modal)]
     public static void RHINO()
     {
-        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized())
-            return;
-
-        _isLaunching = true;
-        try
-        {
-            var application = RhinoInsideAutoCadExtension.Application;
-            var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Windowed);
-        }
-        finally
-        {
-            _isLaunching = false;
-        }
+        LaunchOrActivateStandaloneRhino(8, false);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO7", CommandFlags.Modal)]
     public static void RHINO7()
     {
-        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(7))
-            return;
-
-        _isLaunching = true;
-        try
-        {
-            var application = RhinoInsideAutoCadExtension.Application;
-            var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Windowed);
-        }
-        finally
-        {
-            _isLaunching = false;
-        }
+        LaunchOrActivateStandaloneRhino(7, false);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO8", CommandFlags.Modal)]
     public static void RHINO8()
     {
-        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(8))
-            return;
-
-        _isLaunching = true;
-        try
-        {
-            var application = RhinoInsideAutoCadExtension.Application;
-            var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Windowed);
-        }
-        finally
-        {
-            _isLaunching = false;
-        }
+        LaunchOrActivateStandaloneRhino(8, false);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER", CommandFlags.Modal)]
     public static void GRASSHOPPER()
+    {
+        LaunchOrActivateStandaloneRhino(8, true);
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "GH7", CommandFlags.Modal)]
+    public static void GH7()
+    {
+        LaunchOrActivateStandaloneRhino(7, true);
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "GH8", CommandFlags.Modal)]
+    public static void GH8()
+    {
+        LaunchOrActivateStandaloneRhino(8, true);
+    }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE", CommandFlags.Modal)]
+    public static void RHINO_INSIDE()
     {
         if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized())
             return;
@@ -139,9 +195,7 @@ public class RhinoInsideAutoCadCommands
         {
             var application = RhinoInsideAutoCadExtension.Application;
             var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Headless);
-            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-            rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
+            rhinoLauncher.Launch(RhinoInsideMode.Windowed);
         }
         finally
         {
@@ -149,31 +203,10 @@ public class RhinoInsideAutoCadCommands
         }
     }
 
-    [CommandMethod("RHINOINSIDE_COMMANDS", "GH7", CommandFlags.Modal)]
-    public static void GH7()
+    [CommandMethod("RHINOINSIDE_COMMANDS", "GH_INSIDE", CommandFlags.Modal)]
+    public static void GH_INSIDE()
     {
-        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(7))
-            return;
-
-        _isLaunching = true;
-        try
-        {
-            var application = RhinoInsideAutoCadExtension.Application;
-            var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Headless);
-            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-            rhinoInstance.RunRhinoCommand(_grasshopperCommandName);
-        }
-        finally
-        {
-            _isLaunching = false;
-        }
-    }
-
-    [CommandMethod("RHINOINSIDE_COMMANDS", "GH8", CommandFlags.Modal)]
-    public static void GH8()
-    {
-        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized(8))
+        if (_isLaunching || !RhinoInsideAutoCadExtension.EnsureInitialized())
             return;
 
         _isLaunching = true;
