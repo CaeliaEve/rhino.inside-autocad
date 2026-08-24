@@ -72,6 +72,9 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
             // Programmatically inject and guarantee Ribbon Tab on any workspace
             Rhino.Inside.AutoCAD.Applications.UI.RibbonBuilder.Initialize();
 
+            // Initialize Live Link IPC Server handler
+            Rhino.Inside.AutoCAD.Applications.IPC.LiveLinkServerHandler.Initialize();
+
             Autodesk.AutoCAD.ApplicationServices.Core.Application.BeginQuit += this.OnApplicationBeginQuit;
 
             editor?.WriteMessage("\n[Rhino.Inside] Plugin loaded (On-demand mode ready). Run RHINO, RHINO7, or RHINO8 to start.\n");

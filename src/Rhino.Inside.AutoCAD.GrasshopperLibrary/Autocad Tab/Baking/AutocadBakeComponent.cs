@@ -175,20 +175,78 @@ public class AutocadBakeComponent : RhinoInsideAutocad_ComponentBase, IBakingCom
 
         var document = this.GetDocumentOrDefault(autocadDocument);
 
-        if (document is null)
-        {
-            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
-            return;
-        }
-
         var objects = new List<object>();
         if (!DA.GetDataList(1, objects) || objects.Count == 0)
             return;
 
         GH_BakeSettings? settingsGoo = null;
         DA.GetData(2, ref settingsGoo);
-
         var settings = settingsGoo?.Value;
+
+        if (document is null)
+        {
+            // Execute via Live Link IPC Pipeline for Standalone Rhino 8
+            var file3dm = new Rhino.FileIO.File3dm();
+            var targetLayerName = settings?.Layer?.Name ?? "0";
+            var colorRgb = -1;
+            if (settings?.Color is IColor c)
+            {
+                colorRgb = (c.Red << 16) | (c.Green << 8) | c.Blue;
+            }
+
+            foreach (var obj in objects)
+            {
+                Rhino.Geometry.GeometryBase? geom = null;
+                if (obj is Grasshopper.Kernel.Types.IGH_GeometricGoo geomGoo)
+                {
+                    geom = geomGoo.ScriptVariable() as Rhino.Geometry.GeometryBase;
+                }
+                else if (obj is Rhino.Geometry.GeometryBase gb)
+                {
+                    geom = gb;
+                }
+
+                if (geom is Rhino.Geometry.Curve crv)
+                {
+                    file3dm.Objects.AddCurve(crv);
+                }
+                else if (geom is Rhino.Geometry.Brep brep)
+                {
+                    file3dm.Objects.AddBrep(brep);
+                }
+                else if (geom is Rhino.Geometry.Mesh mesh)
+                {
+                    file3dm.Objects.AddMesh(mesh);
+                }
+                else if (geom is Rhino.Geometry.Point pt)
+                {
+                    file3dm.Objects.AddPoint(pt.Location);
+                }
+            }
+
+            if (file3dm.Objects.Count > 0)
+            {
+                var payload = new Rhino.Inside.AutoCAD.Core.IPC.BakePayload
+                {
+                    TargetLayer = targetLayerName,
+                    ColorRgb = colorRgb,
+                    Linetype = settings?.LineType?.Name ?? "ByLayer",
+                    Geometry3dmBytes = file3dm.ToByteArray(new Rhino.FileIO.File3dmWriteOptions { Version = 7 })
+                };
+
+                var sendTask = Rhino.Inside.AutoCAD.Core.IPC.LiveLinkClient.Instance.SendBakeAsync(payload);
+                sendTask.Wait(2000);
+                if (sendTask.Result)
+                {
+                    this.Message = "Baked (Live Link)";
+                }
+                else
+                {
+                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Could not reach AutoCAD via Live Link. Ensure Live Link is ON in AutoCAD.");
+                }
+            }
+            return;
+        }
 
         var converterFactory = new RhinoConvertibleFactory();
         var bakeableExtractor = new BakeableExtractor(converterFactory);
