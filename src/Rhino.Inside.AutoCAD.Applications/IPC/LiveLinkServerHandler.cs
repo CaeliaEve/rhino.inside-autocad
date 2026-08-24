@@ -52,10 +52,7 @@ public static class LiveLinkServerHandler
                     var selReq = msg.DeserializePayload<SelectRequestPayload>();
                     if (selReq != null)
                     {
-                        if (_uiContext != null)
-                            _uiContext.Post(_ => ExecuteSelectInCad(selReq), null);
-                        else
-                            ExecuteSelectInCad(selReq);
+                        HandleSelectRequest(selReq);
                     }
                     break;
 
@@ -183,8 +180,11 @@ public static class LiveLinkServerHandler
         return nurbs != null ? nurbs.ToAutocadSpline() : null;
     }
 
-    private static void ExecuteSelectInCad(SelectRequestPayload req)
+    private static SelectRequestPayload? _pendingSelectionRequest;
+
+    public static void HandleSelectRequest(SelectRequestPayload selReq)
     {
+        _pendingSelectionRequest = selReq;
         var doc = Application.DocumentManager.MdiActiveDocument;
         if (doc == null)
         {
@@ -201,9 +201,34 @@ public static class LiveLinkServerHandler
                 Rhino.Inside.AutoCAD.Core.UI.WindowHelper.BringToFront(cadHandle);
             }
 
+            // Post command to AutoCAD command engine for legitimate in-command modal execution
+            doc.SendStringToExecute("RHINOINSIDE_INTERNAL_SELECT\n", true, false, false);
+        }
+        catch (Exception ex)
+        {
+            doc.Editor.WriteMessage($"\n[Rhino Live Link] Command dispatch error: {ex.Message}\n");
+            var failResp = IpcMessage.Create(IpcCommandType.CadObjectsResult, new SelectResponsePayload { Success = false });
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(failResp));
+        }
+    }
+
+    public static void ExecuteSelectionInCommandContext()
+    {
+        var req = _pendingSelectionRequest;
+        _pendingSelectionRequest = null;
+
+        var doc = Application.DocumentManager.MdiActiveDocument;
+        if (doc == null || req == null)
+        {
+            var emptyResp = IpcMessage.Create(IpcCommandType.CadObjectsResult, new SelectResponsePayload { Success = false });
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(emptyResp));
+            return;
+        }
+
+        try
+        {
             var resp = new SelectResponsePayload { Success = true };
 
-            // Interactive Selection must be performed outside of transaction/lock
             var opt = new Autodesk.AutoCAD.EditorInput.PromptSelectionOptions
             {
                 SingleOnly = req.SingleOnly,
@@ -213,7 +238,6 @@ public static class LiveLinkServerHandler
             var res = doc.Editor.GetSelection(opt);
             if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK && res.Value != null)
             {
-                using (doc.LockDocument())
                 using (var tr = doc.TransactionManager.StartTransaction())
                 {
                     foreach (Autodesk.AutoCAD.EditorInput.SelectedObject selObj in res.Value)

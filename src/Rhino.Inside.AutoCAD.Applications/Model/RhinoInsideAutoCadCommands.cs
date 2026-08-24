@@ -534,4 +534,10 @@ public class RhinoInsideAutoCadCommands
             ? "\n[Rhino Live Link] Connection status: Connected to Rhino 8.\n" 
             : "\n[Rhino Live Link] Connection status: Listening for Rhino 8...\n");
     }
+
+    [CommandMethod("RHINOINSIDE_COMMANDS", "RHINOINSIDE_INTERNAL_SELECT", CommandFlags.Modal | CommandFlags.UsePickSet | CommandFlags.Redraw)]
+    public static void RHINOINSIDE_INTERNAL_SELECT()
+    {
+        Rhino.Inside.AutoCAD.Applications.IPC.LiveLinkServerHandler.ExecuteSelectionInCommandContext();
+    }
 }
