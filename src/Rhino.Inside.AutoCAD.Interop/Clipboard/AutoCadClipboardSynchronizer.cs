@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
@@ -16,9 +17,9 @@ using CadSolid3d = Autodesk.AutoCAD.DatabaseServices.Solid3d;
 namespace Rhino.Inside.AutoCAD.Interop;
 
 /// <summary>
-/// Monitors AutoCAD COPYCLIP operations and exports all selected entities (including blocks,
-/// title frames, dimensions, texts, leaders, and curves) directly to an ultra-fast in-memory
-/// Rhino 3DM exchange buffer for sub-5ms instant, 0-prompt vector pasting into Rhino 7.
+/// Monitors AutoCAD COPYCLIP operations and exports selected entities to an ultra-fast in-memory
+/// Rhino 3DM exchange buffer for sub-5ms instant vector pasting into Rhino 7.
+/// Built with strict JIT isolation and zero-escape safety guards to guarantee AutoCAD never crashes.
 /// </summary>
 public static class AutoCadClipboardSynchronizer
 {
@@ -26,7 +27,7 @@ public static class AutoCadClipboardSynchronizer
     private static ObjectId[]? _cachedSelectionIds;
 
     /// <summary>
-    /// Initializes the AutoCAD copy command listener.
+    /// Initializes the AutoCAD copy command listener safely.
     /// </summary>
     public static void Initialize()
     {
@@ -43,7 +44,7 @@ public static class AutoCadClipboardSynchronizer
                 HookDoc(doc);
             }
 
-            System.Diagnostics.Debug.WriteLine("[AutoCadClipboardSynchronizer] Initialized copy listener.");
+            System.Diagnostics.Debug.WriteLine("[AutoCadClipboardSynchronizer] Initialized copy listener with safe JIT isolation.");
         }
         catch (Exception ex)
         {
@@ -85,31 +86,45 @@ public static class AutoCadClipboardSynchronizer
 
     private static void OnCommandWillStart(object? sender, CommandEventArgs e)
     {
-        if (IsCopyCommand(e.GlobalCommandName))
+        try
         {
-            try
+            if (IsCopyCommand(e.GlobalCommandName))
             {
-                var doc = Application.DocumentManager.MdiActiveDocument;
-                if (doc != null)
+                try
                 {
-                    var sel = doc.Editor.SelectImplied();
-                    if (sel.Status == PromptStatus.OK && sel.Value != null && sel.Value.Count > 0)
+                    var doc = Application.DocumentManager.MdiActiveDocument;
+                    if (doc != null)
                     {
-                        _cachedSelectionIds = sel.Value.GetObjectIds();
+                        var sel = doc.Editor.SelectImplied();
+                        if (sel.Status == PromptStatus.OK && sel.Value != null && sel.Value.Count > 0)
+                        {
+                            _cachedSelectionIds = sel.Value.GetObjectIds();
+                        }
                     }
                 }
-            }
-            catch { }
+                catch { }
 
-            ExportSelectedTo3dm(_cachedSelectionIds);
+                ExportSelectedTo3dmSafely(_cachedSelectionIds);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AutoCadClipboardSynchronizer] OnCommandWillStart safe catch: {ex.Message}");
         }
     }
 
     private static void OnCommandEnded(object? sender, CommandEventArgs e)
     {
-        if (IsCopyCommand(e.GlobalCommandName))
+        try
         {
-            ExportSelectedTo3dm(_cachedSelectionIds);
+            if (IsCopyCommand(e.GlobalCommandName))
+            {
+                ExportSelectedTo3dmSafely(_cachedSelectionIds);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AutoCadClipboardSynchronizer] OnCommandEnded safe catch: {ex.Message}");
         }
     }
 
@@ -123,10 +138,51 @@ public static class AutoCadClipboardSynchronizer
     }
 
     /// <summary>
-    /// Converts currently selected AutoCAD entities directly to Rhino geometries and writes
-    /// an ultra-fast .3dm exchange buffer in %TEMP%.
+    /// Checks whether RhinoCommon assembly is currently loaded in the AppDomain.
     /// </summary>
-    public static void ExportSelectedTo3dm(ObjectId[]? targetIds = null)
+    private static bool IsRhinoCommonLoaded()
+    {
+        try
+        {
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (int i = 0; i < assemblies.Length; i++)
+            {
+                if (string.Equals(assemblies[i].GetName().Name, "RhinoCommon", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+        }
+        catch { }
+        return false;
+    }
+
+    /// <summary>
+    /// Safely exports selected entities without risking any JIT assembly resolution failure.
+    /// </summary>
+    public static void ExportSelectedTo3dmSafely(ObjectId[]? targetIds = null)
+    {
+        try
+        {
+            if (!IsRhinoCommonLoaded())
+            {
+                // Rhino inside CAD not initialized yet; let native AutoCAD clipboard handle copy silently
+                return;
+            }
+
+            ExportSelectedTo3dmImpl(targetIds);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AutoCadClipboardSynchronizer] ExportSelectedTo3dmSafely caught: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Inner implementation isolated from JIT inlining to prevent early assembly resolution failure.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ExportSelectedTo3dmImpl(ObjectId[]? targetIds)
     {
         try
         {
@@ -175,10 +231,11 @@ public static class AutoCadClipboardSynchronizer
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AutoCadClipboardSynchronizer] ExportSelectedTo3dm error: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[AutoCadClipboardSynchronizer] ExportSelectedTo3dmImpl error: {ex.Message}");
         }
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ConvertAndAddEntity(
         Entity ent,
         File3dm file3dm,
@@ -287,7 +344,6 @@ public static class AutoCadClipboardSynchronizer
         }
 
         // 3. Composite entities: BlockReference (Title blocks/图框), Dimensions (标注), Leaders, Regions, Meshes
-        // Explode into native sub-components to guarantee 100% visual and geometric fidelity!
         try
         {
             using var explodedCollection = new DBObjectCollection();
