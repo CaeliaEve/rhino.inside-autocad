@@ -23,5 +23,9 @@ public enum IpcCommandType : ushort
     // Bi-directional Selection & Query
     SelectInCad = 0x0030,
     QueryCadObjects = 0x0031,
-    CadObjectsResult = 0x0032
+    CadObjectsResult = 0x0032,
+    
+    // Metadata Query Pipeline (Layers, Blocks, LineTypes, Layouts)
+    QueryMetadataRequest = 0x0040,
+    QueryMetadataResponse = 0x0041
 }

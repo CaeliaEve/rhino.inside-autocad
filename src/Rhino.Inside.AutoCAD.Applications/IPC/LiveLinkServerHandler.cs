@@ -59,6 +59,17 @@ public static class LiveLinkServerHandler
                     }
                     break;
 
+                case IpcCommandType.QueryMetadataRequest:
+                    var metaReq = msg.DeserializePayload<MetadataQueryRequest>();
+                    if (metaReq != null)
+                    {
+                        if (_uiContext != null)
+                            _uiContext.Post(_ => ExecuteQueryMetadata(metaReq), null);
+                        else
+                            ExecuteQueryMetadata(metaReq);
+                    }
+                    break;
+
                 case IpcCommandType.ClearPreview:
                     ClearTransientPreview();
                     break;
@@ -257,6 +268,100 @@ public static class LiveLinkServerHandler
             doc.Editor.WriteMessage($"\n[Rhino Live Link] Selection error: {ex.Message}\n");
             var failResp = IpcMessage.Create(IpcCommandType.CadObjectsResult, new SelectResponsePayload { Success = false });
             System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(failResp));
+        }
+    }
+
+    private static void ExecuteQueryMetadata(MetadataQueryRequest req)
+    {
+        var doc = Application.DocumentManager.MdiActiveDocument;
+        if (doc == null)
+        {
+            var emptyResp = IpcMessage.Create(IpcCommandType.QueryMetadataResponse, new MetadataQueryResponse { Success = false, ErrorMessage = "No active document" });
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(emptyResp));
+            return;
+        }
+
+        try
+        {
+            var resp = new MetadataQueryResponse { Success = true };
+            using (doc.LockDocument())
+            using (var tr = doc.TransactionManager.StartTransaction())
+            {
+                var db = doc.Database;
+
+                if (req.QueryType == MetadataQueryType.Layers)
+                {
+                    var lt = (LayerTable)tr.GetObject(db.LayerTableId, OpenMode.ForRead);
+                    foreach (ObjectId id in lt)
+                    {
+                        var ltr = (LayerTableRecord)tr.GetObject(id, OpenMode.ForRead);
+                        var rgb = ltr.Color.IsByLayer ? -1 : (ltr.Color.ColorValue.R << 16 | ltr.Color.ColorValue.G << 8 | ltr.Color.ColorValue.B);
+                        resp.Layers.Add(new LayerInfoDto
+                        {
+                            Name = ltr.Name,
+                            ColorRgb = rgb,
+                            IsOff = ltr.IsOff,
+                            IsFrozen = ltr.IsFrozen,
+                            IsLocked = ltr.IsLocked,
+                            Handle = ltr.Handle.ToString()
+                        });
+                    }
+                }
+                else if (req.QueryType == MetadataQueryType.Blocks)
+                {
+                    var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                    foreach (ObjectId id in bt)
+                    {
+                        var btr = (BlockTableRecord)tr.GetObject(id, OpenMode.ForRead);
+                        resp.Blocks.Add(new BlockInfoDto
+                        {
+                            Name = btr.Name,
+                            Handle = btr.Handle.ToString(),
+                            IsAnonymous = btr.IsAnonymous,
+                            IsLayout = btr.IsLayout,
+                            IsDynamicBlock = btr.IsDynamicBlock
+                        });
+                    }
+                }
+                else if (req.QueryType == MetadataQueryType.LineTypes)
+                {
+                    var ltt = (LinetypeTable)tr.GetObject(db.LinetypeTableId, OpenMode.ForRead);
+                    foreach (ObjectId id in ltt)
+                    {
+                        var ltr = (LinetypeTableRecord)tr.GetObject(id, OpenMode.ForRead);
+                        resp.LineTypes.Add(new LineTypeInfoDto
+                        {
+                            Name = ltr.Name,
+                            Description = ltr.Comments,
+                            Handle = ltr.Handle.ToString()
+                        });
+                    }
+                }
+                else if (req.QueryType == MetadataQueryType.Layouts)
+                {
+                    var layoutDict = (DBDictionary)tr.GetObject(db.LayoutDictionaryId, OpenMode.ForRead);
+                    foreach (DBDictionaryEntry entry in layoutDict)
+                    {
+                        var layout = (Layout)tr.GetObject(entry.Value, OpenMode.ForRead);
+                        resp.Layouts.Add(new LayoutInfoDto
+                        {
+                            Name = layout.LayoutName,
+                            TabOrder = layout.TabOrder,
+                            Handle = layout.Handle.ToString()
+                        });
+                    }
+                }
+
+                tr.Commit();
+            }
+
+            var respMsg = IpcMessage.Create(IpcCommandType.QueryMetadataResponse, resp);
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(respMsg));
+        }
+        catch (Exception ex)
+        {
+            var errResp = IpcMessage.Create(IpcCommandType.QueryMetadataResponse, new MetadataQueryResponse { Success = false, ErrorMessage = ex.Message });
+            System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(errResp));
         }
     }
 

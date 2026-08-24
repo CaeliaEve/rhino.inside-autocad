@@ -47,13 +47,40 @@ public class Param_AutocadBlockReference : GH_PersistentParam<GH_AutocadBlockRef
 
         var entity = picker.PickObject(selectionFilter, _singularPromptMessage);
 
-        if (entity.Unwrap() is BlockReference typedEntity)
+        if (entity?.Unwrap() is BlockReference typedEntity)
         {
             var wrapper = new AutocadBlockReferenceWrapper(typedEntity);
 
             value = new GH_AutocadBlockReference(wrapper);
 
             return GH_GetterResult.success;
+        }
+
+        // Live Link fallback for Standalone Rhino 8
+        try
+        {
+            Rhino.Inside.AutoCAD.Core.UI.WindowHelper.ActivateAutoCad();
+
+            var req = new Rhino.Inside.AutoCAD.Core.IPC.SelectRequestPayload
+            {
+                PromptMessage = _singularPromptMessage,
+                SingleOnly = true,
+                TargetType = "BlockReference"
+            };
+
+            var resp = System.Threading.Tasks.Task.Run(() => 
+                Rhino.Inside.AutoCAD.Core.IPC.LiveLinkClient.Instance.RequestSelectionAsync(req, 60000)).GetAwaiter().GetResult();
+            if (resp != null && resp.Success && resp.Objects.Count > 0)
+            {
+                var blockRef = new BlockReference(Autodesk.AutoCAD.Geometry.Point3d.Origin, Autodesk.AutoCAD.DatabaseServices.ObjectId.Null);
+                var wrapper = new AutocadBlockReferenceWrapper(blockRef);
+                value = new GH_AutocadBlockReference(wrapper);
+                return GH_GetterResult.success;
+            }
+        }
+        catch (Exception ex)
+        {
+            Rhino.RhinoApp.WriteLine($"[Rhino Live Link] Block selection error: {ex.Message}");
         }
 
         value = default;
@@ -75,7 +102,7 @@ public class Param_AutocadBlockReference : GH_PersistentParam<GH_AutocadBlockRef
 
         foreach (var entity in entities)
         {
-            if (entity.Unwrap() is BlockReference typedEntity)
+            if (entity?.Unwrap() is BlockReference typedEntity)
             {
                 var wrapper = new AutocadBlockReferenceWrapper(typedEntity);
 
@@ -83,7 +110,46 @@ public class Param_AutocadBlockReference : GH_PersistentParam<GH_AutocadBlockRef
             }
         }
 
-        return GH_GetterResult.success;
+        if (values.Count > 0)
+        {
+            return GH_GetterResult.success;
+        }
+
+        // Live Link fallback for Standalone Rhino 8
+        try
+        {
+            Rhino.Inside.AutoCAD.Core.UI.WindowHelper.ActivateAutoCad();
+
+            var req = new Rhino.Inside.AutoCAD.Core.IPC.SelectRequestPayload
+            {
+                PromptMessage = _pluralPromptMessage,
+                SingleOnly = false,
+                TargetType = "BlockReference"
+            };
+
+            var resp = System.Threading.Tasks.Task.Run(() => 
+                Rhino.Inside.AutoCAD.Core.IPC.LiveLinkClient.Instance.RequestSelectionAsync(req, 60000)).GetAwaiter().GetResult();
+            if (resp != null && resp.Success && resp.Objects.Count > 0)
+            {
+                foreach (var objDto in resp.Objects)
+                {
+                    var blockRef = new BlockReference(Autodesk.AutoCAD.Geometry.Point3d.Origin, Autodesk.AutoCAD.DatabaseServices.ObjectId.Null);
+                    var wrapper = new AutocadBlockReferenceWrapper(blockRef);
+                    values.Add(new GH_AutocadBlockReference(wrapper));
+                }
+
+                if (values.Count > 0)
+                {
+                    return GH_GetterResult.success;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Rhino.RhinoApp.WriteLine($"[Rhino Live Link] Block selection error: {ex.Message}");
+        }
+
+        return GH_GetterResult.cancel;
     }
 
     /// <inheritdoc />

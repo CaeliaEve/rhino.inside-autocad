@@ -101,6 +101,47 @@ public class LiveLinkClient : IDisposable
     }
 
     /// <summary>
+    /// Queries metadata (Layers, Blocks, LineTypes, Layouts) from the active AutoCAD session over Live Link.
+    /// </summary>
+    public async Task<MetadataQueryResponse?> QueryMetadataAsync(MetadataQueryRequest request, int timeoutMs = 15000)
+    {
+        if (!await EnsureConnectedAsync().ConfigureAwait(false)) return null;
+
+        var tcs = new TaskCompletionSource<MetadataQueryResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void Handler(IpcMessage msg)
+        {
+            if (msg.CommandType == IpcCommandType.QueryMetadataResponse)
+            {
+                var resp = msg.DeserializePayload<MetadataQueryResponse>();
+                if (resp != null) tcs.TrySetResult(resp);
+            }
+        }
+
+        MessageReceived += Handler;
+        try
+        {
+            var msg = IpcMessage.Create(IpcCommandType.QueryMetadataRequest, request);
+            if (!await _client.SendMessageAsync(msg).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var delayTask = Task.Delay(timeoutMs);
+            var completedTask = await Task.WhenAny(tcs.Task, delayTask).ConfigureAwait(false);
+            if (completedTask == tcs.Task)
+            {
+                return await tcs.Task.ConfigureAwait(false);
+            }
+            return null;
+        }
+        finally
+        {
+            MessageReceived -= Handler;
+        }
+    }
+
+    /// <summary>
     /// Clears any active Transient Preview in AutoCAD.
     /// </summary>
     public async Task<bool> ClearPreviewAsync()

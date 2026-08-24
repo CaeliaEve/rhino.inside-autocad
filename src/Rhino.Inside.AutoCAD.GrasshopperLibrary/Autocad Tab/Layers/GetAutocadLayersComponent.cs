@@ -1,4 +1,4 @@
-﻿using Grasshopper.Kernel;
+using Grasshopper.Kernel;
 using Rhino.Inside.AutoCAD.Applications;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -53,7 +53,30 @@ public class GetAutocadLayersComponent : Layer_BaseComponent
             var activeDoc = RhinoInsideAutoCadExtension.Application?.RhinoInsideManager?.AutoCadInstance?.ActiveDocument;
             if (activeDoc is null)
             {
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No active AutoCAD document available");
+                // Live Link IPC query fallback
+                try
+                {
+                    var req = new Rhino.Inside.AutoCAD.Core.IPC.MetadataQueryRequest
+                    {
+                        QueryType = Rhino.Inside.AutoCAD.Core.IPC.MetadataQueryType.Layers
+                    };
+
+                    var resp = System.Threading.Tasks.Task.Run(() =>
+                        Rhino.Inside.AutoCAD.Core.IPC.LiveLinkClient.Instance.QueryMetadataAsync(req, 5000)).GetAwaiter().GetResult();
+
+                    if (resp != null && resp.Success && resp.Layers.Count > 0)
+                    {
+                        var gooLayers = resp.Layers
+                            .Select(l => new GH_AutocadLayer(new AutocadLayerTableRecordWrapper(new Autodesk.AutoCAD.DatabaseServices.LayerTableRecord { Name = l.Name })))
+                            .ToList();
+
+                        DA.SetDataList(0, gooLayers);
+                        return;
+                    }
+                }
+                catch { }
+
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No active AutoCAD document or Live Link connection available.");
                 return;
             }
             autocadDocument = activeDoc as AutocadDocument;
