@@ -104,7 +104,7 @@ public class GrasshopperInstance : IGrasshopperInstance
 
         logger.LogMessage(string.Format(_loadGhaResolvedFormat, loadGhaMethod));
 
-        // 1. Load AutoCAD & Civil component libraries
+        // 1. Load AutoCAD & Civil component libraries into CAD Grasshopper session
         this.LoadLibrary(loadGhaMethod, grasshopperLibraryPath, logger);
 
         if (_loadCivil)
@@ -112,68 +112,7 @@ public class GrasshopperInstance : IGrasshopperInstance
             this.LoadLibrary(loadGhaMethod, grasshopperCivilLibraryPath, logger);
         }
 
-        // 2. Load all User Objects (.ghuser) from %APPDATA%\Grasshopper\UserObjects
-        try
-        {
-            var userObjectsDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Grasshopper",
-                "UserObjects");
-
-            if (Directory.Exists(userObjectsDir))
-            {
-                var loadGhuserMethod = typeof(GH_ComponentServer).GetMethod("LoadGHUSER", BindingFlags.NonPublic | BindingFlags.Instance);
-                var userFiles = Directory.GetFiles(userObjectsDir, "*.ghuser", SearchOption.AllDirectories);
-                foreach (var userFile in userFiles)
-                {
-                    try
-                    {
-                        var extFile = new GH_ExternalFile(userFile);
-                        if (loadGhuserMethod != null)
-                        {
-                            loadGhuserMethod.Invoke(Instances.ComponentServer, new object[] { extFile });
-                        }
-                    }
-                    catch { }
-                }
-                logger.LogMessage($"[GrasshopperInstance] Loaded {userFiles.Length} UserObject(s) from {userObjectsDir}");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to load user objects in Grasshopper.");
-        }
-
-        // 3. Load all third-party GHA libraries from %APPDATA%\Grasshopper\Libraries
-        try
-        {
-            var librariesDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Grasshopper",
-                "Libraries");
-
-            if (Directory.Exists(librariesDir))
-            {
-                var ghaFiles = Directory.GetFiles(librariesDir, "*.gha", SearchOption.AllDirectories);
-                foreach (var ghaFile in ghaFiles)
-                {
-                    try
-                    {
-                        var extFile = new GH_ExternalFile(ghaFile);
-                        loadGhaMethod.Invoke(Instances.ComponentServer,
-                            this.BuildLoadGhaArguments(loadGhaMethod, extFile));
-                    }
-                    catch { }
-                }
-                logger.LogMessage($"[GrasshopperInstance] Loaded {ghaFiles.Length} GHA file(s) from {librariesDir}");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to load third-party GHA libraries in Grasshopper.");
-        }
-
-        // 4. Update Grasshopper Ribbon UI so all newly loaded tabs appear
+        // 2. Update Grasshopper Ribbon UI so AutoCAD & Civil tabs appear
         try
         {
             GH_ComponentServer.UpdateRibbonUI();
@@ -267,9 +206,8 @@ public class GrasshopperInstance : IGrasshopperInstance
     {
         var mirrorDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Grasshopper",
-            "Libraries",
-            "Rhino.Inside.AutoCAD");
+            _applicationFolderName,
+            _grasshopperLibrariesFolderName);
 
         Directory.CreateDirectory(mirrorDirectory);
 
