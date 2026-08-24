@@ -1,36 +1,31 @@
+using System;
+using System.Threading;
+using System.Windows.Threading;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Services;
 using Rhino.Inside.AutoCAD.UI.Resources.ViewModels;
 using Rhino.Inside.AutoCAD.UI.Resources.Views;
-using System.Windows.Threading;
 
 namespace Rhino.Inside.AutoCAD.UI.Resources.Models;
 
 /// <summary>
-/// The splash screen window launcher. Provides a UI window with
-/// progress reporting and failure information for starting the
-/// application.
+/// Next-Gen Lightweight Zero-Barrier Splash Screen Manager.
+/// Runs completely asynchronously without blocking the AutoCAD main engine thread.
 /// </summary>
 public class LoadingScreenManager : ILoadingScreenManager
 {
-    private bool _disposed;
-
     private readonly ILoggerService _logger = LoggerService.Instance;
-
     private readonly ILoadingScreenConstants _loadingScreenConstants;
     private readonly IApplicationVersionHistory _applicationVersionHistory;
+    private readonly Version _rhinoVersion;
 
     private LoadingScreenWindow? _loadingScreenWindow;
     private LoadingScreenViewModel? _loadingScreenViewModel;
 
     private Dispatcher? _dispatcher;
     private Thread? _newWindowThread;
-
-    private bool _isValidThreadState = true;
-
-    private readonly object _initLock = new object();
-    private bool _isDispatcherReady = false;
-    private readonly Version _rhinoVersion;
+    private volatile bool _isClosed;
+    private readonly object _initLock = new();
 
     /// <summary>
     /// Constructs a new <see cref="LoadingScreenManager"/>.
@@ -38,27 +33,18 @@ public class LoadingScreenManager : ILoadingScreenManager
     public LoadingScreenManager(IRhinoInsideAutoCadApplication application)
     {
         _loadingScreenConstants = application.SettingsManager.Core.LoadingScreenConstants;
-
         _applicationVersionHistory = application.Bootstrapper.ApplicationVersionHistory;
-
         _rhinoVersion = application.RhinoInsideManager.RhinoInstance.ApplicationVersion;
     }
 
-    /// <summary>
-    /// Handles assembly resolution for WPF pack URIs and dependencies in the new thread context.
-    /// </summary>
     private System.Reflection.Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
     {
-        // Check if the requested assembly is the UI.Resources assembly
         var assemblyName = new System.Reflection.AssemblyName(args.Name);
-
         if (assemblyName.Name == "Rhino.Inside.AutoCAD.UI.Resources")
         {
-            // Return the currently executing assembly (UI.Resources)
             return System.Reflection.Assembly.GetExecutingAssembly();
         }
 
-        // Try to load the assembly from the same directory as the executing assembly
         try
         {
             var executingAssemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -67,7 +53,6 @@ public class LoadingScreenManager : ILoadingScreenManager
             if (assemblyDirectory != null)
             {
                 var assemblyPath = System.IO.Path.Combine(assemblyDirectory, assemblyName.Name + ".dll");
-
                 if (System.IO.File.Exists(assemblyPath))
                 {
                     return System.Reflection.Assembly.LoadFrom(assemblyPath);
@@ -82,13 +67,8 @@ public class LoadingScreenManager : ILoadingScreenManager
         return null;
     }
 
-    /// <summary>
-    /// The thread start point to launch the progress reporter window.
-    /// </summary>
     private void ThreadStartingPoint()
     {
-        // Add assembly resolver for WPF pack URIs
-        // This is necessary because WPF's pack URI resolver can't find the assembly in the new thread context
         AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
 
         try
@@ -97,18 +77,18 @@ public class LoadingScreenManager : ILoadingScreenManager
 
             lock (_initLock)
             {
-                _loadingScreenViewModel = new LoadingScreenViewModel(_loadingScreenConstants, _applicationVersionHistory, _rhinoVersion);
+                if (_isClosed)
+                {
+                    return;
+                }
 
+                _loadingScreenViewModel = new LoadingScreenViewModel(_loadingScreenConstants, _applicationVersionHistory, _rhinoVersion);
                 _loadingScreenWindow = new LoadingScreenWindow(_loadingScreenViewModel!)
                 {
                     Topmost = true
                 };
 
                 _loadingScreenWindow.Show();
-
-                _isDispatcherReady = true;
-
-                Monitor.PulseAll(_initLock); // Notify all waiting threads that the dispatcher is ready
             }
 
             Dispatcher.Run();
@@ -116,141 +96,83 @@ public class LoadingScreenManager : ILoadingScreenManager
         catch (Exception e)
         {
             _logger.LogError(e);
-
-            _isValidThreadState = false;
         }
         finally
         {
-            // Remove the assembly resolver
             AppDomain.CurrentDomain.AssemblyResolve -= this.CurrentDomain_AssemblyResolve;
-        }
-    }
-
-    /// <summary>
-    /// Shows the failure message in the splash screen by calling
-    /// <see cref="LoadingScreenViewModel.SetToFailedState"/>.
-    /// </summary>
-    private void ShowFailure(string message)
-    {
-        _dispatcher?.Invoke(() =>
-        {
-            _loadingScreenViewModel?.SetToFailedState(message);
-        });
-    }
-
-    /// <summary>
-    /// Waits for the dispatcher to be ready.
-    /// </summary>
-    private void WaitForDispatcherReady()
-    {
-        lock (_initLock)
-        {
-            while (_isDispatcherReady == false)
-            {
-                Monitor.Wait(_initLock);
-            }
         }
     }
 
     /// <inheritdoc/>
     public void Show()
     {
-        if (_isValidThreadState == false)
-            return;
-
-        _newWindowThread = new Thread(this.ThreadStartingPoint);
-
+        _isClosed = false;
+        _newWindowThread = new Thread(this.ThreadStartingPoint)
+        {
+            IsBackground = true
+        };
         _newWindowThread.SetApartmentState(ApartmentState.STA);
-
-        _newWindowThread.IsBackground = true;
-
         _newWindowThread.Start();
     }
 
     /// <inheritdoc/>
     public void ShowFailedValidationInfo(IStartUpLogger startUpLogger)
     {
-        this.WaitForDispatcherReady();
-
-        _dispatcher?.Invoke(() =>
-        {
-            var messageInfo = startUpLogger.GetLastErrorMessage();
-
-            this.ShowFailure(messageInfo);
-        });
+        var messageInfo = startUpLogger.GetLastErrorMessage();
+        this.ShowFailureMessage(messageInfo);
     }
 
     /// <inheritdoc/>
     public void ShowExceptionInfo()
     {
-        this.WaitForDispatcherReady();
-
-        _dispatcher?.Invoke(() =>
-        {
-            this.ShowFailure(_loadingScreenConstants.FailedStartupMessage!);
-        });
+        this.ShowFailureMessage(_loadingScreenConstants.FailedStartupMessage ?? "Startup failed.");
     }
 
     /// <inheritdoc/>
     public void ShowFailureMessage(string message)
     {
-        this.WaitForDispatcherReady();
-
-        _dispatcher?.Invoke(() =>
+        if (_dispatcher != null && !_isClosed)
         {
-            this.ShowFailure(message);
-        });
+            _dispatcher.BeginInvoke(new Action(() =>
+            {
+                _loadingScreenViewModel?.SetToFailedState(message);
+            }));
+        }
     }
 
     /// <inheritdoc/>
     public void Close()
     {
-        try
+        lock (_initLock)
         {
-            _loadingScreenViewModel?.Dispose();
+            _isClosed = true;
 
-            // Wait for dispatcher to be ready if thread was started
-            if (_newWindowThread != null && _newWindowThread.IsAlive)
+            try
             {
-                this.WaitForDispatcherReady();
+                if (_dispatcher != null)
+                {
+                    _dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        try
+                        {
+                            _loadingScreenViewModel?.Dispose();
+                            _loadingScreenWindow?.Close();
+                            _dispatcher.InvokeShutdown();
+                        }
+                        catch { }
+                    }));
+                }
             }
-
-            _dispatcher?.Invoke(() =>
+            catch (Exception ex)
             {
-                _loadingScreenWindow?.Close();
-            });
-
-            _dispatcher?.InvokeShutdown();
-
-            _newWindowThread?.Join(500);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex);
+                _logger.LogError(ex);
+            }
         }
     }
 
-    /// Protected implementation of Dispose pattern.
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-
-        if (disposing)
-        {
-            this.Close();
-        }
-
-        _disposed = true;
-    }
-
-    /// <summary>
-    /// Public implementation of Dispose pattern callable by consumers.
-    /// </summary>
+    /// <inheritdoc/>
     public void Dispose()
     {
-        this.Dispose(true);
-
-        GC.SuppressFinalize(this);
+        this.Close();
     }
 }

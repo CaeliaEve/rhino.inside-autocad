@@ -183,6 +183,8 @@ public class GrasshopperInstance : IGrasshopperInstance
         this.LogLoadingExceptions(logger);
     }
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _mirroredGhaCache = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>
     /// Returns the path of a ".gha" copy of the given component library, creating or
     /// refreshing it when it is missing or out of date.
@@ -194,16 +196,18 @@ public class GrasshopperInstance : IGrasshopperInstance
     /// the ".dll" happily, which is why this was not needed before.
     /// <para>
     /// The libraries cannot simply be renamed at build time because AutoCAD loads the same
-    /// files as managed modules through PackageContents.xml, which requires ".dll". Having
-    /// both on disk costs nothing at runtime: the assembly is already loaded from the
-    /// original, and <see cref="Assembly.LoadFrom(string)"/> resolves the copy to that same
-    /// assembly rather than loading a second one.
+    /// files as managed modules through PackageContents.xml, technical requirement for AutoCAD.
     /// </para>
     /// </remarks>
     /// <param name="libraryPath">The full path of the component library.</param>
     /// <returns>The full path of the ".gha" copy.</returns>
     private string MirrorAsGrasshopperAssembly(string libraryPath)
     {
+        if (_mirroredGhaCache.TryGetValue(libraryPath, out var cachedMirror) && File.Exists(cachedMirror))
+        {
+            return cachedMirror;
+        }
+
         var mirrorDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             _applicationFolderName,
@@ -219,15 +223,15 @@ public class GrasshopperInstance : IGrasshopperInstance
 
         // Refreshed on every upgrade, so the mirror never serves components from a build
         // the user has replaced.
-        if (mirror.Exists &&
-            mirror.Length == library.Length &&
-            mirror.LastWriteTimeUtc == library.LastWriteTimeUtc)
-            return mirrorPath;
+        if (!mirror.Exists ||
+            mirror.Length != library.Length ||
+            mirror.LastWriteTimeUtc != library.LastWriteTimeUtc)
+        {
+            File.Copy(libraryPath, mirrorPath, true);
+            File.SetLastWriteTimeUtc(mirrorPath, library.LastWriteTimeUtc);
+        }
 
-        File.Copy(libraryPath, mirrorPath, true);
-
-        File.SetLastWriteTimeUtc(mirrorPath, library.LastWriteTimeUtc);
-
+        _mirroredGhaCache[libraryPath] = mirrorPath;
         return mirrorPath;
     }
 

@@ -229,6 +229,7 @@ public class RhinoCoreExtension : IRhinoCoreExtension
             var args = new List<string>()
             {
                _rhinoNoSplashArgument,
+               "/notrack",
             };
 
 #if NET8_0_OR_GREATER

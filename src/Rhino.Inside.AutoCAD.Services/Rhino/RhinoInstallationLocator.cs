@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Services;
@@ -47,40 +47,54 @@ public class RhinoInstallationLocator : IRhinoInstallationLocator
         }
     }
 
+    private static IReadOnlyList<IRhinoInstallation>? _cachedInstallations;
+    private static readonly object _cacheLock = new();
+
     /// <inheritdoc/>
     public IReadOnlyList<IRhinoInstallation> Locate()
     {
-        try
+        if (_cachedInstallations != null)
+            return _cachedInstallations;
+
+        lock (_cacheLock)
         {
-            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine,
-                RegistryView.Registry64);
+            if (_cachedInstallations != null)
+                return _cachedInstallations;
 
-            using var rhinocerosKey = baseKey.OpenSubKey(_rhinoRegistryKeyPath);
-
-            if (rhinocerosKey == null)
-                return [];
-
-            var installations = new List<IRhinoInstallation>();
-
-            foreach (var versionKeyName in rhinocerosKey.GetSubKeyNames())
+            try
             {
-                var installation = this.ReadInstallation(rhinocerosKey, versionKeyName);
+                using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine,
+                    RegistryView.Registry64);
 
-                if (installation != null)
-                    installations.Add(installation);
+                using var rhinocerosKey = baseKey.OpenSubKey(_rhinoRegistryKeyPath);
+
+                if (rhinocerosKey == null)
+                    return _cachedInstallations = [];
+
+                var installations = new List<IRhinoInstallation>();
+
+                foreach (var versionKeyName in rhinocerosKey.GetSubKeyNames())
+                {
+                    var installation = this.ReadInstallation(rhinocerosKey, versionKeyName);
+
+                    if (installation != null)
+                        installations.Add(installation);
+                }
+
+                _cachedInstallations = installations
+                    .OrderByDescending(installation => installation.MajorVersion)
+                    .ThenByDescending(installation => installation.VersionKey,
+                        StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                return _cachedInstallations;
             }
+            catch (Exception e)
+            {
+                LoggerService.Instance.LogError(e);
 
-            return installations
-                .OrderByDescending(installation => installation.MajorVersion)
-                .ThenByDescending(installation => installation.VersionKey,
-                    StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-        catch (Exception e)
-        {
-            LoggerService.Instance.LogError(e);
-
-            return [];
+                return [];
+            }
         }
     }
 }
