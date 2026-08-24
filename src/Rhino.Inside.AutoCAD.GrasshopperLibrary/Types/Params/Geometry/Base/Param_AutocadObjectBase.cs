@@ -135,13 +135,14 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
                 var objDto = resp.Objects[0];
                 if (objDto.CurveData != null)
                 {
-                    var crv = Rhino.Inside.AutoCAD.GrasshopperLibrary.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
+                    var crv = Rhino.Inside.AutoCAD.Core.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
                     if (crv != null)
                     {
                         var wrapped = CreateGooFromGeometry(crv);
                         if (wrapped is TGoo resultGoo)
                         {
                             value = resultGoo;
+                            this.ExpireSolution(true);
                             return GH_GetterResult.success;
                         }
                     }
@@ -159,6 +160,7 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
                             if (wrapped is TGoo resultGoo)
                             {
                                 value = resultGoo;
+                                this.ExpireSolution(true);
                                 return GH_GetterResult.success;
                             }
                         }
@@ -198,6 +200,7 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
         if (newValues.Count > 0)
         {
             values = newValues;
+            this.ExpireSolution(true);
             return GH_GetterResult.success;
         }
 
@@ -221,7 +224,7 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
                 {
                     if (objDto.CurveData != null)
                     {
-                        var crv = Rhino.Inside.AutoCAD.GrasshopperLibrary.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
+                        var crv = Rhino.Inside.AutoCAD.Core.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
                         if (crv != null)
                         {
                             var wrapped = CreateGooFromGeometry(crv);
@@ -253,6 +256,7 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
                 if (newValues.Count > 0)
                 {
                     values = newValues;
+                    this.ExpireSolution(true);
                     return GH_GetterResult.success;
                 }
             }
@@ -266,19 +270,60 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
         return GH_GetterResult.cancel;
     }
 
-    private object? CreateGooFromGeometry(GeometryBase geom)
+    private IGH_Goo? CreateGooFromGeometry(Rhino.Geometry.GeometryBase geom)
     {
         if (geom is Rhino.Geometry.Curve crv)
         {
             try
             {
+                if (crv is Rhino.Geometry.LineCurve lc)
+                {
+                    var cadLine = lc.ToAutocadLine();
+                    if (cadLine is TEntity typedLine) return this.WrapEntity(typedLine);
+                }
+                else if (crv is Rhino.Geometry.ArcCurve ac)
+                {
+                    if (ac.IsCompleteCircle)
+                    {
+                        var cadCircle = new Rhino.Geometry.Circle(ac.Arc).ToAutocadCircle();
+                        if (cadCircle is TEntity typedCircle) return this.WrapEntity(typedCircle);
+                    }
+                    else
+                    {
+                        var cadArc = ac.ToAutocadArc();
+                        if (cadArc is TEntity typedArc) return this.WrapEntity(typedArc);
+                    }
+                }
+                else if (crv is Rhino.Geometry.PolylineCurve plc)
+                {
+                    var cadPl = plc.ToAutocadPolyline3d();
+                    if (cadPl is TEntity typedPl) return this.WrapEntity(typedPl);
+                }
+                else if (crv is Rhino.Geometry.PolyCurve polyCurve)
+                {
+                    var nurbs = polyCurve.ToNurbsCurve();
+                    if (nurbs != null)
+                    {
+                        var cadSpline = nurbs.ToAutocadSpline();
+                        if (cadSpline is TEntity typedSpline) return this.WrapEntity(typedSpline);
+                    }
+                }
+                else if (crv is Rhino.Geometry.NurbsCurve nc)
+                {
+                    var cadSpline = nc.ToAutocadSpline();
+                    if (cadSpline is TEntity typedSpline) return this.WrapEntity(typedSpline);
+                }
+
                 var cadCrv = crv.ToAutocadSingleCurve();
                 if (cadCrv is TEntity typedEntity)
                 {
                     return this.WrapEntity(typedEntity);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Rhino.RhinoApp.WriteLine($"[Rhino Live Link] CreateGoo error: {ex.Message}");
+            }
         }
         else if (geom is Rhino.Geometry.Brep brep)
         {

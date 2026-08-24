@@ -4,11 +4,11 @@ using System.Linq;
 using Rhino.Geometry;
 using Rhino.Inside.AutoCAD.Core.IPC;
 
-namespace Rhino.Inside.AutoCAD.GrasshopperLibrary.Converters;
+namespace Rhino.Inside.AutoCAD.Core.Converters;
 
 /// <summary>
 /// Reconstructs native Rhino geometry curves from pure mathematical CadCurveDto payloads.
-/// Executes entirely in Rhino process space with native rhcommon_c support.
+/// Executes entirely in Rhino process space with native geometry support.
 /// </summary>
 public static class CadCurveReconstructor
 {

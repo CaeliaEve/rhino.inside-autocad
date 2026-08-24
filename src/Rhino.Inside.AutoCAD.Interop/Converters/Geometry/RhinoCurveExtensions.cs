@@ -403,12 +403,25 @@ public static class RhinoCurveExtensions
     /// <returns>A single AutoCAD Curve.</returns>
     public static CadCurve ToAutocadSingleCurve(this RhinoCurve curve)
     {
-        var single = curve is RhinoPolyCurve ? curve.ToNurbsCurve() : curve;
+        if (curve is RhinoPolyCurve polyCurve)
+        {
+            var nurbs = polyCurve.ToNurbsCurve();
+            if (nurbs != null)
+            {
+                return nurbs.ToAutocadCurve();
+            }
+        }
+        else if (curve is RhinoPolyLineCurve plc)
+        {
+            return plc.ToAutocadPolyline3d();
+        }
 
-        var listCurves = single.ToAutocadCurves();
-
-        if (listCurves.Count == 1)
+        var listCurves = curve.ToAutocadCurves();
+        if (listCurves.Count > 0)
             return listCurves[0];
+
+        var nc = curve.ToNurbsCurve();
+        if (nc != null) return nc.ToAutocadCurve();
 
         throw new System.Exception("Cannot convert Rhino curve to single AutoCAD curve.");
     }

@@ -1,4 +1,4 @@
-﻿using Rhino.Inside.AutoCAD.Core.Interfaces;
+using Rhino.Inside.AutoCAD.Core.Interfaces;
 
 namespace Rhino.Inside.AutoCAD.Interop;
 
@@ -85,20 +85,18 @@ public class UnitConverter : IUnitConverter
     }
 
     /// <summary>
-    /// Converts a length from AutoCAD units to Rhino units using the singleton instance.
+    /// Converts a length from AutoCAD units to Rhino units using the singleton instance (or 1.0 default when uninitialized).
     /// </summary>
     public static double ToRhinoLength(double length)
     {
-        return length * Instance?._conversionLengthFactor
-               ?? throw new InvalidOperationException("UnitConverter has not been initialized.");
+        return length * (Instance?._conversionLengthFactor ?? 1.0);
     }
 
     /// <summary>
-    /// Converts a length from Rhino units to AutoCAD units using the singleton instance.
+    /// Converts a length from Rhino units to AutoCAD units using the singleton instance (or 1.0 default when uninitialized).
     /// </summary>
     public static double ToAutoCadLength(double length)
     {
-        return length / Instance?._conversionLengthFactor
-               ?? throw new InvalidOperationException("UnitConverter has not been initialized.");
+        return length / (Instance?._conversionLengthFactor ?? 1.0);
     }
 }
