@@ -55,6 +55,9 @@ public class RhinoInsideAutoCadExtension : IExtensionApplication
 
         try
         {
+            // Trigger static assembly resolver immediately before any JIT compilation
+            _ = typeof(Rhino.Inside.AutoCAD.Services.AssemblyResolver);
+
             IsExpired = false;
 
             // Bootstrap logger and application configuration (0ms startup overhead)
