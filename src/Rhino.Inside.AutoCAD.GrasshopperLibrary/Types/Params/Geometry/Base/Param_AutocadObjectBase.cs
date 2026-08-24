@@ -119,6 +119,8 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
         // Out-of-process Live Link fallback for Standalone Rhino 8
         try
         {
+            Rhino.Inside.AutoCAD.Core.UI.WindowHelper.ActivateAutoCad();
+
             var req = new Rhino.Inside.AutoCAD.Core.IPC.SelectRequestPayload
             {
                 PromptMessage = this.SingularPromptMessage,
@@ -189,6 +191,8 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
         // Out-of-process Live Link fallback for Standalone Rhino 8
         try
         {
+            Rhino.Inside.AutoCAD.Core.UI.WindowHelper.ActivateAutoCad();
+
             var req = new Rhino.Inside.AutoCAD.Core.IPC.SelectRequestPayload
             {
                 PromptMessage = this.PluralPromptMessage,

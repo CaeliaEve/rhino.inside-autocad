@@ -20,11 +20,13 @@ namespace Rhino.Inside.AutoCAD.Applications.IPC;
 public static class LiveLinkServerHandler
 {
     private static bool _isInitialized;
+    private static System.Threading.SynchronizationContext? _uiContext;
 
     public static void Initialize()
     {
         if (_isInitialized) return;
         _isInitialized = true;
+        _uiContext = System.Threading.SynchronizationContext.Current;
 
         LiveLinkManager.Instance.MessageReceived += OnMessageReceived;
     }
@@ -39,7 +41,10 @@ public static class LiveLinkServerHandler
                     var payload = msg.DeserializePayload<BakePayload>();
                     if (payload != null)
                     {
-                        ExecuteBake(payload);
+                        if (_uiContext != null)
+                            _uiContext.Post(_ => ExecuteBake(payload), null);
+                        else
+                            ExecuteBake(payload);
                     }
                     break;
 
@@ -47,7 +52,10 @@ public static class LiveLinkServerHandler
                     var selReq = msg.DeserializePayload<SelectRequestPayload>();
                     if (selReq != null)
                     {
-                        ExecuteSelectInCad(selReq);
+                        if (_uiContext != null)
+                            _uiContext.Post(_ => ExecuteSelectInCad(selReq), null);
+                        else
+                            ExecuteSelectInCad(selReq);
                     }
                     break;
 
@@ -164,12 +172,6 @@ public static class LiveLinkServerHandler
         return nurbs != null ? nurbs.ToAutocadSpline() : null;
     }
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-
     private static void ExecuteSelectInCad(SelectRequestPayload req)
     {
         var doc = Application.DocumentManager.MdiActiveDocument;
@@ -185,8 +187,7 @@ public static class LiveLinkServerHandler
             var cadHandle = Application.MainWindow?.Handle ?? IntPtr.Zero;
             if (cadHandle != IntPtr.Zero)
             {
-                ShowWindowAsync(cadHandle, 9); // SW_RESTORE
-                SetForegroundWindow(cadHandle);
+                Rhino.Inside.AutoCAD.Core.UI.WindowHelper.BringToFront(cadHandle);
             }
 
             var resp = new SelectResponsePayload { Success = true };
@@ -247,6 +248,9 @@ public static class LiveLinkServerHandler
 
             var respMsg = IpcMessage.Create(IpcCommandType.CadObjectsResult, resp);
             System.Threading.Tasks.Task.Run(() => LiveLinkManager.Instance.SendMessageAsync(respMsg));
+
+            // Return focus to Rhino/Grasshopper after selection
+            Rhino.Inside.AutoCAD.Core.UI.WindowHelper.ActivateRhino();
         }
         catch (Exception ex)
         {
