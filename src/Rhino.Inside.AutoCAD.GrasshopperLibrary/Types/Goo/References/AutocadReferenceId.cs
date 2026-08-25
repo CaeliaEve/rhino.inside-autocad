@@ -1,4 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Rhino.Inside.AutoCAD.Core.Interfaces;
 using Rhino.Inside.AutoCAD.Interop;
 
@@ -43,11 +43,26 @@ public class AutocadReferenceId : IAutocadReferenceId
     }
 
     /// <summary>
+    /// Constructor which references an AutoCAD Object by handle string.
+    /// </summary>
+    public AutocadReferenceId(string handleStr)
+    {
+        if (!string.IsNullOrEmpty(handleStr) && long.TryParse(handleStr, System.Globalization.NumberStyles.HexNumber, null, out var val))
+        {
+            _objectHandle = new Handle(val);
+        }
+        else
+        {
+            _objectHandle = new Handle();
+        }
+        this.ObjectId = AutocadObjectIdWrapper.DefaultId;
+    }
+
+    /// <summary>
     /// Constructor which references an AutoCAD Object.
     /// </summary>
     public AutocadReferenceId(DBObject objectToReference)
     {
-
         this.ObjectId = new AutocadObjectIdWrapper(objectToReference.Id);
         _objectHandle = objectToReference.Handle;
     }

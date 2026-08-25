@@ -22,12 +22,21 @@ where TRhinoType : class, IRhinoAdapter
 
     private TRhinoType? _cachedRhinoGeometry;
     private TWrapperType? _cachedValueForGeometry;
+    private TRhinoType? _directRhinoGeometry;
 
     /// <inheritdoc />
-    public IAutocadReferenceId Reference { get; private set; }
+    public IAutocadReferenceId Reference { get; protected set; }
 
     /// <inheritdoc />
     public IDbObject ObjectValue => new AutocadEntityWrapper(this.Value);
+
+    /// <summary>
+    /// Sets the direct Rhino geometry adapter for standalone reconstruction.
+    /// </summary>
+    public void SetDirectRhinoGeometry(TRhinoType rhinoGeometry)
+    {
+        _directRhinoGeometry = rhinoGeometry;
+    }
 
     /// <summary>
     /// Gets the Rhino geometry equivalent of the AutoCAD geometry.
@@ -37,6 +46,9 @@ where TRhinoType : class, IRhinoAdapter
     {
         get
         {
+            if (_directRhinoGeometry != null)
+                return _directRhinoGeometry;
+
             if (this.Value == null)
             {
                 _cachedRhinoGeometry = null;
@@ -87,14 +99,14 @@ where TRhinoType : class, IRhinoAdapter
     {
         get
         {
-            if (this.Value == null)
+            if (!this.IsValid)
                 return $"No internal {this.TypeName} data";
             return string.Empty;
         }
     }
 
     /// <inheritdoc />
-    public override bool IsValid => this.Value != null;
+    public override bool IsValid => this.Value != null || this.RhinoGeometry != null;
 
     /// <inheritdoc />
     public override string TypeName => $"AutoCAD {typeof(TWrapperType).Name}";

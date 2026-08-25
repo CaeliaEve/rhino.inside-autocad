@@ -133,11 +133,20 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             if (resp != null && resp.Success && resp.Objects.Count > 0)
             {
                 var objDto = resp.Objects[0];
+                var refId = !string.IsNullOrEmpty(objDto.Handle) ? new AutocadReferenceId(objDto.Handle) : AutocadReferenceId.NoReference;
+
                 if (objDto.CurveData != null)
                 {
                     var crv = Rhino.Inside.AutoCAD.Core.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
                     if (crv != null)
                     {
+                        if (typeof(TGoo) == typeof(GH_AutocadCurve))
+                        {
+                            value = (TGoo)(object)new GH_AutocadCurve(crv, refId);
+                            this.ExpireSolution(true);
+                            return GH_GetterResult.success;
+                        }
+
                         var wrapped = CreateGooFromGeometry(crv);
                         if (wrapped is TGoo resultGoo)
                         {
@@ -154,6 +163,12 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
                     {
                         var firstObj = System.Linq.Enumerable.FirstOrDefault(file3dm.Objects);
                         var geom = firstObj?.Geometry;
+                        if (geom is Rhino.Geometry.Curve crv && typeof(TGoo) == typeof(GH_AutocadCurve))
+                        {
+                            value = (TGoo)(object)new GH_AutocadCurve(crv, refId);
+                            this.ExpireSolution(true);
+                            return GH_GetterResult.success;
+                        }
                         if (geom != null)
                         {
                             var wrapped = CreateGooFromGeometry(geom);
@@ -222,11 +237,18 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             {
                 foreach (var objDto in resp.Objects)
                 {
+                    var refId = !string.IsNullOrEmpty(objDto.Handle) ? new AutocadReferenceId(objDto.Handle) : AutocadReferenceId.NoReference;
                     if (objDto.CurveData != null)
                     {
                         var crv = Rhino.Inside.AutoCAD.Core.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
                         if (crv != null)
                         {
+                            if (typeof(TGoo) == typeof(GH_AutocadCurve))
+                            {
+                                newValues.Add((TGoo)(object)new GH_AutocadCurve(crv, refId));
+                                continue;
+                            }
+
                             var wrapped = CreateGooFromGeometry(crv);
                             if (wrapped is TGoo resultGoo)
                             {
@@ -240,6 +262,11 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
                         if (file3dm != null && file3dm.Objects.Count > 0)
                         {
                             var firstObj = System.Linq.Enumerable.FirstOrDefault(file3dm.Objects);
+                            if (firstObj?.Geometry is Rhino.Geometry.Curve crv && typeof(TGoo) == typeof(GH_AutocadCurve))
+                            {
+                                newValues.Add((TGoo)(object)new GH_AutocadCurve(crv, refId));
+                                continue;
+                            }
                             var geom = firstObj?.Geometry;
                             if (geom != null)
                             {

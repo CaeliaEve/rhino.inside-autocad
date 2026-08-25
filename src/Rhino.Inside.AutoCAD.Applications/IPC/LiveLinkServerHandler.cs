@@ -246,6 +246,8 @@ public static class LiveLinkServerHandler
                         var ent = tr.GetObject(selObj.ObjectId, OpenMode.ForRead) as Entity;
                         if (ent == null) continue;
 
+                        ent.Highlight();
+
                         var dto = new SelectedObjectDto
                         {
                             Handle = ent.Handle.ToString(),
@@ -263,6 +265,9 @@ public static class LiveLinkServerHandler
                     }
                     tr.Commit();
                 }
+
+                doc.Editor.SetImpliedSelection(res.Value.GetObjectIds());
+                doc.Editor.UpdateScreen();
             }
             else
             {

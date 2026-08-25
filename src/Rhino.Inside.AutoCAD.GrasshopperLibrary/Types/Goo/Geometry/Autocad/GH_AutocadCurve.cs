@@ -37,9 +37,38 @@ public class GH_AutocadCurve : GH_AutocadGeometricGoo<AutocadCurve, RhinoGeometr
     {
     }
 
+    private RhinoCurve? _nativeCurve;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GH_AutocadCurve"/> class wrapping a native Rhino curve.
+    /// </summary>
+    /// <param name="curve">The Rhino curve to wrap.</param>
+    public GH_AutocadCurve(RhinoCurve curve) : base()
+    {
+        _nativeCurve = curve;
+        this.SetDirectRhinoGeometry(new RhinoGeometryAdapter<RhinoCurve>(curve));
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GH_AutocadCurve"/> class wrapping a native Rhino curve and reference.
+    /// </summary>
+    /// <param name="curve">The Rhino curve to wrap.</param>
+    /// <param name="referenceId">The AutoCAD reference identifier.</param>
+    public GH_AutocadCurve(RhinoCurve curve, IAutocadReferenceId referenceId) : base()
+    {
+        _nativeCurve = curve;
+        this.Reference = referenceId;
+        this.SetDirectRhinoGeometry(new RhinoGeometryAdapter<RhinoCurve>(curve));
+    }
+
     /// <inheritdoc />
     protected override GH_AutocadGeometricGoo<AutocadCurve, RhinoGeometryAdapter<RhinoCurve>> CreateClonedInstance(AutocadCurve entity)
     {
+        if (_nativeCurve != null)
+        {
+            return new GH_AutocadCurve(_nativeCurve.DuplicateCurve(), this.Reference);
+        }
+
         if (this.Reference.IsValid)
         {
             var picker = new AutocadObjectPicker();
@@ -50,13 +79,37 @@ public class GH_AutocadCurve : GH_AutocadGeometricGoo<AutocadCurve, RhinoGeometr
             }
         }
 
-        return new GH_AutocadCurve(this.Value);
+        if (this.Value != null)
+        {
+            return new GH_AutocadCurve(this.Value);
+        }
+
+        if (this.RhinoGeometry?.Geometry != null)
+        {
+            return new GH_AutocadCurve(this.RhinoGeometry.Geometry.DuplicateCurve(), this.Reference);
+        }
+
+        return new GH_AutocadCurve();
     }
 
     /// <inheritdoc />
     protected override GH_AutocadGeometricGoo<AutocadCurve, RhinoGeometryAdapter<RhinoCurve>> CreateInstance(AutocadCurve entity)
     {
+        if (entity == null)
+        {
+            if (_nativeCurve != null) return new GH_AutocadCurve(_nativeCurve.DuplicateCurve());
+            if (this.RhinoGeometry?.Geometry != null) return new GH_AutocadCurve(this.RhinoGeometry.Geometry.DuplicateCurve());
+        }
         return new GH_AutocadCurve(entity);
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        if (_nativeCurve != null) return $"AutoCAD Curve ({_nativeCurve.GetType().Name})";
+        if (this.RhinoGeometry?.Geometry != null) return $"AutoCAD Curve ({this.RhinoGeometry.Geometry.GetType().Name})";
+        if (this.Value != null) return $"AutoCAD {this.Value.GetType().Name}";
+        return "Null AutoCAD Curve";
     }
 
     /// <inheritdoc />
