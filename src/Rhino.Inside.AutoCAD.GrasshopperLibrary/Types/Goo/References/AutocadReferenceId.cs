@@ -10,13 +10,12 @@ public class AutocadReferenceId : IAutocadReferenceId
     /// <summary>
     /// Static constructor for when there is no reference.
     /// </summary>
-    public static AutocadReferenceId NoReference => new AutocadReferenceId();
+    public static IAutocadReferenceId NoReference => Rhino.Inside.AutoCAD.Core.References.StandaloneReferenceId.NoReference;
 
     /// <summary>
-    /// The Handle which persists between AutoCAD sessions to identify the
-    /// referenced object.
+    /// The Handle string which persists between AutoCAD sessions to identify the referenced object.
     /// </summary>
-    private readonly Handle _objectHandle;
+    private readonly string _objectHandleStr;
 
     /// <inheritdoc  />
     public IObjectId ObjectId { get; }
@@ -27,10 +26,10 @@ public class AutocadReferenceId : IAutocadReferenceId
     /// <summary>
     /// Default constructor for when there is no referenced object.
     /// </summary>
-    private AutocadReferenceId()
+    public AutocadReferenceId()
     {
-        this.ObjectId = AutocadObjectIdWrapper.DefaultId;
-        _objectHandle = new Handle();
+        this.ObjectId = Rhino.Inside.AutoCAD.Core.References.StandaloneObjectId.Default;
+        _objectHandleStr = string.Empty;
     }
 
     /// <summary>
@@ -39,7 +38,7 @@ public class AutocadReferenceId : IAutocadReferenceId
     public AutocadReferenceId(IDbObject objectToReference)
     {
         this.ObjectId = objectToReference.Id;
-        _objectHandle = objectToReference.UnwrapObject().Handle;
+        _objectHandleStr = objectToReference.UnwrapObject().Handle.ToString();
     }
 
     /// <summary>
@@ -47,15 +46,15 @@ public class AutocadReferenceId : IAutocadReferenceId
     /// </summary>
     public AutocadReferenceId(string handleStr)
     {
-        if (!string.IsNullOrEmpty(handleStr) && long.TryParse(handleStr, System.Globalization.NumberStyles.HexNumber, null, out var val))
+        _objectHandleStr = handleStr ?? string.Empty;
+        if (!string.IsNullOrEmpty(_objectHandleStr) && long.TryParse(_objectHandleStr, System.Globalization.NumberStyles.HexNumber, null, out var val))
         {
-            _objectHandle = new Handle(val);
+            this.ObjectId = new Rhino.Inside.AutoCAD.Core.References.StandaloneObjectId(val);
         }
         else
         {
-            _objectHandle = new Handle();
+            this.ObjectId = Rhino.Inside.AutoCAD.Core.References.StandaloneObjectId.Default;
         }
-        this.ObjectId = AutocadObjectIdWrapper.DefaultId;
     }
 
     /// <summary>
@@ -64,18 +63,18 @@ public class AutocadReferenceId : IAutocadReferenceId
     public AutocadReferenceId(DBObject objectToReference)
     {
         this.ObjectId = new AutocadObjectIdWrapper(objectToReference.Id);
-        _objectHandle = objectToReference.Handle;
+        _objectHandleStr = objectToReference.Handle.ToString();
     }
 
     /// <inheritdoc  />
     public string GetSerializedValue()
     {
-        return _objectHandle.ToString();
+        return _objectHandleStr;
     }
 
     /// <inheritdoc  />
     public override string ToString()
     {
-        return this.IsValid ? this.ObjectId.Value.ToString() : "No Database Id";
+        return this.IsValid ? _objectHandleStr : "No Database Id";
     }
 }

@@ -94,26 +94,31 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
     /// <inheritdoc />
     protected override GH_GetterResult Prompt_Singular(ref TGoo value)
     {
-        var picker = new AutocadObjectPicker();
-
-        var filter = this.CreateSelectionFilter();
-
-        var selectionFilter = filter.GetSelectionFilter();
-
-        var entity = picker.PickObject(selectionFilter, this.SingularPromptMessage);
-
-        if (entity?.Unwrap() is TEntity typedEntity)
+        if (Rhino.Inside.AutoCAD.Core.Host.AutoCadHostContext.IsInProcessHost)
         {
-            value = this.WrapEntity(typedEntity);
+            try
+            {
+                var picker = new AutocadObjectPicker();
+                var filter = this.CreateSelectionFilter();
+                var selectionFilter = filter.GetSelectionFilter();
+                var entity = picker.PickObject(selectionFilter, this.SingularPromptMessage);
 
-            return GH_GetterResult.success;
-        }
+                if (entity?.Unwrap() is TEntity typedEntity)
+                {
+                    value = this.WrapEntity(typedEntity);
+                    return GH_GetterResult.success;
+                }
 
-        if (this.ConvertSupportObject(entity, out var supportedGoo))
-        {
-            value = supportedGoo;
-
-            return GH_GetterResult.success;
+                if (this.ConvertSupportObject(entity, out var supportedGoo))
+                {
+                    value = supportedGoo;
+                    return GH_GetterResult.success;
+                }
+            }
+            catch (Exception ex)
+            {
+                Rhino.RhinoApp.WriteLine($"[Rhino In-Process] Selection error: {ex.Message}");
+            }
         }
 
         // Out-of-process Live Link fallback for Standalone Rhino 8
@@ -133,7 +138,9 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             if (resp != null && resp.Success && resp.Objects.Count > 0)
             {
                 var objDto = resp.Objects[0];
-                var refId = !string.IsNullOrEmpty(objDto.Handle) ? new AutocadReferenceId(objDto.Handle) : AutocadReferenceId.NoReference;
+                var refId = !string.IsNullOrEmpty(objDto.Handle) 
+                    ? (IAutocadReferenceId)new Rhino.Inside.AutoCAD.Core.References.StandaloneReferenceId(objDto.Handle) 
+                    : Rhino.Inside.AutoCAD.Core.References.StandaloneReferenceId.NoReference;
 
                 if (objDto.CurveData != null)
                 {
@@ -195,28 +202,36 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
     /// <inheritdoc />
     protected override GH_GetterResult Prompt_Plural(ref List<TGoo> values)
     {
-        var picker = new AutocadObjectPicker();
-
-        var filter = this.CreateSelectionFilter();
-
-        var selectionFilter = filter.GetSelectionFilter();
-
-        var entities = picker.PickObjects(selectionFilter, this.PluralPromptMessage);
-
         var newValues = new List<TGoo>();
-        foreach (var entity in entities)
-        {
-            if (entity?.Unwrap() is TEntity typedEntity)
-            {
-                newValues.Add(this.WrapEntity(typedEntity));
-            }
-        }
 
-        if (newValues.Count > 0)
+        if (Rhino.Inside.AutoCAD.Core.Host.AutoCadHostContext.IsInProcessHost)
         {
-            values = newValues;
-            this.ExpireSolution(true);
-            return GH_GetterResult.success;
+            try
+            {
+                var picker = new AutocadObjectPicker();
+                var filter = this.CreateSelectionFilter();
+                var selectionFilter = filter.GetSelectionFilter();
+                var entities = picker.PickObjects(selectionFilter, this.PluralPromptMessage);
+
+                foreach (var entity in entities)
+                {
+                    if (entity?.Unwrap() is TEntity typedEntity)
+                    {
+                        newValues.Add(this.WrapEntity(typedEntity));
+                    }
+                }
+
+                if (newValues.Count > 0)
+                {
+                    values = newValues;
+                    this.ExpireSolution(true);
+                    return GH_GetterResult.success;
+                }
+            }
+            catch (Exception ex)
+            {
+                Rhino.RhinoApp.WriteLine($"[Rhino In-Process] Selection error: {ex.Message}");
+            }
         }
 
         // Out-of-process Live Link fallback for Standalone Rhino 8
@@ -237,7 +252,10 @@ public abstract class Param_AutocadObjectBase<TGoo, TEntity> : GH_PersistentGeom
             {
                 foreach (var objDto in resp.Objects)
                 {
-                    var refId = !string.IsNullOrEmpty(objDto.Handle) ? new AutocadReferenceId(objDto.Handle) : AutocadReferenceId.NoReference;
+                    var refId = !string.IsNullOrEmpty(objDto.Handle) 
+                        ? (IAutocadReferenceId)new Rhino.Inside.AutoCAD.Core.References.StandaloneReferenceId(objDto.Handle) 
+                        : Rhino.Inside.AutoCAD.Core.References.StandaloneReferenceId.NoReference;
+
                     if (objDto.CurveData != null)
                     {
                         var crv = Rhino.Inside.AutoCAD.Core.Converters.CadCurveReconstructor.ToRhinoCurve(objDto.CurveData);
