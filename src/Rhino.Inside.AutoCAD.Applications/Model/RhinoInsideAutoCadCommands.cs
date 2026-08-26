@@ -123,11 +123,10 @@ public class RhinoInsideAutoCadCommands
                 catch { }
             }
 
-            // Launch standalone process: Rhino 8 uses /netfx matching system shortcut and license manager
-            var netfxFlag = majorVersion >= 8 ? "/netfx " : "";
+            // Launch standalone process: Native default mode (no /netfx)
             var launchArgs = launchGrasshopper 
-                ? $"{netfxFlag}/nosplash /runscript=\"-Grasshopper\"" 
-                : $"{netfxFlag}/nosplash";
+                ? "/nosplash /runscript=\"-Grasshopper\"" 
+                : "/nosplash";
 
             var startInfo = new ProcessStartInfo
             {
