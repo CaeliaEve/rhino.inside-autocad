@@ -125,8 +125,8 @@ public class RhinoInsideAutoCadCommands
 
             // Launch standalone process: Native default mode (no /netfx)
             var launchArgs = launchGrasshopper 
-                ? "/nosplash /runscript=\"-Grasshopper\"" 
-                : "/nosplash";
+                ? "/runscript=\"-Grasshopper\"" 
+                : "";
 
             var startInfo = new ProcessStartInfo
             {
@@ -389,64 +389,19 @@ public class RhinoInsideAutoCadCommands
     [CommandMethod("RHINOINSIDE_COMMANDS", "OPEN_RHINO_VIEWPORT", CommandFlags.Modal)]
     public static void OPEN_RHINO_VIEWPORT()
     {
-        if (_isLaunching || CheckApplicationIsUnusable())
-            return;
-
-        _isLaunching = true;
-        try
-        {
-            var application = RhinoInsideAutoCadExtension.Application;
-            var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Headless);
-            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-            rhinoInstance.RunRhinoScript(_newFloatingViewportScript);
-        }
-        finally
-        {
-            _isLaunching = false;
-        }
+        LaunchOrActivateStandaloneRhino(8, false);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_PACKAGE_MANGER", CommandFlags.Modal)]
     public static void RHINO_PACKAGE_MANGER()
     {
-        if (_isLaunching || CheckApplicationIsUnusable())
-            return;
-
-        _isLaunching = true;
-        try
-        {
-            var application = RhinoInsideAutoCadExtension.Application;
-            var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Headless);
-            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-            rhinoInstance.RunRhinoCommand(_packageManagerCommandName);
-        }
-        finally
-        {
-            _isLaunching = false;
-        }
+        LaunchOrActivateStandaloneRhino(8, false);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "GRASSHOPPER_PLAYER", CommandFlags.Modal)]
     public static void GRASSHOPPER_PLAYER()
     {
-        if (_isLaunching || CheckApplicationIsUnusable())
-            return;
-
-        _isLaunching = true;
-        try
-        {
-            var application = RhinoInsideAutoCadExtension.Application;
-            var rhinoLauncher = new RhinoLauncher(application!);
-            rhinoLauncher.Launch(RhinoInsideMode.Headless);
-            var rhinoInstance = application!.RhinoInsideManager.RhinoInstance;
-            rhinoInstance.RunRhinoCommand(_grasshopperPlayerCommandName);
-        }
-        finally
-        {
-            _isLaunching = false;
-        }
+        LaunchOrActivateStandaloneRhino(8, true);
     }
 
     [CommandMethod("RHINOINSIDE_COMMANDS", "RHINO_INSIDE_ABOUT", CommandFlags.Modal)]
