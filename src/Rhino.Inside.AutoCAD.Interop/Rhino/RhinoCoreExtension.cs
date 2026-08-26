@@ -235,10 +235,7 @@ public class RhinoCoreExtension : IRhinoCoreExtension
 #if NET8_0_OR_GREATER
             args.Add("/netcore");
 #else
-            if (SelectedInstallation?.MajorVersion >= 8)
-            {
-                args.Add("/netfx");
-            }
+            args.Add("/netfx");
 #endif
 
             _rhinoCore ??= new RhinoCore(args.ToArray(), style, autocadHandle);
