@@ -123,16 +123,18 @@ public class RhinoInsideAutoCadCommands
                 catch { }
             }
 
-            // Launch standalone process: Native default mode (no /netfx)
-            var launchArgs = launchGrasshopper 
-                ? "/runscript=\"-Grasshopper\"" 
-                : "";
+            // Launch standalone process detached from AutoCAD via Windows shell
+            var netfxArg = majorVersion >= 8 ? "/netfx " : "";
+            var scriptArg = launchGrasshopper ? "/runscript=\"-Grasshopper\"" : "";
+            var fullArgs = (netfxArg + scriptArg).Trim();
 
             var startInfo = new ProcessStartInfo
             {
-                FileName = rhinoExePath,
-                Arguments = launchArgs,
-                UseShellExecute = true,
+                FileName = "cmd.exe",
+                Arguments = $"/c start \"\" \"{rhinoExePath}\" {fullArgs}",
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true,
+                UseShellExecute = false,
                 WorkingDirectory = targetInstall.SystemDirectory
             };
 
@@ -140,8 +142,8 @@ public class RhinoInsideAutoCadCommands
             var splash = new Rhino.Inside.AutoCAD.UI.Resources.Models.LoadingScreenManager("1.0.0", $"{majorVersion}.0");
             splash.Show();
 
-            var newProc = Process.Start(startInfo);
-            editor?.WriteMessage($"\n[Rhino Launcher] Launched standalone Rhino {majorVersion} (PID: {newProc?.Id}).\n");
+            Process.Start(startInfo);
+            editor?.WriteMessage($"\n[Rhino Launcher] Launched detached standalone Rhino {majorVersion}.\n");
 
             // Automatically close splash when IPC client connects or after timeout
             System.Threading.Tasks.Task.Run(async () =>
