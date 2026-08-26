@@ -12,5 +12,6 @@ public class BakePayload
     public string Linetype { get; set; } = "ByLayer";
     public bool ReplaceExisting { get; set; } = false;
     public string? BlockName { get; set; }
+    public System.Collections.Generic.List<CadCurveDto> Curves { get; set; } = new();
     public byte[] Geometry3dmBytes { get; set; } = Array.Empty<byte>();
 }

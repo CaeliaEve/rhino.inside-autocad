@@ -112,48 +112,78 @@ public static class LiveLinkServerHandler
                 var btr = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite);
 
                 int bakedCount = 0;
+
+                // 1. Bake pure CadCurveDto objects (100% managed AutoCAD native entities, 0 native rhcommon_c dependency)
+                if (payload.Curves != null && payload.Curves.Count > 0)
+                {
+                    foreach (var crvDto in payload.Curves)
+                    {
+                        var cadEnt = ConvertCadCurveDtoToEntity(crvDto);
+                        if (cadEnt != null)
+                        {
+                            cadEnt.Layer = layerName;
+                            if (payload.ColorRgb >= 0)
+                            {
+                                var r = (byte)((payload.ColorRgb >> 16) & 0xFF);
+                                var g = (byte)((payload.ColorRgb >> 8) & 0xFF);
+                                var b = (byte)(payload.ColorRgb & 0xFF);
+                                cadEnt.Color = Color.FromRgb(r, g, b);
+                            }
+
+                            btr.AppendEntity(cadEnt);
+                            tr.AddNewlyCreatedDBObject(cadEnt, true);
+                            bakedCount++;
+                        }
+                    }
+                }
+
+                // 2. Optional 3dm payload if rhcommon_c is present
                 if (payload.Geometry3dmBytes != null && payload.Geometry3dmBytes.Length > 0)
                 {
-                    var file3dm = File3dm.FromByteArray(payload.Geometry3dmBytes);
-                    if (file3dm != null)
+                    try
                     {
-                        foreach (var obj in file3dm.Objects)
+                        var file3dm = File3dm.FromByteArray(payload.Geometry3dmBytes);
+                        if (file3dm != null)
                         {
-                            var geom = obj.Geometry;
-                            if (geom == null) continue;
+                            foreach (var obj in file3dm.Objects)
+                            {
+                                var geom = obj.Geometry;
+                                if (geom == null) continue;
 
-                            Entity? cadEnt = null;
+                                Entity? cadEnt = null;
 
-                            if (geom is Rhino.Geometry.Curve crv)
-                            {
-                                cadEnt = ConvertRhinoCurveToCadEntity(crv);
-                            }
-                            else if (geom is Rhino.Geometry.Mesh mesh)
-                            {
-                                cadEnt = mesh.ToAutocadSubDMesh();
-                            }
-                            else if (geom is Rhino.Geometry.Point pt)
-                            {
-                                cadEnt = new DBPoint(pt.Location.ToAutocadPoint3d());
-                            }
-
-                            if (cadEnt != null)
-                            {
-                                cadEnt.Layer = layerName;
-                                if (payload.ColorRgb >= 0)
+                                if (geom is Rhino.Geometry.Curve crv)
                                 {
-                                    var r = (byte)((payload.ColorRgb >> 16) & 0xFF);
-                                    var g = (byte)((payload.ColorRgb >> 8) & 0xFF);
-                                    var b = (byte)(payload.ColorRgb & 0xFF);
-                                    cadEnt.Color = Color.FromRgb(r, g, b);
+                                    cadEnt = ConvertRhinoCurveToCadEntity(crv);
+                                }
+                                else if (geom is Rhino.Geometry.Mesh mesh)
+                                {
+                                    cadEnt = mesh.ToAutocadSubDMesh();
+                                }
+                                else if (geom is Rhino.Geometry.Point pt)
+                                {
+                                    cadEnt = new DBPoint(pt.Location.ToAutocadPoint3d());
                                 }
 
-                                btr.AppendEntity(cadEnt);
-                                tr.AddNewlyCreatedDBObject(cadEnt, true);
-                                bakedCount++;
+                                if (cadEnt != null)
+                                {
+                                    cadEnt.Layer = layerName;
+                                    if (payload.ColorRgb >= 0)
+                                    {
+                                        var r = (byte)((payload.ColorRgb >> 16) & 0xFF);
+                                        var g = (byte)((payload.ColorRgb >> 8) & 0xFF);
+                                        var b = (byte)(payload.ColorRgb & 0xFF);
+                                        cadEnt.Color = Color.FromRgb(r, g, b);
+                                    }
+
+                                    btr.AppendEntity(cadEnt);
+                                    tr.AddNewlyCreatedDBObject(cadEnt, true);
+                                    bakedCount++;
+                                }
                             }
                         }
                     }
+                    catch { }
                 }
 
                 tr.Commit();
@@ -165,6 +195,73 @@ public static class LiveLinkServerHandler
         {
             doc.Editor.WriteMessage($"\n[Rhino Live Link] Bake error: {ex.Message}\n");
         }
+    }
+
+    private static Entity? ConvertCadCurveDtoToEntity(CadCurveDto dto)
+    {
+        if (dto == null) return null;
+        try
+        {
+            switch (dto.CurveType)
+            {
+                case "Line":
+                    if (dto.Points.Count >= 2)
+                    {
+                        var p0 = new Point3d(dto.Points[0][0], dto.Points[0][1], dto.Points[0][2]);
+                        var p1 = new Point3d(dto.Points[1][0], dto.Points[1][1], dto.Points[1][2]);
+                        return new Line(p0, p1);
+                    }
+                    break;
+
+                case "Circle":
+                    if (dto.Center.Length >= 3 && dto.Radius > 0)
+                    {
+                        var center = new Point3d(dto.Center[0], dto.Center[1], dto.Center[2]);
+                        var normal = dto.Normal.Length >= 3 ? new Vector3d(dto.Normal[0], dto.Normal[1], dto.Normal[2]) : Vector3d.ZAxis;
+                        return new Circle(center, normal, dto.Radius);
+                    }
+                    break;
+
+                case "Arc":
+                    if (dto.Center.Length >= 3 && dto.Radius > 0)
+                    {
+                        var center = new Point3d(dto.Center[0], dto.Center[1], dto.Center[2]);
+                        var normal = dto.Normal.Length >= 3 ? new Vector3d(dto.Normal[0], dto.Normal[1], dto.Normal[2]) : Vector3d.ZAxis;
+                        return new Arc(center, normal, dto.Radius, dto.StartAngle, dto.EndAngle);
+                    }
+                    break;
+
+                case "Polyline":
+                case "Polyline2d":
+                    if (dto.Points.Count >= 2)
+                    {
+                        var pl = new Polyline();
+                        for (int i = 0; i < dto.Points.Count; i++)
+                        {
+                            var pt = new Point2d(dto.Points[i][0], dto.Points[i][1]);
+                            double bulge = (dto.Bulges != null && dto.Bulges.Count > i) ? dto.Bulges[i] : 0.0;
+                            pl.AddVertexAt(i, pt, bulge, 0.0, 0.0);
+                        }
+                        if (dto.IsClosed) pl.Closed = true;
+                        if (dto.Normal.Length >= 3)
+                            pl.Normal = new Vector3d(dto.Normal[0], dto.Normal[1], dto.Normal[2]);
+                        return pl;
+                    }
+                    break;
+
+                case "Polyline3d":
+                    if (dto.Points.Count >= 2)
+                    {
+                        var col = new Point3dCollection();
+                        foreach (var pt in dto.Points)
+                            col.Add(new Point3d(pt[0], pt[1], pt[2]));
+                        return new Polyline3d(Poly3dType.SimplePoly, col, dto.IsClosed);
+                    }
+                    break;
+            }
+        }
+        catch { }
+        return null;
     }
 
     private static Entity? ConvertRhinoCurveToCadEntity(Rhino.Geometry.Curve crv)
